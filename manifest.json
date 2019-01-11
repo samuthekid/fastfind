@@ -2,7 +2,7 @@
 	"name": "FastFind",
 	"short_name": "FF",
 	"description": "FastFind helps you track of pieces of text!",
-	"version": "0.1",
+	"version": "0.2",
 	"author": "Samuel Nunes",
 	"icons": {
 		"16": "icons/16.png",
@@ -12,13 +12,13 @@
 
 	"content_scripts": [
 		{
-			"persistent": true,
+			"persistent": false,
 			"js": ["findAndReplaceDOMText.js", "index.js"],
 			"matches": ["<all_urls>"],
 			"run_at": "document_end"
 		}
 	],
 	"content_security_policy": "script-src 'self'; object-src 'self'",
-	"minimum_chrome_version": "60",
+	"minimum_chrome_version": "70",
 	"manifest_version": 2
 }
