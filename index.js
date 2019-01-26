@@ -57,14 +57,17 @@ const initFF = () => {
             return false;
           });
         } else {
-          const color = `color${colorsCnt++ % colorsTotal}`;
+          const color = getRandomColor();
+          const contrast = getContrastYIQ(color);
           const currentElements = [];
           const finder = findAndReplaceDOMText(document.body, {
             preset: "prose",
             find: text,
             replace: function(portion, match) {
               const div = document.createElement("div");
-              div.classList.add("ffelem", color);
+              div.classList.add("ffelem");
+              div.style.backgroundColor = `#${color}`;
+              div.style.color = contrast;
               div.innerHTML = portion.text;
               currentElements.push(div);
               return div;
@@ -107,8 +110,24 @@ const onHover = currentSelection => {
         element.classList.remove("active")
       );
     }
-    console.log(event, currentSelection);
   };
+};
+
+const getRandomColor = () => {
+  var letters = "0123456789ABCDEF";
+  var color = "";
+  for (var i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+};
+
+const getContrastYIQ = hexcolor => {
+  var r = parseInt(hexcolor.substr(0, 2), 16);
+  var g = parseInt(hexcolor.substr(2, 2), 16);
+  var b = parseInt(hexcolor.substr(4, 2), 16);
+  var yiq = (r * 299 + g * 587 + b * 114) / 1000;
+  return yiq >= 128 ? "black" : "white";
 };
 
 window.onload = initFF();
