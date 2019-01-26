@@ -70,7 +70,6 @@ const initFF = () => {
               return div;
             }
           });
-          debugger;
           window.getSelection().empty();
           const currentSelection = { finder, elements: currentElements };
           currentElements.forEach(element => {
