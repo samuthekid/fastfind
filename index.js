@@ -2,7 +2,6 @@ let colorsCnt = 0;
 const colorsTotal = 12;
 const colorsCSS = `
 .ffelem {
-  color: #F6F6F6;
   position: relative;
   z-index: 0;
   display: inline-block;
@@ -19,21 +18,16 @@ const colorsCSS = `
   border-radius: 2px;
   transition: transform .3s;
 }
+
+.ffelem {
+  transition: transform .3s;
+}
+
+.active,
 .active::before {
   transform: scale(1.1);
 }
-.color0 { background-color: #1EA896 }
-.color1 { background-color: #FF6164 }
-.color2 { background-color: #0071BC }
-.color3 { background-color: #1FB85C }
-.color4 { background-color: #F75C03 }
-.color5 { background-color: #659B5E }
-.color6 { background-color: #FAA916 }
-.color7 { background-color: #C2202C }
-.color8 { background-color: #B52890 }
-.color9 { background-color: #4930F0 }
-.color10 { background-color: #5A136C }
-.color11 { background-color: #17442B }`;
+`;
 
 let selections = [];
 
