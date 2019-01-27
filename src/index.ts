@@ -1,5 +1,4 @@
-let colorsCnt = 0;
-const colorsTotal = 12;
+import * as findAndReplaceDOMText from "findandreplacedomtext";
 const colorsCSS = `
 .ffelem {
   position: relative;
@@ -29,17 +28,19 @@ const colorsCSS = `
 }
 `;
 
-let selections = [];
+interface Selection {
+  finder: any;
+  portions: Array<{ elements: HTMLDivElement[]; active: boolean }>;
+}
+let selections: Selection[] = [];
 
 const initFF = () => {
-  const onKeyDown = e => {
-    if (e.target.nodeName === "INPUT" || event.metaKey) return false;
-
+  const onKeyDown = (e: KeyboardEvent) => {
+    if (e.srcElement.tagName.toLowerCase() === "input" || e.metaKey)
+      return false;
     if (e.key === "f") {
-      const text = window
-        .getSelection()
-        .toString()
-        .trim();
+      const selectedText = window.getSelection();
+      const text = selectedText.toString().trim();
       if (text) {
         const finder = selections.find(
           selection => selection.finder.options.find === text
@@ -53,27 +54,57 @@ const initFF = () => {
         } else {
           const color = getRandomColor();
           const contrast = getContrastYIQ(color);
-          const currentElements = [];
+          const currentElements: Array<{
+            elements: HTMLDivElement[];
+            active: boolean;
+          }> = [];
+          let portions: HTMLDivElement[] = [];
+          let active = false;
           const finder = findAndReplaceDOMText(document.body, {
             preset: "prose",
             find: text,
-            replace: function(portion, match) {
-              const div = document.createElement("div");
+            replace: (portion, match) => {
+              const div = document.createElement("ffelem") as HTMLDivElement;
               div.classList.add("ffelem");
               div.style.backgroundColor = `#${color}`;
               div.style.color = contrast;
               div.innerHTML = portion.text;
-              currentElements.push(div);
+              portions.push(div);
+
+              active = active
+                ? active
+                : selectedText.baseNode.parentElement ===
+                  portion.node.parentElement;
+
+              if (portion.isEnd) {
+                console.log(
+                  selectedText.baseNode.parentElement,
+                  portion.node.parentElement,
+                  selectedText.baseNode.parentElement ===
+                    portion.node.parentElement
+                );
+                currentElements.push({
+                  elements: portions,
+                  active
+                });
+                portions = [];
+                active = false;
+              }
               return div;
             }
           });
           window.getSelection().empty();
-          const currentSelection = { finder, elements: currentElements };
-          currentElements.forEach(element => {
-            element.onmouseover = onHover(currentSelection);
-            element.onmouseout = onHover(currentSelection);
+          const currentSelection = { finder, portions: currentElements };
+          currentElements.forEach(({ elements }) => {
+            elements.forEach(
+              element => (element.onmouseover = onHover(currentSelection))
+            );
+            elements.forEach(
+              element => (element.onmouseout = onHover(currentSelection))
+            );
           });
           selections.push(currentSelection);
+          console.log(selections);
         }
       } else {
         if (selections.length) {
@@ -93,15 +124,15 @@ const initFF = () => {
   document.body.addEventListener("keydown", onKeyDown);
 };
 
-const onHover = currentSelection => {
-  return event => {
+const onHover = (currentSelection: Selection) => {
+  return (event: MouseEvent) => {
     if (event.type === "mouseover") {
-      currentSelection.elements.forEach(element =>
-        element.classList.add("active")
+      currentSelection.portions.forEach(portion =>
+        portion.elements.forEach(element => element.classList.add("active"))
       );
     } else {
-      currentSelection.elements.forEach(element =>
-        element.classList.remove("active")
+      currentSelection.portions.forEach(portion =>
+        portion.elements.forEach(element => element.classList.remove("active"))
       );
     }
   };
@@ -124,4 +155,4 @@ const getContrastYIQ = hexcolor => {
   return yiq >= 128 ? "black" : "white";
 };
 
-window.onload = initFF();
+initFF();
