@@ -22,8 +22,8 @@ const ffStyle = `
   transition: transform .3s;
 }
 
-.active,
-.active::before {
+.ffelem .active,
+.ffelem .active::before {
   transform: scale(1.1);
 }
 `;
