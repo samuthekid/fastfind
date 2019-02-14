@@ -51,7 +51,6 @@ interface Selection {
 let selections: Selection[] = [];
 
 const initFF = () => {
-  console.log("asdasd");
   const style = document.createElement("style");
   style.innerHTML = ffStyle;
   document.head.appendChild(style);
