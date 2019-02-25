@@ -4,3 +4,5 @@ package-lock.json
 package.json
 
 *.code-workspace
+dist/background.js
+dist/content-script.js
