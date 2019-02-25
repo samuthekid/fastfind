@@ -1,0 +1,31 @@
+{
+  "name": "chrome-extension-react-typescript-boilerplate",
+  "version": "1.0.0",
+  "description": "A boilerplate project to quickly build a Chrome extension using TypeScript and React (built using webpack).",
+  "scripts": {
+    "build": "webpack --config webpack.prod.js",
+    "dev": "webpack --config webpack.dev.js",
+    "watch": "webpack -w --config webpack.dev.js",
+    "lint": "tslint 'src/**/*.ts'"
+  },
+  "author": "Joe Martella",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/chrome": "0.0.78",
+    "css-loader": "^2.1.0",
+    "node-sass": "^4.11.0",
+    "sass-loader": "^7.1.0",
+    "style-loader": "^0.23.1",
+    "ts-loader": "^5.3.3",
+    "tslint-config-airbnb": "^5.11.1",
+    "typescript": "^3.2.4",
+    "webpack": "^4.29.0",
+    "webpack-chrome-extension-reloader": "^1.1.2",
+    "webpack-cli": "^3.2.1",
+    "webpack-merge": "^4.2.1"
+  },
+  "dependencies": {
+    "@webcomponents/webcomponentsjs": "^2.2.7",
+    "findandreplacedomtext": "^0.4.6"
+  }
+}
