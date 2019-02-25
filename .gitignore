@@ -1,7 +1,6 @@
 /node_modules/
 .eslintrc
 package-lock.json
-package.json
 
 *.code-workspace
 dist/background.js
