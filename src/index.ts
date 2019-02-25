@@ -22,10 +22,10 @@ const ffStyle = `
   transition: transform .3s;
 }
 
-.ffelem .active,
+/*.ffelem.active,
 .ffelem .active::before {
   transform: scale(1.1);
-}
+}*/
 `;
 
 const colors = [
