@@ -1,4 +1,4 @@
-import * as findAndReplaceDOMText from "findandreplacedomtext";
+import * as findAndReplaceDOMText from 'findandreplacedomtext';
 const ffStyle = `
 .ffelem {
   position: relative;
@@ -29,128 +29,157 @@ const ffStyle = `
 `;
 
 const colors = [
-  "#1EA896",
-  "#FF6164",
-  "#0071BC",
-  "#1FB85C",
-  "#F75C03",
-  "#659B5E",
-  "#FAA916",
-  "#C2202C",
-  "#B52890",
-  "#4930F0",
-  "#5A136C",
-  "#17442B"
+  '#1EA896',
+  '#FF6164',
+  '#0071BC',
+  '#1FB85C',
+  '#F75C03',
+  '#659B5E',
+  '#FAA916',
+  '#C2202C',
+  '#B52890',
+  '#4930F0',
+  '#5A136C',
+  '#17442B'
 ];
 let currentColor = 0;
 
-interface Selection {
+interface FFelement {
   finder: any;
-  portions: Array<{ elements: HTMLDivElement[]; active: boolean }>;
+  elements: Array<{ portions: HTMLDivElement[]; active: boolean }>;
 }
-let selections: Selection[] = [];
+let selections: FFelement[] = [];
 
 const initFF = () => {
-  const style = document.createElement("style");
+  const style = document.createElement('style');
   style.innerHTML = ffStyle;
   document.head.appendChild(style);
 
-  document.body.addEventListener("keydown", onKeyDown);
+  document.body.addEventListener('keydown', onKeyDown);
 };
 
 const onKeyDown = (e: KeyboardEvent) => {
-  if (e.srcElement.tagName.toLowerCase() === "input" || e.metaKey) return false;
-  if (e.key === "f") {
-    const selectedText = window.getSelection();
-    const text = selectedText.toString().trim();
+  if (e.srcElement.tagName.toLowerCase() === 'input' || e.metaKey) return false;
+
+  const selectedText = window.getSelection();
+  const text = selectedText.toString().trim();
+
+  if (e.key === 'f') {
     if (text) {
-      const finder = selections.find(
+      const exists = selections.find(
         selection => selection.finder.options.find === text
       );
-      if (finder) {
-        selections = selections.filter(selection => {
-          if (selection.finder.options.find !== text) return true;
-          selection.finder.revert();
-          return false;
-        });
-      } else {
-        const color = colors[currentColor];
-        currentColor =
-          currentColor === colors.length - 1 ? 0 : currentColor + 1;
-        const contrast = getContrastYIQ(color);
-        const currentElements: Array<{
-          elements: HTMLDivElement[];
-          active: boolean;
-        }> = [];
-        let portions: HTMLDivElement[] = [];
-        let active = false;
-        const finder = findAndReplaceDOMText(document.body, {
-          preset: "prose",
-          find: text,
-          replace: (portion, match) => {
-            const div = document.createElement("ffelem") as HTMLDivElement;
-            div.classList.add("ffelem");
-            div.style.backgroundColor = color;
-            div.style.color = contrast;
-            div.innerHTML = portion.text;
-            portions.push(div);
-
-            active = active
-              ? active
-              : selectedText.baseNode.parentElement ===
-                portion.node.parentElement;
-
-            if (portion.isEnd) {
-              currentElements.push({
-                elements: portions,
-                active
-              });
-              portions = [];
-              active = false;
-            }
-            return div;
-          }
-        });
-        window.getSelection().empty();
-        const currentSelection = { finder, portions: currentElements };
-        currentElements.forEach(({ elements }) => {
-          elements.forEach(
-            element =>
-              (element.onmouseover = element.onmouseout = onHover(
-                currentSelection
-              ))
-          );
-        });
-        selections.push(currentSelection);
-      }
+      if (exists)
+        removeElement(text);
+      else
+        createElement(text, selectedText);
     } else {
-      if (selections.length) {
-        selections.pop().finder.revert();
-      }
+      removeLastElement();
     }
-  } else if (e.key === "d") {
-    selections.forEach(selection => selection.finder.revert());
-    selections = [];
+  } else if (e.key === 'd') {
+    removeAllElements();
+  } else if (e.key === 'r' && selections.length) {
+    cycleThroughElements(1);
+  } else if (e.key === 'e' && selections.length) {
+    cycleThroughElements(-1);
   }
+  e.stopPropagation();
 };
 
-const onHover = (currentSelection: Selection) => {
+const cycleThroughElements = (direction: number) => {
+  const { elements } = selections[selections.length - 1];
+  const current = elements.find(element => element.active);
+  let nextIndex = elements.indexOf(current) + direction;
+  if (nextIndex >= elements.length) nextIndex = 0;
+  else if (nextIndex < 0) nextIndex = elements.length - 1;
+  const nextActive = elements[nextIndex];
+  current.active = false;
+  nextActive.active = true;
+  nextActive.portions[0].scrollIntoView({block: 'center'});
+};
+
+const removeElement = (text: String) => {
+  selections = selections.filter(selection => {
+    if (selection.finder.options.find !== text) return true;
+    selection.finder.revert();
+    return false;
+  });
+};
+
+const removeLastElement = () => {
+  if (selections.length) selections.pop().finder.revert();
+};
+
+const removeAllElements = () => {
+  selections.forEach(selection => selection.finder.revert());
+  selections = [];
+};
+
+const createElement = (text: String, selectedText: Selection) => {
+  const color = colors[currentColor];
+  currentColor =
+    currentColor === colors.length - 1 ? 0 : currentColor + 1;
+  const contrast = getContrastYIQ(color);
+  const currentElements: Array<{
+    portions: HTMLDivElement[];
+    active: boolean;
+  }> = [];
+  let portions: HTMLDivElement[] = [];
+  let active = false;
+  const finder = findAndReplaceDOMText(document.body, {
+    preset: 'prose',
+    find: text,
+    replace: portion => {
+      const div = document.createElement('ffelem') as HTMLDivElement;
+      div.classList.add('ffelem');
+      div.style.backgroundColor = color;
+      div.style.color = contrast;
+      div.innerHTML = portion.text;
+      portions.push(div);
+
+      active = active
+        ? active
+        : selectedText.baseNode.parentElement ===
+          portion.node.parentElement;
+
+      if (portion.isEnd) {
+        currentElements.push({ portions, active });
+        portions = [];
+        active = false;
+      }
+      return div;
+    }
+  });
+  window.getSelection().empty();
+  const currentSelection = { finder, elements: currentElements };
+  currentElements.forEach(({ portions }) => {
+    portions.forEach(
+      div =>
+        (div.onmouseover = div.onmouseout = onHover(
+          currentSelection
+        ))
+    );
+  });
+  selections.push(currentSelection);
+};
+
+const onHover = (currentSelection: FFelement) => {
   return (event: MouseEvent) => {
-    if (event.type === "mouseover") {
-      currentSelection.portions.forEach(portion =>
-        portion.elements.forEach(element => element.classList.add("active"))
+    if (event.type === 'mouseover') {
+      currentSelection.elements.forEach(portion =>
+        portion.portions.forEach(element => element.classList.add('active'))
       );
     } else {
-      currentSelection.portions.forEach(portion =>
-        portion.elements.forEach(element => element.classList.remove("active"))
+      currentSelection.elements.forEach(portion =>
+        portion.portions.forEach(element => element.classList.remove('active'))
       );
     }
   };
 };
 
 const getRandomColor = () => {
-  var letters = "0123456789ABCDEF";
-  var color = "";
+  var letters = '0123456789ABCDEF';
+  var color = '';
   for (var i = 0; i < 6; i++) {
     color += letters[Math.floor(Math.random() * 16)];
   }
@@ -162,7 +191,7 @@ const getContrastYIQ = hexcolor => {
   var g = parseInt(hexcolor.substr(2, 2), 16);
   var b = parseInt(hexcolor.substr(4, 2), 16);
   var yiq = (r * 299 + g * 587 + b * 114) / 1000;
-  return yiq >= 128 ? "black" : "white";
+  return yiq >= 128 ? 'black' : 'white';
 };
 
 initFF();

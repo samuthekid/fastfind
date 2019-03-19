@@ -1,6 +1,6 @@
-# Chrome Extension (built with TypeScript + React)
+# Fast Find
 
-> This project is a boilerplate project to allow you to quickly build chrome extensions using TypeScript and React.
+[Get the Fast Find extension here!](https://chrome.google.com/webstore/detail/fastfind/pacanidajfeoodnkjnlhjmfnijaeolge)
 
 ## Building
 
