@@ -23,6 +23,9 @@
     "scripts": ["background.js"],
     "persistent": false
   },
+  "web_accessible_resources":[
+		"assets/repeat.png"
+	],
   "minimum_chrome_version": "70",
   "manifest_version": 2
 }

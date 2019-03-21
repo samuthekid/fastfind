@@ -4,7 +4,9 @@ const ffStyle = `
   position: relative;
   z-index: 1;
   display: inline-block;
+  transition: transform .3s cubic-bezier(.6, 0, .4, 1);
 }
+
 .ffelem::before {
   content: '';
   position: absolute;
@@ -15,17 +17,43 @@ const ffStyle = `
   background: inherit;
   z-index: -1;
   border-radius: 2px;
-  transition: transform .3s;
+  transition: transform .3s cubic-bezier(.6, 0, .4, 1);
 }
 
-.ffelem {
-  transition: transform .3s;
+.ffelem.selected,
+.ffelem.selected::before,
+.ffelem.active,
+.ffelem.active::before {
+  transform: scale(1.05);
+  box-shadow: 0px 0px 3px 0px rgba(255,255,255,1);
 }
 
-/*.ffelem.active,
-.ffelem .active::before {
-  transform: scale(1.1);
-}*/
+.repeatLogo {
+  visibility: hidden;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000000;
+}
+
+.repeatLogo.active {
+  animation: rotateLogo .5s cubic-bezier(.6, 0, .4, 1);
+}
+
+@keyframes rotateLogo {
+  0% {
+    visibility: visible;
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(-30deg);
+  }
+  45% { opacity: 0.5; }
+  55% { opacity: 0.5; }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(80deg);
+  } 
+}
 `;
 
 const colors = [
@@ -50,10 +78,16 @@ interface FFelement {
 }
 let selections: FFelement[] = [];
 
+let repeatLogo: HTMLElement = document.createElement('img');
+
 const initFF = () => {
   const style = document.createElement('style');
   style.innerHTML = ffStyle;
   document.head.appendChild(style);
+
+  repeatLogo.setAttribute('src', chrome.extension.getURL('assets/repeat.png'));
+  repeatLogo.className = 'repeatLogo';
+  document.body.appendChild(repeatLogo);
 
   document.body.addEventListener('keydown', onKeyDown);
 };
@@ -90,12 +124,19 @@ const cycleThroughElements = (direction: number) => {
   const { elements } = selections[selections.length - 1];
   const current = elements.find(element => element.active);
   let nextIndex = elements.indexOf(current) + direction;
-  if (nextIndex >= elements.length) nextIndex = 0;
-  else if (nextIndex < 0) nextIndex = elements.length - 1;
+  if (nextIndex >= elements.length) {
+    nextIndex = 0;
+    rotateLogo();
+  } else if (nextIndex < 0) {
+    nextIndex = elements.length - 1;
+    rotateLogo();
+  }
   const nextActive = elements[nextIndex];
   current.active = false;
+  current.portions.forEach(p => p.classList.remove('selected'));
   nextActive.active = true;
-  nextActive.portions[0].scrollIntoView({block: 'center'});
+  nextActive.portions.forEach(p => p.classList.add('selected'));
+  nextActive.portions[0].scrollIntoViewIfNeeded({block: 'center'});
 };
 
 const removeElement = (text: String) => {
@@ -130,17 +171,18 @@ const createElement = (text: String, selectedText: Selection) => {
     preset: 'prose',
     find: text,
     replace: portion => {
-      const div = document.createElement('ffelem') as HTMLDivElement;
-      div.classList.add('ffelem');
-      div.style.backgroundColor = color;
-      div.style.color = contrast;
-      div.innerHTML = portion.text;
-      portions.push(div);
-
       active = active
         ? active
         : selectedText.baseNode.parentElement ===
           portion.node.parentElement;
+
+      const div = document.createElement('ffelem') as HTMLDivElement;
+      div.classList.add('ffelem');
+      if (active) div.classList.add('selected');
+      div.style.backgroundColor = color;
+      div.style.color = contrast;
+      div.innerHTML = portion.text;
+      portions.push(div);
 
       if (portion.isEnd) {
         currentElements.push({ portions, active });
@@ -175,6 +217,11 @@ const onHover = (currentSelection: FFelement) => {
       );
     }
   };
+};
+
+const rotateLogo = () => {
+  repeatLogo.classList.add('active');
+  window.setTimeout(() => repeatLogo.classList.remove('active'), 500);
 };
 
 const getRandomColor = () => {
