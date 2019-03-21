@@ -4,7 +4,6 @@ const ffStyle = `
   position: relative;
   z-index: 1;
   display: inline-block;
-  transition: transform .3s cubic-bezier(.6, 0, .4, 1);
 }
 
 .ffelem::before {
@@ -17,14 +16,12 @@ const ffStyle = `
   background: inherit;
   z-index: -1;
   border-radius: 2px;
-  transition: transform .3s cubic-bezier(.6, 0, .4, 1);
+  transition: transform .3s ease-in-out;
 }
 
-.ffelem.selected,
 .ffelem.selected::before,
-.ffelem.active,
 .ffelem.active::before {
-  transform: scale(1.05);
+  transform: scale(1.08);
   box-shadow: 0px 0px 3px 0px rgba(255,255,255,1);
 }
 
@@ -110,14 +107,17 @@ const onKeyDown = (e: KeyboardEvent) => {
     } else {
       removeLastElement();
     }
+    e.stopPropagation();
   } else if (e.key === 'd') {
     removeAllElements();
+    e.stopPropagation();
   } else if (e.key === 'r' && selections.length) {
     cycleThroughElements(1);
+    e.stopPropagation();
   } else if (e.key === 'e' && selections.length) {
     cycleThroughElements(-1);
+    e.stopPropagation();
   }
-  e.stopPropagation();
 };
 
 const cycleThroughElements = (direction: number) => {
@@ -136,7 +136,7 @@ const cycleThroughElements = (direction: number) => {
   current.portions.forEach(p => p.classList.remove('selected'));
   nextActive.active = true;
   nextActive.portions.forEach(p => p.classList.add('selected'));
-  nextActive.portions[0].scrollIntoViewIfNeeded({block: 'center'});
+  nextActive.portions[0].scrollIntoView({block: 'center'});
 };
 
 const removeElement = (text: String) => {
