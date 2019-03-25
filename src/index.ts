@@ -100,10 +100,8 @@ const onKeyDown = (e: KeyboardEvent) => {
       const exists = selections.find(
         selection => selection.finder.options.find === text
       );
-      if (exists)
-        removeElement(text);
-      else
-        createElement(text, selectedText);
+      if (exists) removeElement(text);
+      else createElement(text, selectedText);
     } else {
       removeLastElement();
     }
@@ -136,7 +134,9 @@ const cycleThroughElements = (direction: number) => {
   current.portions.forEach(p => p.classList.remove('selected'));
   nextActive.active = true;
   nextActive.portions.forEach(p => p.classList.add('selected'));
-  nextActive.portions[0].scrollIntoView({block: 'center'});
+  if (!isElementInViewport(nextActive.portions[0])) {
+    nextActive.portions[0].scrollIntoView({ block: 'center' });
+  }
 };
 
 const removeElement = (text: String) => {
@@ -158,8 +158,7 @@ const removeAllElements = () => {
 
 const createElement = (text: String, selectedText: Selection) => {
   const color = colors[currentColor];
-  currentColor =
-    currentColor === colors.length - 1 ? 0 : currentColor + 1;
+  currentColor = currentColor === colors.length - 1 ? 0 : currentColor + 1;
   const contrast = getContrastYIQ(color);
   const currentElements: Array<{
     portions: HTMLDivElement[];
@@ -173,8 +172,7 @@ const createElement = (text: String, selectedText: Selection) => {
     replace: portion => {
       active = active
         ? active
-        : selectedText.baseNode.parentElement ===
-          portion.node.parentElement;
+        : selectedText.baseNode.parentElement === portion.node.parentElement;
 
       const div = document.createElement('ffelem') as HTMLDivElement;
       div.classList.add('ffelem');
@@ -196,10 +194,7 @@ const createElement = (text: String, selectedText: Selection) => {
   const currentSelection = { finder, elements: currentElements };
   currentElements.forEach(({ portions }) => {
     portions.forEach(
-      div =>
-        (div.onmouseover = div.onmouseout = onHover(
-          currentSelection
-        ))
+      div => (div.onmouseover = div.onmouseout = onHover(currentSelection))
     );
   });
   selections.push(currentSelection);
@@ -225,20 +220,32 @@ const rotateLogo = () => {
 };
 
 const getRandomColor = () => {
-  var letters = '0123456789ABCDEF';
-  var color = '';
-  for (var i = 0; i < 6; i++) {
+  const letters = '0123456789ABCDEF';
+  let color = '';
+  for (let i = 0; i < 6; i++) {
     color += letters[Math.floor(Math.random() * 16)];
   }
   return color;
 };
 
 const getContrastYIQ = hexcolor => {
-  var r = parseInt(hexcolor.substr(0, 2), 16);
-  var g = parseInt(hexcolor.substr(2, 2), 16);
-  var b = parseInt(hexcolor.substr(4, 2), 16);
-  var yiq = (r * 299 + g * 587 + b * 114) / 1000;
+  const r = parseInt(hexcolor.substr(0, 2), 16);
+  const g = parseInt(hexcolor.substr(2, 2), 16);
+  const b = parseInt(hexcolor.substr(4, 2), 16);
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
   return yiq >= 128 ? 'black' : 'white';
+};
+
+const isElementInViewport = element => {
+  const rect = element.getBoundingClientRect();
+
+  return (
+    rect.top >= 0 &&
+    rect.left >= 0 &&
+    rect.bottom <=
+      (window.innerHeight || document.documentElement.clientHeight) &&
+    rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+  );
 };
 
 initFF();
