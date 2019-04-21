@@ -3,7 +3,8 @@ import { ffStyle, colors } from './style.ts';
 
 let currentColor = 0;
 let settings = {
-  showRotatingArrow: false,
+  showRotatingArrow: true,
+  showSideMap: true,
 };
 
 var pageHeight = Math.max(
@@ -40,9 +41,11 @@ const initFF = () => {
   repeatLogoWrapper.className = 'repeatLogoWrapper';
   repeatLogoWrapper.appendChild(repeatLogo);
   document.body.appendChild(repeatLogoWrapper);
-  
-  selectionsMapWrapper.className = 'selectionsMapWrapper';
-  document.body.appendChild(selectionsMapWrapper);
+
+  if (settings.showSideMap) {
+    selectionsMapWrapper.className = 'selectionsMapWrapper';
+    document.body.appendChild(selectionsMapWrapper);
+  }
 
   document.body.addEventListener('keydown', onKeyDown);
 };
@@ -112,7 +115,7 @@ const unselectElement = () => {
   if (oldElement) {
     oldElement.active = false;
     oldElement.portions.forEach(p => p.classList.remove('selected'));
-    oldElement.mapIndicator.classList.remove('selected');
+    settings.showSideMap && oldElement.mapIndicator.classList.remove('selected');
   }
 };
 
@@ -122,15 +125,15 @@ const selectElement = (element, scrollIntoView) => {
 
   element.active = true;
   element.portions.forEach(p => p.classList.add('selected'));
-  element.mapIndicator.classList.add('selected');
+  settings.showSideMap && element.mapIndicator.classList.add('selected');
   scrollIntoView && element.portions[0].scrollIntoView({block: 'center'});
 };
 
 const removeElement = (selection: FFinstance) => {
-  selection.finder.revert();
-  selection.elements.forEach(element =>
+  settings.showSideMap && selection.elements.forEach(element =>
     element.mapIndicator.remove()
   );
+  selection.finder.revert();
 };
 
 const removeSelectedElement = () => {
@@ -138,6 +141,8 @@ const removeSelectedElement = () => {
   if (selectedInstance) {
     removeElement(selectedInstance);
     selections.splice(selections.indexOf(selectedInstance), 1);
+  } else {
+    removeElement(selections.pop());
   }
 };
 
@@ -190,15 +195,17 @@ const createElement = (text: String, selectedText: Selection) => {
       div.onmouseover = div.onmouseout = onHover(currentSelection);
       div.onclick = () => selectElement(element, false);
     });
-    let indicator = document.createElement('div');
-    indicator.classList.add('mapIndicator');
-    if (active) indicator.classList.add('selected');
-    indicator.onclick = () => selectElement(element, true);
-    let elementPosition = portions[0].getBoundingClientRect().top + document.documentElement.scrollTop;
-    indicator.style.marginTop = `${elementPosition / pageHeight * 100}vh`;
-    indicator.style.backgroundColor = color;
-    selectionsMapWrapper.appendChild(indicator);
-    element.mapIndicator = indicator;
+    if (settings.showSideMap) {
+      let indicator = document.createElement('div');
+      indicator.classList.add('mapIndicator');
+      if (active) indicator.classList.add('selected');
+      indicator.onclick = () => selectElement(element, true);
+      let elementPosition = portions[0].getBoundingClientRect().top + document.documentElement.scrollTop;
+      indicator.style.marginTop = `${elementPosition / pageHeight * 100}vh`;
+      indicator.style.backgroundColor = color;
+      selectionsMapWrapper.appendChild(indicator);
+      element.mapIndicator = indicator;
+    }
   });
   selections.push(currentSelection);
 };
