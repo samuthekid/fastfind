@@ -3,8 +3,8 @@ import { ffStyle, colors } from './style.ts';
 
 let currentColor = 0;
 let settings = {
-  showRotatingArrow: true,
-  showSideMap: true,
+  showRotatingArrow: false,
+  showSideMap: false,
 };
 
 var pageHeight = Math.max(
