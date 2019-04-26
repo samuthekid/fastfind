@@ -85,6 +85,10 @@ export const ffStyle = `
   right: 0px;
   top: 0px;
   z-index: 10000;
+  background: none;
+}
+
+.selectionsMapWrapper:hover {
   background: linear-gradient(
     rgba(0,0,0,0.1) 0%,
     rgba(0,0,0,0.05) 50%,

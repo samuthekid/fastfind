@@ -6,6 +6,7 @@ let pageHeight = 0;
 let settings = {
   showRotatingArrow: true,
   showSideMap: true,
+  keepElementCentered: false,
 };
 
 interface FFelement {
@@ -70,7 +71,8 @@ const onKeyDown = (e: KeyboardEvent) => {
       const exists = selections.find(
         selection => selection.finder.options.find === text
       );
-      if (!exists) createElement(text, selectedText);
+      if (!exists)
+        createElement(text, selectedText);
     } else {
       removeSelectedOrLastElement();
     }
@@ -128,7 +130,8 @@ const selectElement = (element, scrollIntoView) => {
   element.active = true;
   element.portions.forEach(p => p.classList.add('selected'));
   settings.showSideMap && element.mapIndicator.classList.add('selected');
-  scrollIntoView && element.portions[0].scrollIntoView({block: 'center'});
+  if (settings.keepElementCentered || !isElementInViewport(element.portions[0]))
+    scrollIntoView && element.portions[0].scrollIntoView({block: 'center'});
 };
 
 const removeElement = (selection: FFinstance) => {
@@ -157,8 +160,7 @@ const removeAllElements = () => {
 const createElement = (text: String, selectedText: Selection) => {
   unselectElement();
   const color = colors[currentColor];
-  currentColor =
-    currentColor === colors.length - 1 ? 0 : currentColor + 1;
+  currentColor = currentColor === colors.length - 1 ? 0 : currentColor + 1;
   const contrast = getContrastYIQ(color);
   const currentElements: FFelement[] = [];
   let portions: HTMLDivElement[] = [];
@@ -169,8 +171,7 @@ const createElement = (text: String, selectedText: Selection) => {
     replace: portion => {
       active = active
         ? active
-        : selectedText.baseNode.parentElement ===
-          portion.node.parentElement;
+        : selectedText.baseNode.parentElement === portion.node.parentElement;
 
       const div = document.createElement('ffelem') as HTMLDivElement;
       div.classList.add('ffelem');
@@ -247,20 +248,32 @@ const rotateLogo = () => {
 };
 
 const getRandomColor = () => {
-  var letters = '0123456789ABCDEF';
-  var color = '';
-  for (var i = 0; i < 6; i++) {
+  const letters = '0123456789ABCDEF';
+  let color = '';
+  for (let i = 0; i < 6; i++) {
     color += letters[Math.floor(Math.random() * 16)];
   }
   return color;
 };
 
-const getContrastYIQ = hexcolor => {
-  var r = parseInt(hexcolor.substr(0, 2), 16);
-  var g = parseInt(hexcolor.substr(2, 2), 16);
-  var b = parseInt(hexcolor.substr(4, 2), 16);
-  var yiq = (r * 299 + g * 587 + b * 114) / 1000;
+const getContrastYIQ = (hexcolor: String) => {
+  const r = parseInt(hexcolor.substr(0, 2), 16);
+  const g = parseInt(hexcolor.substr(2, 2), 16);
+  const b = parseInt(hexcolor.substr(4, 2), 16);
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
   return yiq >= 128 ? 'black' : 'white';
+};
+
+const isElementInViewport = (element: HTMLElement) => {
+  const rect = element.getBoundingClientRect();
+
+  return (
+    rect.top >= 0 &&
+    rect.left >= 0 &&
+    rect.bottom <=
+      (window.innerHeight || document.documentElement.clientHeight) &&
+    rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+  );
 };
 
 initFF();
