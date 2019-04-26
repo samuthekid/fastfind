@@ -2,18 +2,11 @@ import * as findAndReplaceDOMText from 'findandreplacedomtext';
 import { ffStyle, colors } from './style.ts';
 
 let currentColor = 0;
+let pageHeight = 0;
 let settings = {
-  showRotatingArrow: false,
-  showSideMap: false,
+  showRotatingArrow: true,
+  showSideMap: true,
 };
-
-var pageHeight = Math.max(
-  document.body.scrollHeight,
-  document.body.offsetHeight,
-  document.documentElement.clientHeight,
-  document.documentElement.scrollHeight,
-  document.documentElement.offsetHeight
-);
 
 interface FFelement {
   active: boolean;
@@ -23,6 +16,7 @@ interface FFelement {
 interface FFinstance {
   finder: any;
   elements: FFelement[];
+  mapWrapper: HTMLDivElement;
 }
 let selections: FFinstance[] = [];
 
@@ -48,6 +42,21 @@ const initFF = () => {
   }
 
   document.body.addEventListener('keydown', onKeyDown);
+
+  const resizeObserver = new ResizeObserver(() => {
+    let newHeight = Math.max(
+      document.body.scrollHeight,
+      document.body.offsetHeight,
+      document.documentElement.clientHeight,
+      document.documentElement.scrollHeight,
+      document.documentElement.offsetHeight
+    );
+    if (newHeight != pageHeight) {
+      pageHeight = newHeight;
+      redrawMapIndicators();
+    }
+  });
+  resizeObserver.observe(document.body);
 };
 
 const onKeyDown = (e: KeyboardEvent) => {
@@ -63,7 +72,7 @@ const onKeyDown = (e: KeyboardEvent) => {
       );
       if (!exists) createElement(text, selectedText);
     } else {
-      removeSelectedElement();
+      removeSelectedOrLastElement();
     }
     e.stopPropagation();
   } else if (e.key === 'd' && selections.length) {
@@ -79,11 +88,10 @@ const onKeyDown = (e: KeyboardEvent) => {
 };
 
 const cycleThroughElements = (direction: number) => {
-  const selectedInstance = getSelectedInstance();
-  if (!selectedInstance) return false;
-  const selectedElement = getSelectedElement(selectedInstance);
-  const { elements } = selectedInstance;
-  let nextIndex = elements.indexOf(selectedElement) + direction;
+  const { instance, element } = getSelectedStructures();
+  if (!element) return false;
+  const { elements } = instance;
+  let nextIndex = elements.indexOf(element) + direction;
   if (nextIndex >= elements.length) {
     nextIndex = 0;
     settings.showRotatingArrow && rotateLogo();
@@ -95,27 +103,21 @@ const cycleThroughElements = (direction: number) => {
   selectElement(nextActive, true);
 };
 
-const getSelectedInstance = () => {
-  let instance = null;
-  let found = false;
-  selections.forEach(selection => {
-    found = Boolean(selection.elements.find(element => element.active));
-    if (found) instance = selection;
+const getSelectedStructures = () => {
+  let element;
+  let instance = selections.find(selection => {
+    element = selection.elements.find(element => element.active);
+    return Boolean(element);
   });
-  return instance;
-};
-
-const getSelectedElement = (instance: FFinstance) => {
-  if (!instance) return false;
-  return instance.elements.find(element => element.active);
+  return { element, instance: instance || undefined };
 };
 
 const unselectElement = () => {
-  let oldElement = getSelectedElement(getSelectedInstance());
-  if (oldElement) {
-    oldElement.active = false;
-    oldElement.portions.forEach(p => p.classList.remove('selected'));
-    settings.showSideMap && oldElement.mapIndicator.classList.remove('selected');
+  let { element } = getSelectedStructures();
+  if (element) {
+    element.active = false;
+    element.portions.forEach(p => p.classList.remove('selected'));
+    settings.showSideMap && element.mapIndicator.classList.remove('selected');
   }
 };
 
@@ -133,16 +135,17 @@ const removeElement = (selection: FFinstance) => {
   settings.showSideMap && selection.elements.forEach(element =>
     element.mapIndicator.remove()
   );
+  selection.mapWrapper.remove();
   selection.finder.revert();
 };
 
-const removeSelectedElement = () => {
-  const selectedInstance = getSelectedInstance();
-  if (selectedInstance) {
-    removeElement(selectedInstance);
-    selections.splice(selections.indexOf(selectedInstance), 1);
+const removeSelectedOrLastElement = () => {
+  const { instance } = getSelectedStructures();
+  if (instance) {
+    removeElement(instance);
+    selections.splice(selections.indexOf(instance), 1);
   } else {
-    removeElement(selections.pop());
+    selections.length && removeElement(selections.pop());
   }
 };
 
@@ -188,11 +191,13 @@ const createElement = (text: String, selectedText: Selection) => {
   });
 
   window.getSelection().empty();
-  const currentSelection: FFinstance = { finder, elements: currentElements };
+  const mapWrapper = document.createElement('div');
+  mapWrapper.classList.add('mapWrapper');
+  const currentSelection: FFinstance = { finder, elements: currentElements, mapWrapper };
   currentElements.forEach(element => {
     const { portions, active } = element;
     portions.forEach(div => {
-      div.onmouseover = div.onmouseout = onHover(currentSelection);
+      div.onmouseover = div.onmouseout = onElementHover(currentSelection);
       div.onclick = () => selectElement(element, false);
     });
     if (settings.showSideMap) {
@@ -200,29 +205,37 @@ const createElement = (text: String, selectedText: Selection) => {
       indicator.classList.add('mapIndicator');
       if (active) indicator.classList.add('selected');
       indicator.onclick = () => selectElement(element, true);
-      let elementPosition = portions[0].getBoundingClientRect().top + document.documentElement.scrollTop;
-      indicator.style.marginTop = `${elementPosition / pageHeight * 100}vh`;
+      let elementPosition =
+        portions[0].getBoundingClientRect().top + document.documentElement.scrollTop;
+      indicator.style.transform = `translateY(${elementPosition / pageHeight * 100}vh)`;
       indicator.style.backgroundColor = color;
-      selectionsMapWrapper.appendChild(indicator);
+      mapWrapper.appendChild(indicator);
       element.mapIndicator = indicator;
     }
   });
+  selectionsMapWrapper.appendChild(mapWrapper);
   selections.push(currentSelection);
 };
 
-const onHover = (currentSelection: FFinstance) => {
-  return (event: MouseEvent) => {
-    if (event.type === 'mouseover') {
-      currentSelection.elements.forEach(portion =>
-        portion.portions.forEach(element => element.classList.add('hovered'))
-      );
-    } else {
-      currentSelection.elements.forEach(portion =>
-        portion.portions.forEach(element => element.classList.remove('hovered'))
-      );
-    }
-  };
+const redrawMapIndicators = () => {
+  selections.forEach(instance => {
+    instance.elements.forEach(element => {
+      let elementPosition =
+        element.portions[0].getBoundingClientRect().top + document.documentElement.scrollTop;
+      element.mapIndicator.style.transform = `translateY(${elementPosition / pageHeight * 100}vh)`;
+    });
+  });
 };
+
+const onElementHover = (currentSelection: FFinstance) =>
+  (event: MouseEvent) =>
+    currentSelection.elements.forEach(element =>
+      element.portions.forEach(portion =>
+        event.type === 'mouseover'
+          ? portion.classList.add('hovered')
+          : portion.classList.remove('hovered')
+        )
+    );
 
 const rotateLogo = () => {
   repeatLogo.classList.add('active');

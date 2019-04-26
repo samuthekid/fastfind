@@ -5,10 +5,8 @@ export const ffStyle = `
   display: inline-block;
 }
 
-.ffelem.hovered,
-.ffelem.selected {
-  z-index: 2;
-}
+.ffelem.hovered  { z-index: 2; }
+.ffelem.selected { z-index: 3; }
 
 .ffelem::before {
   content: '';
@@ -80,30 +78,49 @@ export const ffStyle = `
 }
 
 .selectionsMapWrapper {
-  width: 10px;
+  display: flex;
+  min-width: 10px;
   height: 100vh;
   position: fixed;
   right: 0px;
   top: 0px;
   z-index: 10000;
+  background: linear-gradient(
+    rgba(0,0,0,0.1) 0%,
+    rgba(0,0,0,0.05) 50%,
+    rgba(0,0,0,0.1) 100%
+  );
+}
+
+.selectionsMapWrapper .mapWrapper {
+  position: absolute;
+  right: 0px;
+  width: 14px;
+  height: 100vh;
+}
+
+.selectionsMapWrapper:hover .mapWrapper {
+  position: relative;
 }
 
 .mapIndicator {
   position: absolute;
-  width: 100%;
-  height: 6px;
-  top: -3px;
   right: 0px;
+  width: 10px;
+  height: 6px;
+  margin-left: 4px;
   border: solid 1px #ffffff !important;
-  transition: width .3s ease-in-out;
+  transition: all .3s ease-in-out;
 }
 
 .mapIndicator.selected {
-  width: 150%;
+  width: 14px;
+  margin-left: 0px;
 }
 
 .mapIndicator:hover {
-  width: 200%;
+  width: 18px;
+  margin-left: -4px;
 }
 `;
 
