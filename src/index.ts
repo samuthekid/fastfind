@@ -1,5 +1,6 @@
 import * as findAndReplaceDOMText from 'findandreplacedomtext';
-import { ffStyle, colors } from './style.ts';
+import { ffStyle, colors } from './style';
+import ResizeObserver from 'resize-observer-polyfill';
 
 let currentColor = 0;
 let pageHeight = 0;
@@ -60,8 +61,8 @@ const initFF = () => {
   resizeObserver.observe(document.body);
 };
 
-const onKeyDown = (e: KeyboardEvent) => {
-  if (e.srcElement.tagName.toLowerCase() === 'input' || e.metaKey) return false;
+const onKeyDown = (e: KeyboardEvent & { target: HTMLInputElement }) => {
+  if (e.target.tagName.toLowerCase() === 'input' || e.metaKey) return false;
 
   const selectedText = window.getSelection();
   const text = selectedText.toString().trim();
@@ -171,7 +172,7 @@ const createElement = (text: String, selectedText: Selection) => {
     replace: portion => {
       active = active
         ? active
-        : selectedText.baseNode.parentElement === portion.node.parentElement;
+        : selectedText.anchorNode.parentElement === portion.node.parentElement;
 
       const div = document.createElement('ffelem') as HTMLDivElement;
       div.classList.add('ffelem');
