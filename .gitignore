@@ -7,3 +7,5 @@ dist/background.js
 dist/content-script.js
 
 .DS_Store
+
+*.crx

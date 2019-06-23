@@ -66,6 +66,10 @@ const onKeyDown = (e: KeyboardEvent & { target: HTMLInputElement }) => {
 
   const selectedText = window.getSelection();
   const text = selectedText.toString().trim();
+  const selectedTextLength = selectedText.toString().length;
+  const selectionOffsetToEnd =
+    selectedText.anchorNode.textContent.length - selectedTextLength - selectedText.anchorOffset;
+  const selectedTextParent = selectedText.anchorNode.parentElement;
 
   if (e.key === 'f') {
     if (text) {
@@ -73,19 +77,23 @@ const onKeyDown = (e: KeyboardEvent & { target: HTMLInputElement }) => {
         selection => selection.finder.options.find === text
       );
       if (!exists)
-        createElement(text, selectedText);
+        createElement(text, selectedTextParent, selectedTextLength, selectionOffsetToEnd);
     } else {
       removeSelectedOrLastElement();
     }
+    e.preventDefault();
     e.stopPropagation();
   } else if (e.key === 'd' && selections.length) {
     removeAllElements();
+    e.preventDefault();
     e.stopPropagation();
   } else if (e.key === 'r' && selections.length) {
     cycleThroughElements(1);
+    e.preventDefault();
     e.stopPropagation();
   } else if (e.key === 'e' && selections.length) {
     cycleThroughElements(-1);
+    e.preventDefault();
     e.stopPropagation();
   }
 };
@@ -158,7 +166,7 @@ const removeAllElements = () => {
   selections = [];
 };
 
-const createElement = (text: String, selectedText: Selection) => {
+const createElement = (text: String, selectedTextParent: Element, selectedTextLength: Number, selectionOffsetToEnd: Number) => {
   unselectElement();
   const color = colors[currentColor];
   currentColor = currentColor === colors.length - 1 ? 0 : currentColor + 1;
@@ -170,9 +178,13 @@ const createElement = (text: String, selectedText: Selection) => {
     preset: 'prose',
     find: text,
     replace: portion => {
+      const portionOffsetToEnd =
+        Number(portion.node.textContent.length) - Number(portion.node.textContent.indexOf(text)) - Number(selectedTextLength);
+
       active = active
         ? active
-        : selectedText.anchorNode.parentElement === portion.node.parentElement;
+        : portionOffsetToEnd === selectionOffsetToEnd &&
+          selectedTextParent === portion.node.parentElement;
 
       const div = document.createElement('ffelem') as HTMLDivElement;
       div.classList.add('ffelem');
@@ -196,6 +208,7 @@ const createElement = (text: String, selectedText: Selection) => {
   const mapWrapper = document.createElement('div');
   mapWrapper.classList.add('mapWrapper');
   const currentSelection: FFinstance = { finder, elements: currentElements, mapWrapper };
+  let activeElements = 0;
   currentElements.forEach(element => {
     const { portions, active } = element;
     portions.forEach(div => {
@@ -205,7 +218,10 @@ const createElement = (text: String, selectedText: Selection) => {
     if (settings.showSideMap) {
       let indicator = document.createElement('div');
       indicator.classList.add('mapIndicator');
-      if (active) indicator.classList.add('selected');
+      if (active) {
+        activeElements++;
+        indicator.classList.add('selected');
+      }
       indicator.onclick = () => selectElement(element, true);
       let elementPosition =
         portions[0].getBoundingClientRect().top + document.documentElement.scrollTop;
@@ -217,6 +233,12 @@ const createElement = (text: String, selectedText: Selection) => {
   });
   selectionsMapWrapper.appendChild(mapWrapper);
   selections.push(currentSelection);
+
+  if (activeElements > 1) {
+    alert('FUCK! More than one active element!');
+    console.log('Active elements:', activeElements);
+    console.log('Elements:', currentElements);
+  }
 };
 
 const redrawMapIndicators = () => {

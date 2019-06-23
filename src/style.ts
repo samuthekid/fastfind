@@ -117,14 +117,15 @@ export const ffStyle = `
   transition: all .3s ease-in-out;
 }
 
-.mapIndicator.selected {
+.mapIndicator:hover {
   width: 14px;
   margin-left: 0px;
 }
 
-.mapIndicator:hover {
+.mapIndicator.selected {
   width: 18px;
   margin-left: -4px;
+  z-index: -1;
 }
 `;
 
