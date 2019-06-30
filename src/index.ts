@@ -2,6 +2,8 @@ import * as findAndReplaceDOMText from 'findandreplacedomtext';
 import { ffStyle, colors } from './style';
 import ResizeObserver from 'resize-observer-polyfill';
 
+const DEBUG_ON = true;
+
 let currentColor = 0;
 let pageHeight = 0;
 let settings = {
@@ -66,18 +68,15 @@ const onKeyDown = (e: KeyboardEvent & { target: HTMLInputElement }) => {
 
   const selectedText = window.getSelection();
   const text = selectedText.toString().trim();
-  const selectedTextLength = selectedText.toString().length;
-  const selectionOffsetToEnd =
-    selectedText.anchorNode.textContent.length - selectedTextLength - selectedText.anchorOffset;
-  const selectedTextParent = selectedText.anchorNode.parentElement;
 
   if (e.key === 'f') {
     if (text) {
       const exists = selections.find(
         selection => selection.finder.options.find === text
       );
-      if (!exists)
-        createElement(text, selectedTextParent, selectedTextLength, selectionOffsetToEnd);
+      if (!exists) {
+        createElement(text, selectedText);
+      }
     } else {
       removeSelectedOrLastElement();
     }
@@ -166,8 +165,17 @@ const removeAllElements = () => {
   selections = [];
 };
 
-const createElement = (text: String, selectedTextParent: Element, selectedTextLength: Number, selectionOffsetToEnd: Number) => {
+const createElement = (text: String, selectedText: any) => {
   unselectElement();
+
+  const selectedTextLength = selectedText.toString().length;
+  const selectionOffsetToEnd =
+    selectedText.anchorNode.textContent.length - selectedTextLength - selectedText.anchorOffset;
+  const selectedTextParent = selectedText.anchorNode.parentElement;
+
+  const indexOnParent = getParentIndex(selectedText.anchorNode);
+  DEBUG_ON && console.log('indexOnParent', indexOnParent);
+
   const color = colors[currentColor];
   currentColor = currentColor === colors.length - 1 ? 0 : currentColor + 1;
   const contrast = getContrastYIQ(color);
@@ -180,11 +188,18 @@ const createElement = (text: String, selectedTextParent: Element, selectedTextLe
     replace: portion => {
       const portionOffsetToEnd =
         Number(portion.node.textContent.length) - Number(portion.node.textContent.indexOf(text)) - Number(selectedTextLength);
+      const index = getParentIndex(portion.node);
 
       active = active
         ? active
-        : portionOffsetToEnd === selectionOffsetToEnd &&
-          selectedTextParent === portion.node.parentElement;
+        : selectedTextParent === portion.node.parentElement &&
+          portionOffsetToEnd === selectionOffsetToEnd &&
+          indexOnParent === index;
+
+      DEBUG_ON && console.log("active", active)
+      DEBUG_ON && console.log("same parent", selectedTextParent === portion.node.parentElement)
+      DEBUG_ON && console.log("same offsetToEnd", selectionOffsetToEnd === portionOffsetToEnd)
+      DEBUG_ON && console.log("same index", index, indexOnParent === index);
 
       const div = document.createElement('ffelem') as HTMLDivElement;
       div.classList.add('ffelem');
@@ -236,8 +251,8 @@ const createElement = (text: String, selectedTextParent: Element, selectedTextLe
 
   if (activeElements > 1) {
     alert('FUCK! More than one active element!');
-    console.log('Active elements:', activeElements);
-    console.log('Elements:', currentElements);
+    DEBUG_ON && console.log('Active elements:', activeElements);
+    DEBUG_ON && console.log('Elements:', currentElements);
   }
 };
 
@@ -285,6 +300,15 @@ const getContrastYIQ = (hexcolor: String) => {
   const b = parseInt(hexcolor.substr(4, 2), 16);
   const yiq = (r * 299 + g * 587 + b * 114) / 1000;
   return yiq >= 128 ? 'black' : 'white';
+};
+
+const getParentIndex = (node: HTMLElement) => {
+  let childNodes = node.parentNode.childNodes;
+  let index = 0;
+  childNodes.forEach((child, i) => {
+    if (child === node) index = i;
+  })
+  return childNodes.length - index - 1;
 };
 
 const isElementInViewport = (element: HTMLElement) => {
