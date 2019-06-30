@@ -2,7 +2,7 @@ import * as findAndReplaceDOMText from 'findandreplacedomtext';
 import { ffStyle, colors } from './style';
 import ResizeObserver from 'resize-observer-polyfill';
 
-const DEBUG_ON = true;
+const DEBUG_ON = false;
 
 let currentColor = 0;
 let pageHeight = 0;
@@ -147,7 +147,10 @@ const removeElement = (selection: FFinstance) => {
     element.mapIndicator.remove()
   );
   selection.mapWrapper.remove();
-  selection.finder.revert();
+  selection.elements.forEach(element => {
+    element.portions.forEach(portion => portion.replaceWith(portion.innerText));
+  });
+  // selection.finder.revert();
 };
 
 const removeSelectedOrLastElement = () => {
@@ -196,6 +199,7 @@ const createElement = (text: String, selectedText: any) => {
           portionOffsetToEnd === selectionOffsetToEnd &&
           indexOnParent === index;
 
+      DEBUG_ON && console.log("###", text);
       DEBUG_ON && console.log("active", active)
       DEBUG_ON && console.log("same parent", selectedTextParent === portion.node.parentElement)
       DEBUG_ON && console.log("same offsetToEnd", selectionOffsetToEnd === portionOffsetToEnd)
