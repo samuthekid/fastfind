@@ -2,12 +2,19 @@ import * as findAndReplaceDOMText from 'findandreplacedomtext';
 import { ffStyle, colors } from './style';
 import ResizeObserver from 'resize-observer-polyfill';
 
+// TODO:
+// - html text "breaks" after removing elements
+// - typing is missing in some places
+
+const DEBUG_ON = false;
+
 let currentColor = 0;
 let pageHeight = 0;
 let settings = {
   showRotatingArrow: true,
   showSideMap: true,
   keepElementCentered: false,
+  matchCaseSensitive: true,
 };
 
 interface FFelement {
@@ -17,6 +24,7 @@ interface FFelement {
 }
 interface FFinstance {
   finder: any;
+  sanitizedText: String;
   elements: FFelement[];
   mapWrapper: HTMLDivElement;
 }
@@ -62,30 +70,44 @@ const initFF = () => {
 };
 
 const onKeyDown = (e: KeyboardEvent & { target: HTMLInputElement }) => {
-  if (e.target.tagName.toLowerCase() === 'input' || e.metaKey) return false;
+  if (
+    e.target.contentEditable === 'true' ||
+    e.target.tagName.toLowerCase() === 'input' ||
+    e.metaKey)
+    return false;
 
   const selectedText = window.getSelection();
-  const text = selectedText.toString().trim();
+  // trim removes spaces
+  let text = selectedText.toString().trim();
+  // this regex removes . , - in the start and end of string
+  text = text.replace(/^[.,-]*/, '').replace(/[.,-]*$/, '');
 
   if (e.key === 'f') {
     if (text) {
       const exists = selections.find(
-        selection => selection.finder.options.find === text
+        selection => selection.sanitizedText === text
       );
-      if (!exists)
+      if (!exists) {
         createElement(text, selectedText);
+      } else {
+        removeSelectedOrLastElement();
+      }
     } else {
       removeSelectedOrLastElement();
     }
+    e.preventDefault();
     e.stopPropagation();
   } else if (e.key === 'd' && selections.length) {
     removeAllElements();
+    e.preventDefault();
     e.stopPropagation();
   } else if (e.key === 'r' && selections.length) {
     cycleThroughElements(1);
+    e.preventDefault();
     e.stopPropagation();
   } else if (e.key === 'e' && selections.length) {
     cycleThroughElements(-1);
+    e.preventDefault();
     e.stopPropagation();
   }
 };
@@ -140,7 +162,10 @@ const removeElement = (selection: FFinstance) => {
     element.mapIndicator.remove()
   );
   selection.mapWrapper.remove();
-  selection.finder.revert();
+  selection.elements.forEach(element => {
+    element.portions.forEach(portion => portion.replaceWith(portion.innerText));
+  });
+  // selection.finder.revert();
 };
 
 const removeSelectedOrLastElement = () => {
@@ -158,21 +183,52 @@ const removeAllElements = () => {
   selections = [];
 };
 
-const createElement = (text: String, selectedText: Selection) => {
+const createElement = (text: String, selectedText: any) => {
   unselectElement();
+
+  const selectedTextLength = selectedText.toString().length;
+  const selectionOffsetToEnd =
+    selectedText.anchorNode.textContent.length - selectedTextLength - selectedText.anchorOffset;
+  const selectedTextParent = selectedText.anchorNode.parentElement;
+
+  const indexOnParent = getParentIndex(selectedText.anchorNode);
+  // DEBUG_ON && console.log('indexOnParent', indexOnParent);
+
   const color = colors[currentColor];
   currentColor = currentColor === colors.length - 1 ? 0 : currentColor + 1;
   const contrast = getContrastYIQ(color);
   const currentElements: FFelement[] = [];
   let portions: HTMLDivElement[] = [];
   let active = false;
+  let regexFinder = null;
+  try {
+    regexFinder = RegExp(`\\b${text}\\b`, settings.matchCaseSensitive ? 'g' : 'gi');
+    DEBUG_ON && console.log(regexFinder);
+  } catch (error) {
+    alert('FUCK! Regex is not valid!');
+    DEBUG_ON && console.error(error);
+    return;
+  }
+
   const finder = findAndReplaceDOMText(document.body, {
     preset: 'prose',
-    find: text,
+    find: regexFinder,
     replace: portion => {
+      const portionOffsetToEnd =
+        Number(portion.node.textContent.length) - Number(portion.node.textContent.indexOf(text)) - Number(selectedTextLength);
+      const index = getParentIndex(portion.node);
+
       active = active
         ? active
-        : selectedText.anchorNode.parentElement === portion.node.parentElement;
+        : selectedTextParent === portion.node.parentElement &&
+          portionOffsetToEnd === selectionOffsetToEnd &&
+          indexOnParent === index;
+
+      // DEBUG_ON && console.log("###", text);
+      // DEBUG_ON && console.log("active", active)
+      // DEBUG_ON && console.log("same parent", selectedTextParent === portion.node.parentElement)
+      // DEBUG_ON && console.log("same offsetToEnd", selectionOffsetToEnd === portionOffsetToEnd)
+      // DEBUG_ON && console.log("same index", index, indexOnParent === index);
 
       const div = document.createElement('ffelem') as HTMLDivElement;
       div.classList.add('ffelem');
@@ -195,7 +251,13 @@ const createElement = (text: String, selectedText: Selection) => {
   window.getSelection().empty();
   const mapWrapper = document.createElement('div');
   mapWrapper.classList.add('mapWrapper');
-  const currentSelection: FFinstance = { finder, elements: currentElements, mapWrapper };
+  const currentSelection: FFinstance = {
+    finder,
+    elements: currentElements,
+    mapWrapper,
+    sanitizedText: text,
+  };
+  let activeElements = 0;
   currentElements.forEach(element => {
     const { portions, active } = element;
     portions.forEach(div => {
@@ -205,7 +267,10 @@ const createElement = (text: String, selectedText: Selection) => {
     if (settings.showSideMap) {
       let indicator = document.createElement('div');
       indicator.classList.add('mapIndicator');
-      if (active) indicator.classList.add('selected');
+      if (active) {
+        activeElements++;
+        indicator.classList.add('selected');
+      }
       indicator.onclick = () => selectElement(element, true);
       let elementPosition =
         portions[0].getBoundingClientRect().top + document.documentElement.scrollTop;
@@ -217,6 +282,12 @@ const createElement = (text: String, selectedText: Selection) => {
   });
   selectionsMapWrapper.appendChild(mapWrapper);
   selections.push(currentSelection);
+
+  if (activeElements > 1) {
+    alert('FUCK! More than one active element!');
+    DEBUG_ON && console.log('Active elements:', activeElements);
+    DEBUG_ON && console.log('Elements:', currentElements);
+  }
 };
 
 const redrawMapIndicators = () => {
@@ -263,6 +334,15 @@ const getContrastYIQ = (hexcolor: String) => {
   const b = parseInt(hexcolor.substr(4, 2), 16);
   const yiq = (r * 299 + g * 587 + b * 114) / 1000;
   return yiq >= 128 ? 'black' : 'white';
+};
+
+const getParentIndex = (node: HTMLElement) => {
+  let childNodes = node.parentNode.childNodes;
+  let index = 0;
+  childNodes.forEach((child, i) => {
+    if (child === node) index = i;
+  })
+  return childNodes.length - index - 1;
 };
 
 const isElementInViewport = (element: HTMLElement) => {

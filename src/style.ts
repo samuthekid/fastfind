@@ -79,7 +79,7 @@ export const ffStyle = `
 
 .selectionsMapWrapper {
   display: flex;
-  min-width: 10px;
+  min-width: 0px;
   height: 100vh;
   position: fixed;
   right: 0px;
@@ -89,11 +89,7 @@ export const ffStyle = `
 }
 
 .selectionsMapWrapper:hover {
-  background: linear-gradient(
-    rgba(0,0,0,0.1) 0%,
-    rgba(0,0,0,0.05) 50%,
-    rgba(0,0,0,0.1) 100%
-  );
+  background: rgba(0,0,0,0.6);
 }
 
 .selectionsMapWrapper .mapWrapper {
@@ -117,14 +113,15 @@ export const ffStyle = `
   transition: all .3s ease-in-out;
 }
 
-.mapIndicator.selected {
+.mapIndicator:hover {
   width: 14px;
   margin-left: 0px;
 }
 
-.mapIndicator:hover {
+.mapIndicator.selected {
   width: 18px;
   margin-left: -4px;
+  z-index: -1;
 }
 `;
 
