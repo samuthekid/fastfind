@@ -2,6 +2,10 @@ import * as findAndReplaceDOMText from 'findandreplacedomtext';
 import { ffStyle, colors } from './style';
 import ResizeObserver from 'resize-observer-polyfill';
 
+// TODO:
+// - html text "breaks" after removing elements
+// - typing is missing in some places
+
 const DEBUG_ON = false;
 
 let currentColor = 0;
@@ -10,6 +14,7 @@ let settings = {
   showRotatingArrow: true,
   showSideMap: true,
   keepElementCentered: false,
+  matchCaseSensitive: true,
 };
 
 interface FFelement {
@@ -19,6 +24,7 @@ interface FFelement {
 }
 interface FFinstance {
   finder: any;
+  sanitizedText: String;
   elements: FFelement[];
   mapWrapper: HTMLDivElement;
 }
@@ -64,18 +70,27 @@ const initFF = () => {
 };
 
 const onKeyDown = (e: KeyboardEvent & { target: HTMLInputElement }) => {
-  if (e.target.tagName.toLowerCase() === 'input' || e.metaKey) return false;
+  if (
+    e.target.contentEditable === 'true' ||
+    e.target.tagName.toLowerCase() === 'input' ||
+    e.metaKey)
+    return false;
 
   const selectedText = window.getSelection();
-  const text = selectedText.toString().trim();
+  // trim removes spaces
+  let text = selectedText.toString().trim();
+  // this regex removes . , - in the start and end of string
+  text = text.replace(/^[.,-]*/, '').replace(/[.,-]*$/, '');
 
   if (e.key === 'f') {
     if (text) {
       const exists = selections.find(
-        selection => selection.finder.options.find === text
+        selection => selection.sanitizedText === text
       );
       if (!exists) {
         createElement(text, selectedText);
+      } else {
+        removeSelectedOrLastElement();
       }
     } else {
       removeSelectedOrLastElement();
@@ -177,7 +192,7 @@ const createElement = (text: String, selectedText: any) => {
   const selectedTextParent = selectedText.anchorNode.parentElement;
 
   const indexOnParent = getParentIndex(selectedText.anchorNode);
-  DEBUG_ON && console.log('indexOnParent', indexOnParent);
+  // DEBUG_ON && console.log('indexOnParent', indexOnParent);
 
   const color = colors[currentColor];
   currentColor = currentColor === colors.length - 1 ? 0 : currentColor + 1;
@@ -185,9 +200,19 @@ const createElement = (text: String, selectedText: any) => {
   const currentElements: FFelement[] = [];
   let portions: HTMLDivElement[] = [];
   let active = false;
+  let regexFinder = null;
+  try {
+    regexFinder = RegExp(`\\b${text}\\b`, settings.matchCaseSensitive ? 'g' : 'gi');
+    DEBUG_ON && console.log(regexFinder);
+  } catch (error) {
+    alert('FUCK! Regex is not valid!');
+    DEBUG_ON && console.error(error);
+    return;
+  }
+
   const finder = findAndReplaceDOMText(document.body, {
     preset: 'prose',
-    find: text,
+    find: regexFinder,
     replace: portion => {
       const portionOffsetToEnd =
         Number(portion.node.textContent.length) - Number(portion.node.textContent.indexOf(text)) - Number(selectedTextLength);
@@ -199,11 +224,11 @@ const createElement = (text: String, selectedText: any) => {
           portionOffsetToEnd === selectionOffsetToEnd &&
           indexOnParent === index;
 
-      DEBUG_ON && console.log("###", text);
-      DEBUG_ON && console.log("active", active)
-      DEBUG_ON && console.log("same parent", selectedTextParent === portion.node.parentElement)
-      DEBUG_ON && console.log("same offsetToEnd", selectionOffsetToEnd === portionOffsetToEnd)
-      DEBUG_ON && console.log("same index", index, indexOnParent === index);
+      // DEBUG_ON && console.log("###", text);
+      // DEBUG_ON && console.log("active", active)
+      // DEBUG_ON && console.log("same parent", selectedTextParent === portion.node.parentElement)
+      // DEBUG_ON && console.log("same offsetToEnd", selectionOffsetToEnd === portionOffsetToEnd)
+      // DEBUG_ON && console.log("same index", index, indexOnParent === index);
 
       const div = document.createElement('ffelem') as HTMLDivElement;
       div.classList.add('ffelem');
@@ -226,7 +251,12 @@ const createElement = (text: String, selectedText: any) => {
   window.getSelection().empty();
   const mapWrapper = document.createElement('div');
   mapWrapper.classList.add('mapWrapper');
-  const currentSelection: FFinstance = { finder, elements: currentElements, mapWrapper };
+  const currentSelection: FFinstance = {
+    finder,
+    elements: currentElements,
+    mapWrapper,
+    sanitizedText: text,
+  };
   let activeElements = 0;
   currentElements.forEach(element => {
     const { portions, active } = element;
