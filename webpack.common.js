@@ -1,9 +1,12 @@
-const ChromeExtensionReloader = require("webpack-chrome-extension-reloader");
+// const ChromeExtensionReloader = require("webpack-chrome-extension-reloader");
+const ExtensionReloader  = require('webpack-extension-reloader');
+const CopyPlugin = require('copy-webpack-plugin');
 const path = require("path");
 
 module.exports = {
   entry: {
     "content-script": path.join(__dirname, "src/index.ts"),
+    "browser-action": path.join(__dirname, "src/settings.ts"),
     background: path.join(__dirname, "src/background.ts")
   },
   output: {
@@ -39,7 +42,7 @@ module.exports = {
     extensions: [".ts", ".js"]
   },
   plugins: [
-    new ChromeExtensionReloader({
+    new ExtensionReloader({
       port: 9090, // Which port use to create the server
       reloadPage: true, // Force the reload of the page also
       entries: {
@@ -47,6 +50,13 @@ module.exports = {
         contentScript: "index", // Use the entry names, not the file name or the path
         background: "background" // *REQUIRED
       }
-    })
+    }),
+    new CopyPlugin([
+      { from: 'src/icons', to: './icons' },
+      { from: 'src/assets', to: './assets' },
+      { from: 'src/*.html', to: './', flatten: true },
+      { from: 'src/*.css', to: './', flatten: true },
+      { from: 'src/*.json', to: './', flatten: true },
+    ]),
   ]
 };

@@ -3,7 +3,9 @@ import { ffStyle, colors } from './style';
 import ResizeObserver from 'resize-observer-polyfill';
 
 // TODO:
+// - Need to reselect a word when removing element
 // - html text "breaks" after removing elements
+// - improve performance in select/unselect elements
 // - typing is missing in some places
 
 const DEBUG_ON = false;
@@ -11,22 +13,23 @@ const DEBUG_ON = false;
 let currentColor = 0;
 let pageHeight = 0;
 let settings = {
-  showRotatingArrow: true,
+  showRotatingArrow: false,
   showSideMap: true,
   keepElementCentered: false,
   matchCaseSensitive: true,
+  smoothScrolling: true,
 };
 
 interface FFelement {
   active: boolean;
-  portions: HTMLDivElement[];
-  mapIndicator: HTMLDivElement;
+  portions: HTMLElement[];
+  mapIndicator: HTMLElement;
 }
 interface FFinstance {
   finder: any;
-  sanitizedText: String;
+  sanitizedText: string;
   elements: FFelement[];
-  mapWrapper: HTMLDivElement;
+  mapWrapper: HTMLElement;
 }
 let selections: FFinstance[] = [];
 
@@ -73,22 +76,22 @@ const onKeyDown = (e: KeyboardEvent & { target: HTMLInputElement }) => {
   if (
     e.target.contentEditable === 'true' ||
     e.target.tagName.toLowerCase() === 'input' ||
+    e.target.tagName.toLowerCase() === 'textarea' ||
     e.metaKey)
     return false;
 
   const selectedText = window.getSelection();
   // trim removes spaces
-  let text = selectedText.toString().trim();
-  // this regex removes . , - in the start and end of string
-  text = text.replace(/^[.,-]*/, '').replace(/[.,-]*$/, '');
+  const text = selectedText.toString().trim();
 
   if (e.key === 'f') {
-    if (text) {
+    // No support for multi-line for now...
+    if (text && !text.includes('\n')) {
       const exists = selections.find(
         selection => selection.sanitizedText === text
       );
       if (!exists) {
-        createElement(text, selectedText);
+        createElement(text, selectedText, selectedText.toString());
       } else {
         removeSelectedOrLastElement();
       }
@@ -125,7 +128,7 @@ const cycleThroughElements = (direction: number) => {
     settings.showRotatingArrow && rotateLogo();
   }
   const nextActive = elements[nextIndex];
-  selectElement(nextActive, true);
+  selectElement(instance, nextActive, true);
 };
 
 const getSelectedStructures = () => {
@@ -138,23 +141,41 @@ const getSelectedStructures = () => {
 };
 
 const unselectElement = () => {
-  let { element } = getSelectedStructures();
-  if (element) {
-    element.active = false;
-    element.portions.forEach(p => p.classList.remove('selected'));
-    settings.showSideMap && element.mapIndicator.classList.remove('selected');
+  let { element, instance } = getSelectedStructures();
+  if (element && instance) {
+    instance.elements.forEach(elem => {
+      if (elem === element) {
+        elem.active = false;
+        elem.portions.forEach(p => p.classList.remove('selected'));
+        settings.showSideMap && elem.mapIndicator.classList.remove('selected');
+      } else {
+        elem.portions.forEach(p => p.classList.remove('selectedClass'));
+      }
+    });
   }
 };
 
-const selectElement = (element, scrollIntoView) => {
-  if (!element) return false;
+const selectElement = (instance, element, scrollIntoView) => {
+  if (!element || !instance) return false;
   unselectElement();
 
-  element.active = true;
-  element.portions.forEach(p => p.classList.add('selected'));
-  settings.showSideMap && element.mapIndicator.classList.add('selected');
-  if (settings.keepElementCentered || !isElementInViewport(element.portions[0]))
-    scrollIntoView && element.portions[0].scrollIntoView({block: 'center'});
+  instance.elements.forEach(elem => {
+    if (elem === element) {
+      elem.active = true;
+      elem.portions.forEach(p => {
+        p.classList.add('selected');
+        p.classList.remove('selectedClass');
+      });
+      settings.showSideMap && elem.mapIndicator.classList.add('selected');
+      if (settings.keepElementCentered || !isElementInViewport(elem.portions[0]))
+        scrollIntoView && elem.portions[0].scrollIntoView({
+          block: 'center',
+          behavior: settings.smoothScrolling ? 'smooth' : 'instant',
+        });
+    } else {
+      elem.portions.forEach(p => p.classList.add('selectedClass'));
+    }
+  });
 };
 
 const removeElement = (selection: FFinstance) => {
@@ -163,7 +184,12 @@ const removeElement = (selection: FFinstance) => {
   );
   selection.mapWrapper.remove();
   selection.elements.forEach(element => {
-    element.portions.forEach(portion => portion.replaceWith(portion.innerText));
+    element.portions.forEach((portion: HTMLElement) => {
+      while(portion.childNodes.length) {
+        portion.parentNode.insertBefore(portion.childNodes[0], portion);
+      }
+      portion.parentNode.removeChild(portion);
+    });
   });
   // selection.finder.revert();
 };
@@ -183,70 +209,177 @@ const removeAllElements = () => {
   selections = [];
 };
 
-const createElement = (text: String, selectedText: any) => {
+const createElement = (text: string, selectedText: any, selection) => {
   unselectElement();
+  let activeElements = 0;
 
-  const selectedTextLength = selectedText.toString().length;
-  const selectionOffsetToEnd =
-    selectedText.anchorNode.textContent.length - selectedTextLength - selectedText.anchorOffset;
-  const selectedTextParent = selectedText.anchorNode.parentElement;
+  const anchorAndFocusAreTheSame = selectedText.anchorNode === selectedText.focusNode;
+  let selectionOffsetToEnd;
+  let selectedTextParent;
+  let selectedTextIndex;
+  const selectionTextTrimDelta = selection.length - text.length - selection.indexOf(text);
+  DEBUG_ON && console.log('selectionTextTrimDelta', selectionTextTrimDelta)
 
-  const indexOnParent = getParentIndex(selectedText.anchorNode);
-  // DEBUG_ON && console.log('indexOnParent', indexOnParent);
+  if (anchorAndFocusAreTheSame) {
+    if (selectedText.anchorOffset < selectedText.focusOffset) {
+      // left to right selection
+      selectionOffsetToEnd = selectedText.focusNode.textContent.length - selectedText.focusOffset;
+      selectedTextIndex = getParentIndex(selectedText.focusNode, true);
+    } else {
+      // right to left selection
+      selectionOffsetToEnd = selectedText.anchorNode.textContent.length - selectedText.anchorOffset;
+      selectedTextIndex = getParentIndex(selectedText.anchorNode, true);
+    }
+    selectedTextParent = selectedText.focusNode.parentElement;
+    selectionOffsetToEnd += selectionTextTrimDelta;
+  } else {
+    const ancestor = commonAncestor(selectedText.anchorNode, selectedText.focusNode);
+    DEBUG_ON && console.log('ancestor', ancestor);
+
+    const anchorParents = getElementParents(selectedText.anchorNode);
+    const anchorAncestorIndex = anchorParents.indexOf(ancestor);
+    const focusParents = getElementParents(selectedText.focusNode);
+    const focusAncestorIndex = focusParents.indexOf(ancestor);
+
+    let anchorIndexOnParent;
+    let focusIndexOnParent;
+
+    anchorIndexOnParent = getParentIndex(anchorParents[anchorAncestorIndex + 1]);
+    DEBUG_ON && console.log("anchor relative", anchorParents[anchorAncestorIndex + 1]);
+    focusIndexOnParent = getParentIndex(focusParents[focusAncestorIndex + 1]);
+    DEBUG_ON && console.log("focus relative", focusParents[focusAncestorIndex + 1]);
+
+    DEBUG_ON && console.log('anchorIndexOnParent focusIndexOnParent', anchorIndexOnParent, focusIndexOnParent);
+    let node;
+    let offset;
+    let deltaCopy = selectionTextTrimDelta;
+    if (anchorIndexOnParent < focusIndexOnParent) {
+      // anchor is before focus on DOM
+      // left to right selection
+      selectionOffsetToEnd = selectedText.focusNode.textContent.length - selectedText.focusOffset;
+      node = selectedText.focusNode;
+      offset = selectedText.focusOffset;
+    } else {
+      // anchor is after focus on DOM
+      // right to left selection
+      selectionOffsetToEnd = selectedText.anchorNode.textContent.length - selectedText.anchorOffset;
+      node = selectedText.anchorNode;
+      offset = selectedText.anchorOffset;
+    }
+
+    if(deltaCopy >= offset) {
+      while(deltaCopy >= offset) {
+        node = node.previousSibling;
+        deltaCopy -= offset;
+        offset = node.textContent.length;
+        selectionOffsetToEnd = 0;
+      }
+    } else {
+      selectionOffsetToEnd += selectionTextTrimDelta;
+    }
+    selectedTextParent = node.parentElement;
+    selectedTextIndex = getParentIndex(node, true);
+  }
+
+  DEBUG_ON && console.log('index', selectedTextIndex);
+  DEBUG_ON && console.log('offset', selectionOffsetToEnd);
+  DEBUG_ON && console.log('parent', selectedTextParent);
+  DEBUG_ON && console.log("--------------------------------------------------");
 
   const color = colors[currentColor];
   currentColor = currentColor === colors.length - 1 ? 0 : currentColor + 1;
   const contrast = getContrastYIQ(color);
   const currentElements: FFelement[] = [];
-  let portions: HTMLDivElement[] = [];
+  let portions: HTMLElement[] = [];
   let active = false;
+  let someActive = false;
   let regexFinder = null;
+  let excapedText = text.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+  let needsWBonStart = RegExp(/^\w/).test(text);
+  let needsWBonEnd = RegExp(/\w$/).test(text);
+
   try {
-    regexFinder = RegExp(`\\b${text}\\b`, settings.matchCaseSensitive ? 'g' : 'gi');
-    DEBUG_ON && console.log(regexFinder);
+    regexFinder = RegExp(
+      `${needsWBonStart ? '\\b' : ''}${excapedText}${needsWBonEnd ? '\\b' : ''}`,
+      settings.matchCaseSensitive ? 'g' : 'gi'
+    );
+    DEBUG_ON && console.log(excapedText, regexFinder);
   } catch (error) {
-    alert('FUCK! Regex is not valid!');
-    DEBUG_ON && console.error(error);
+    if (DEBUG_ON) {
+      console.error(error);
+      debugger;
+    }
     return;
   }
-
+  
   const finder = findAndReplaceDOMText(document.body, {
     preset: 'prose',
     find: regexFinder,
     replace: portion => {
-      const portionOffsetToEnd =
-        Number(portion.node.textContent.length) - Number(portion.node.textContent.indexOf(text)) - Number(selectedTextLength);
-      const index = getParentIndex(portion.node);
 
-      active = active
-        ? active
-        : selectedTextParent === portion.node.parentElement &&
-          portionOffsetToEnd === selectionOffsetToEnd &&
-          indexOnParent === index;
+      const elementIsVisible =
+        !!( portion.node.parentElement.offsetWidth ||
+            portion.node.parentElement.offsetHeight ||
+            portion.node.parentElement.getClientRects().length
+          );
 
-      // DEBUG_ON && console.log("###", text);
-      // DEBUG_ON && console.log("active", active)
-      // DEBUG_ON && console.log("same parent", selectedTextParent === portion.node.parentElement)
-      // DEBUG_ON && console.log("same offsetToEnd", selectionOffsetToEnd === portionOffsetToEnd)
-      // DEBUG_ON && console.log("same index", index, indexOnParent === index);
+      DEBUG_ON && console.log("elem is visible", elementIsVisible);
+      if (elementIsVisible) {
 
-      const div = document.createElement('ffelem') as HTMLDivElement;
-      div.classList.add('ffelem');
-      if (active) div.classList.add('selected');
-      div.style.backgroundColor = color;
-      div.style.color = contrast;
-      div.innerHTML = portion.text;
-      portions.push(div);
+        let portionOffsetToEnd;
+        let portionIndex;
+        if (portion.isEnd) {
+          portionIndex = getParentIndex(portion.node, true);
+          portionOffsetToEnd =
+            Number(portion.node.textContent.length) - Number(portion.text.length);
+          if (portion.index === 0) portionOffsetToEnd -= portion.indexInNode;
 
-      if (portion.isEnd) {
-        const element: FFelement = { portions, active, mapIndicator: null };
-        currentElements.push(element);
-        portions = [];
-        active = false;
+          active = active
+            ? active
+            : selectedTextIndex === portionIndex &&
+              selectionOffsetToEnd === portionOffsetToEnd &&
+              selectedTextParent === portion.node.parentElement;
+          someActive = active || someActive;
+
+          DEBUG_ON && console.log("###", text, " active", active, portion.node);
+          DEBUG_ON && console.log("index", selectedTextIndex, portionIndex);
+          DEBUG_ON && console.log("parents", selectedTextParent, portion.node.parentElement)
+          DEBUG_ON && console.log("offsetToEnd", selectionOffsetToEnd, portionOffsetToEnd)
+          DEBUG_ON && console.log("--------------------------------------------------");
+          // debugger
+        }
+
+        const div = document.createElement('ffelem') as HTMLDivElement;
+        if (portion.index === 0 && portion.isEnd) div.classList.add('ffelem');
+        else if (portion.index === 0) div.classList.add('ffelemStart');
+        else if (portion.isEnd) div.classList.add('ffelemEnd');
+        else div.classList.add('ffelemMiddle');
+        div.style.backgroundColor = color;
+        div.style.color = contrast;
+        div.innerHTML = portion.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        portions.push(div);
+
+        if (portion.isEnd) {
+          const element: FFelement = { portions, active, mapIndicator: null };
+          currentElements.push(element);
+          portions = [];
+          if (active) activeElements++;
+          active = false;
+        }
+
+        return div;
+      } else {
+        return portion.text;
       }
-      return div;
     }
   });
+  if (DEBUG_ON && currentElements.length && (activeElements === 0 || activeElements > 1)) {
+    console.log('Active elements:', activeElements);
+    console.log('Elements:', currentElements);
+    debugger;
+  }
+
+  if (!currentElements.length) return false;
 
   window.getSelection().empty();
   const mapWrapper = document.createElement('div');
@@ -257,21 +390,24 @@ const createElement = (text: String, selectedText: any) => {
     mapWrapper,
     sanitizedText: text,
   };
-  let activeElements = 0;
+
   currentElements.forEach(element => {
     const { portions, active } = element;
+
     portions.forEach(div => {
       div.onmouseover = div.onmouseout = onElementHover(currentSelection);
-      div.onclick = () => selectElement(element, false);
+      div.onclick = () => selectElement(currentSelection, element, false);
+
+      if (active) {
+        div.classList.add('selected');
+      } else if (someActive) {
+        div.classList.add('selectedClass');
+      }
     });
     if (settings.showSideMap) {
       let indicator = document.createElement('div');
       indicator.classList.add('mapIndicator');
-      if (active) {
-        activeElements++;
-        indicator.classList.add('selected');
-      }
-      indicator.onclick = () => selectElement(element, true);
+      indicator.onclick = () => selectElement(currentSelection, element, true);
       let elementPosition =
         portions[0].getBoundingClientRect().top + document.documentElement.scrollTop;
       indicator.style.transform = `translateY(${elementPosition / pageHeight * 100}vh)`;
@@ -282,12 +418,6 @@ const createElement = (text: String, selectedText: any) => {
   });
   selectionsMapWrapper.appendChild(mapWrapper);
   selections.push(currentSelection);
-
-  if (activeElements > 1) {
-    alert('FUCK! More than one active element!');
-    DEBUG_ON && console.log('Active elements:', activeElements);
-    DEBUG_ON && console.log('Elements:', currentElements);
-  }
 };
 
 const redrawMapIndicators = () => {
@@ -328,7 +458,7 @@ const getRandomColor = () => {
   return color;
 };
 
-const getContrastYIQ = (hexcolor: String) => {
+const getContrastYIQ = (hexcolor: string) => {
   const r = parseInt(hexcolor.substr(0, 2), 16);
   const g = parseInt(hexcolor.substr(2, 2), 16);
   const b = parseInt(hexcolor.substr(4, 2), 16);
@@ -336,13 +466,17 @@ const getContrastYIQ = (hexcolor: String) => {
   return yiq >= 128 ? 'black' : 'white';
 };
 
-const getParentIndex = (node: HTMLElement) => {
+const getParentIndex = (node: HTMLElement, reverse: boolean = false) => {
   let childNodes = node.parentNode.childNodes;
   let index = 0;
   childNodes.forEach((child, i) => {
     if (child === node) index = i;
   })
-  return childNodes.length - index - 1;
+  if (reverse) {
+    return childNodes.length - index - 1;
+  } else {
+    return index;
+  }
 };
 
 const isElementInViewport = (element: HTMLElement) => {
@@ -356,5 +490,24 @@ const isElementInViewport = (element: HTMLElement) => {
     rect.right <= (window.innerWidth || document.documentElement.clientWidth)
   );
 };
+
+const getElementParents = node => {
+  var nodes = [node]
+  for (; node; node = node.parentNode) {
+    nodes.unshift(node)
+  }
+  return nodes
+}
+
+const commonAncestor = (node1: HTMLElement, node2: HTMLElement) => {
+  var parents1 = getElementParents(node1)
+  var parents2 = getElementParents(node2)
+
+  if (parents1[0] != parents2[0]) throw "No common ancestor!"
+
+  for (var i = 0; i < parents1.length; i++) {
+    if (parents1[i] != parents2[i]) return parents1[i - 1]
+  }
+}
 
 initFF();
