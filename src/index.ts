@@ -3,16 +3,20 @@ import { ffStyle, colors } from './style';
 import ResizeObserver from 'resize-observer-polyfill';
 
 // TODO:
-// - Need to reselect a word when removing element
 // - html text "breaks" after removing elements
-// - improve performance in select/unselect elements
 // - typing is missing in some places
-
 const DEBUG_ON = false;
 
+let viewPortDelta = 60;
 let currentColor = 0;
 let pageHeight = 0;
 let settings = {
+  mainKey: 'f',
+  unselectAllKey: 'd',
+  nextElementKey: 'r',
+  previousElementKey: 'e',
+  nextInstanceKey: 't',
+  previousInstanceKey: 'w',
   showRotatingArrow: false,
   showSideMap: true,
   keepElementCentered: false,
@@ -27,6 +31,7 @@ interface FFelement {
 }
 interface FFinstance {
   finder: any;
+  active: boolean;
   sanitizedText: string;
   elements: FFelement[];
   mapWrapper: HTMLElement;
@@ -84,7 +89,7 @@ const onKeyDown = (e: KeyboardEvent & { target: HTMLInputElement }) => {
   // trim removes spaces
   const text = selectedText.toString().trim();
 
-  if (e.key === 'f') {
+  if (e.key === settings.mainKey) {
     // No support for multi-line for now...
     if (text && !text.includes('\n')) {
       const exists = selections.find(
@@ -100,24 +105,48 @@ const onKeyDown = (e: KeyboardEvent & { target: HTMLInputElement }) => {
     }
     e.preventDefault();
     e.stopPropagation();
-  } else if (e.key === 'd' && selections.length) {
+  } else if (e.key === settings.unselectAllKey && selections.length) {
     removeAllElements();
     e.preventDefault();
     e.stopPropagation();
-  } else if (e.key === 'r' && selections.length) {
+  } else if (e.key === settings.nextElementKey && selections.length) {
     cycleThroughElements(1);
     e.preventDefault();
     e.stopPropagation();
-  } else if (e.key === 'e' && selections.length) {
+  } else if (e.key === settings.previousElementKey && selections.length) {
     cycleThroughElements(-1);
+    e.preventDefault();
+    e.stopPropagation();
+  } else if (e.key === settings.nextInstanceKey && selections.length) {
+    cycleThroughInstances(1);
+    e.preventDefault();
+    e.stopPropagation();
+  } else if (e.key === settings.previousInstanceKey && selections.length) {
+    cycleThroughInstances(-1);
     e.preventDefault();
     e.stopPropagation();
   }
 };
 
+const cycleThroughInstances = (direction: number) => {
+  const { instance, element } = getSelectedStructures();
+  if (!instance || !element) return false;
+  let nextIndex = selections.indexOf(instance) + direction;
+  if (nextIndex >= selections.length) {
+    nextIndex = 0;
+    // settings.showRotatingArrow && rotateLogo();
+  } else if (nextIndex < 0) {
+    nextIndex = selections.length - 1;
+    // settings.showRotatingArrow && rotateLogo();
+  }
+  const nextActive = selections[nextIndex];
+  const selectedElement = nextActive.elements.find(elem => elem.active);
+  selectElement(nextActive, selectedElement, true);
+};
+
 const cycleThroughElements = (direction: number) => {
   const { instance, element } = getSelectedStructures();
-  if (!element) return false;
+  if (!instance || !element) return false;
   const { elements } = instance;
   let nextIndex = elements.indexOf(element) + direction;
   if (nextIndex >= elements.length) {
@@ -132,48 +161,53 @@ const cycleThroughElements = (direction: number) => {
 };
 
 const getSelectedStructures = () => {
-  let element;
-  let instance = selections.find(selection => {
-    element = selection.elements.find(element => element.active);
-    return Boolean(element);
-  });
-  return { element, instance: instance || undefined };
+  let instance = selections.find(instance => instance.active) || null;
+  let element = instance
+    ? instance.elements.find(element => element.active)
+    : null;
+  return { element, instance };
 };
 
 const unselectElement = () => {
-  let { element, instance } = getSelectedStructures();
-  if (element && instance) {
-    instance.elements.forEach(elem => {
-      if (elem === element) {
-        elem.active = false;
-        elem.portions.forEach(p => p.classList.remove('selected'));
-        settings.showSideMap && elem.mapIndicator.classList.remove('selected');
-      } else {
-        elem.portions.forEach(p => p.classList.remove('selectedClass'));
-      }
-    });
-  }
+  selections.forEach(selection => {
+    if (selection.active) {
+      selection.active = false;
+      selection.elements.forEach(elem => {
+        if (elem.active) {
+          elem.portions.forEach(p => p.classList.remove('selected'));
+          settings.showSideMap && elem.mapIndicator.classList.remove('selected');
+        } else {
+          elem.portions.forEach(p => p.classList.remove('selectedClass'));
+        }
+      });
+    }
+  });
 };
 
 const selectElement = (instance, element, scrollIntoView) => {
   if (!element || !instance) return false;
   unselectElement();
 
-  instance.elements.forEach(elem => {
-    if (elem === element) {
-      elem.active = true;
-      elem.portions.forEach(p => {
-        p.classList.add('selected');
-        p.classList.remove('selectedClass');
+  selections.forEach(selection => {
+    if (selection === instance) {
+      selection.active = true;
+      selection.elements.forEach(elem => {
+        if (elem === element) {
+          elem.active = true;
+          elem.portions.forEach(p => p.classList.add('selected'));
+          settings.showSideMap && elem.mapIndicator.classList.add('selected');
+          const scrollBehaviour: any = settings.smoothScrolling ? 'smooth' : 'instant';
+          const scrollSettings: ScrollIntoViewOptions = {
+            block: 'center',
+            behavior: scrollBehaviour,
+          };
+          if (settings.keepElementCentered || !isElementInViewport(elem.portions[0]))
+            scrollIntoView && elem.portions[0].scrollIntoView(scrollSettings);
+        } else {
+          elem.active = false;
+          elem.portions.forEach(p => p.classList.add('selectedClass'));
+        }
       });
-      settings.showSideMap && elem.mapIndicator.classList.add('selected');
-      if (settings.keepElementCentered || !isElementInViewport(elem.portions[0]))
-        scrollIntoView && elem.portions[0].scrollIntoView({
-          block: 'center',
-          behavior: settings.smoothScrolling ? 'smooth' : 'instant',
-        });
-    } else {
-      elem.portions.forEach(p => p.classList.add('selectedClass'));
     }
   });
 };
@@ -202,6 +236,11 @@ const removeSelectedOrLastElement = () => {
   } else {
     selections.length && removeElement(selections.pop());
   }
+  if (selections.length) {
+    const nextInstance = selections[selections.length - 1];
+    const selectedElement = nextInstance.elements.find(elem => elem.active);
+    selectElement(nextInstance, selectedElement, true);
+  }
 };
 
 const removeAllElements = () => {
@@ -210,7 +249,6 @@ const removeAllElements = () => {
 };
 
 const createElement = (text: string, selectedText: any, selection) => {
-  unselectElement();
   let activeElements = 0;
 
   const anchorAndFocusAreTheSame = selectedText.anchorNode === selectedText.focusNode;
@@ -381,11 +419,13 @@ const createElement = (text: string, selectedText: any, selection) => {
 
   if (!currentElements.length) return false;
 
+  unselectElement();
   window.getSelection().empty();
   const mapWrapper = document.createElement('div');
   mapWrapper.classList.add('mapWrapper');
   const currentSelection: FFinstance = {
     finder,
+    active: true,
     elements: currentElements,
     mapWrapper,
     sanitizedText: text,
@@ -483,11 +523,11 @@ const isElementInViewport = (element: HTMLElement) => {
   const rect = element.getBoundingClientRect();
 
   return (
-    rect.top >= 0 &&
-    rect.left >= 0 &&
+    rect.top >= 0 + viewPortDelta &&
+    rect.left >= 0 + viewPortDelta &&
     rect.bottom <=
-      (window.innerHeight || document.documentElement.clientHeight) &&
-    rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+      (window.innerHeight || document.documentElement.clientHeight) - viewPortDelta &&
+    rect.right <= (window.innerWidth || document.documentElement.clientWidth) - viewPortDelta
   );
 };
 
