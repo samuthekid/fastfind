@@ -201,8 +201,9 @@ const selectElement = (instance, element, scrollIntoView) => {
             block: 'center',
             behavior: scrollBehaviour,
           };
-          if (settings.keepElementCentered || !isElementInViewport(elem.portions[0]))
+          if (settings.keepElementCentered || !isElementInViewport(elem.portions[0])) {
             scrollIntoView && elem.portions[0].scrollIntoView(scrollSettings);
+          }
         } else {
           elem.active = false;
           elem.portions.forEach(p => p.classList.add('selectedClass'));
@@ -444,6 +445,7 @@ const createElement = (text: string, selectedText: any, selection) => {
         div.classList.add('selectedClass');
       }
     });
+
     if (settings.showSideMap) {
       let indicator = document.createElement('div');
       indicator.classList.add('mapIndicator');
@@ -456,6 +458,14 @@ const createElement = (text: string, selectedText: any, selection) => {
       element.mapIndicator = indicator;
     }
   });
+
+  if (settings.showSideMap) {
+    const label = document.createElement('div');
+    label.classList.add('mapLabel');
+    label.innerText = text.replace(/ /g, '\u00a0');
+    currentSelection.mapWrapper.appendChild(label);
+  }
+
   selectionsMapWrapper.appendChild(mapWrapper);
   selections.push(currentSelection);
 };

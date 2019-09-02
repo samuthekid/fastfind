@@ -390,7 +390,7 @@ body {
 }
 
 .selectionsMapWrapper:hover {
-  background: rgba(0,0,0,0.6);
+  background: rgba(0,0,0,0.7);
 }
 
 .selectionsMapWrapper .mapWrapper {
@@ -402,6 +402,10 @@ body {
 
 .selectionsMapWrapper:hover .mapWrapper {
   position: relative;
+}
+
+.mapWrapper:hover {
+  background: rgba(0,0,0,0.9);
 }
 
 .mapIndicator {
@@ -422,7 +426,31 @@ body {
 .mapIndicator.selected {
   width: 18px;
   margin-left: -4px;
-  z-index: -1;
+}
+
+.mapWrapper:hover .mapIndicator {
+  z-index: 2;
+}
+
+.mapLabel {
+  position: absolute;
+  bottom: 0px;
+  left: 0px;
+  font-size: 11px;
+  font-family: monospace;
+  color: #FFFFFF;
+  padding-left: 4px;
+  padding-right: 4px;
+  padding-bottom: 0px;
+  width: 100%;
+  user-select: none;
+  opacity: 0.4;
+  transform: rotate(-90deg);
+}
+
+.mapWrapper:hover .mapLabel {
+  transform: translate(0px, -10px) rotate(-90deg);
+  opacity: 1;
 }
 `;
 
