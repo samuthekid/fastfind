@@ -172,6 +172,7 @@ const unselectElement = () => {
   selections.forEach(selection => {
     if (selection.active) {
       selection.active = false;
+      selection.mapWrapper.classList.remove('selected');
       selection.elements.forEach(elem => {
         if (elem.active) {
           elem.portions.forEach(p => p.classList.remove('selected'));
@@ -191,6 +192,7 @@ const selectElement = (instance, element, scrollIntoView) => {
   selections.forEach(selection => {
     if (selection === instance) {
       selection.active = true;
+      selection.mapWrapper.classList.add('selected');
       selection.elements.forEach(elem => {
         if (elem === element) {
           elem.active = true;
@@ -424,6 +426,7 @@ const createElement = (text: string, selectedText: any, selection) => {
   window.getSelection().empty();
   const mapWrapper = document.createElement('div');
   mapWrapper.classList.add('mapWrapper');
+  mapWrapper.classList.add('selected');
   const currentSelection: FFinstance = {
     finder,
     active: true,
@@ -462,7 +465,7 @@ const createElement = (text: string, selectedText: any, selection) => {
   if (settings.showSideMap) {
     const label = document.createElement('div');
     label.classList.add('mapLabel');
-    label.innerText = text.replace(/ /g, '\u00a0');
+    label.innerText = text.split('').reverse().join('');
     currentSelection.mapWrapper.appendChild(label);
   }
 
