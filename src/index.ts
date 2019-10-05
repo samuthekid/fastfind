@@ -54,10 +54,8 @@ const initFF = () => {
   repeatLogoWrapper.appendChild(repeatLogo);
   document.body.appendChild(repeatLogoWrapper);
 
-  if (settings.showSideMap) {
-    selectionsMapWrapper.className = 'selectionsMapWrapper';
-    document.body.appendChild(selectionsMapWrapper);
-  }
+  selectionsMapWrapper.className = 'selectionsMapWrapper';
+  document.body.appendChild(selectionsMapWrapper);
 
   document.body.addEventListener('keydown', onKeyDown);
 
@@ -176,7 +174,7 @@ const unselectElement = () => {
       selection.elements.forEach(elem => {
         if (elem.active) {
           elem.portions.forEach(p => p.classList.remove('selected'));
-          settings.showSideMap && elem.mapIndicator.classList.remove('selected');
+          elem.mapIndicator.classList.remove('selected');
         } else {
           elem.portions.forEach(p => p.classList.remove('selectedClass'));
         }
@@ -197,7 +195,7 @@ const selectElement = (instance, element, scrollIntoView) => {
         if (elem === element) {
           elem.active = true;
           elem.portions.forEach(p => p.classList.add('selected'));
-          settings.showSideMap && elem.mapIndicator.classList.add('selected');
+          elem.mapIndicator.classList.add('selected');
           const scrollBehaviour: any = settings.smoothScrolling ? 'smooth' : 'instant';
           const scrollSettings: ScrollIntoViewOptions = {
             block: 'center',
@@ -216,7 +214,7 @@ const selectElement = (instance, element, scrollIntoView) => {
 };
 
 const removeElement = (selection: FFinstance) => {
-  settings.showSideMap && selection.elements.forEach(element =>
+  selection.elements.forEach(element =>
     element.mapIndicator.remove()
   );
   selection.mapWrapper.remove();
@@ -327,8 +325,12 @@ const createElement = (text: string, selectedText: any, selection) => {
   DEBUG_ON && console.log('parent', selectedTextParent);
   DEBUG_ON && console.log("--------------------------------------------------");
 
-  const color = colors[currentColor];
-  currentColor = currentColor === colors.length - 1 ? 0 : currentColor + 1;
+  let color: Array<number>;
+  if (currentColor < colors.length) {
+    color = colors[currentColor++];
+  } else {
+    color = getRandomColor();
+  }
   const contrast = getContrastYIQ(color);
   const currentElements: FFelement[] = [];
   let portions: HTMLElement[] = [];
@@ -395,7 +397,7 @@ const createElement = (text: string, selectedText: any, selection) => {
         else if (portion.index === 0) div.classList.add('ffelemStart');
         else if (portion.isEnd) div.classList.add('ffelemEnd');
         else div.classList.add('ffelemMiddle');
-        div.style.backgroundColor = color;
+        div.style.backgroundColor = renderColor(color, 1.0);
         div.style.color = contrast;
         div.innerHTML = portion.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
         portions.push(div);
@@ -449,25 +451,34 @@ const createElement = (text: string, selectedText: any, selection) => {
       }
     });
 
-    if (settings.showSideMap) {
-      let indicator = document.createElement('div');
-      indicator.classList.add('mapIndicator');
-      indicator.onclick = () => selectElement(currentSelection, element, true);
-      let elementPosition =
-        portions[0].getBoundingClientRect().top + document.documentElement.scrollTop;
-      indicator.style.transform = `translateY(${elementPosition / pageHeight * 100}vh)`;
-      indicator.style.backgroundColor = color;
-      mapWrapper.appendChild(indicator);
-      element.mapIndicator = indicator;
-    }
+    let indicator = document.createElement('div');
+    const scrollToTop =
+    document.documentElement.scrollTop || document.body.scrollTop || 0;
+    indicator.classList.add('mapIndicator');
+    if (active) indicator.classList.add('selected');
+    indicator.onclick = () => selectElement(currentSelection, element, true);
+    let elementPosition = portions[0].getBoundingClientRect().top + scrollToTop;
+    indicator.style.transform = `translateY(${elementPosition / pageHeight * 100}vh)`;
+    DEBUG_ON && console.log('DEBUG: createElement -> portions[0].getBoundingClientRect().top', portions[0].getBoundingClientRect().top)
+    DEBUG_ON && console.log('DEBUG: createElement -> scrollToTop', scrollToTop)
+    DEBUG_ON && console.log('DEBUG: createElement -> elementPosition', elementPosition)
+    DEBUG_ON && console.log('DEBUG: createElement -> pageHeight', pageHeight)
+    DEBUG_ON && console.log('DEBUG: ..............................')
+    indicator.style.backgroundColor = renderColor(color, 0.8);
+    mapWrapper.appendChild(indicator);
+    element.mapIndicator = indicator;
   });
 
-  if (settings.showSideMap) {
-    const label = document.createElement('div');
-    label.classList.add('mapLabel');
-    label.innerText = text.split('').reverse().join('');
-    currentSelection.mapWrapper.appendChild(label);
-  }
+  const label = document.createElement('div');
+  label.classList.add('mapLabel');
+  label.style.background =
+    `linear-gradient(to bottom,
+${renderColor(color, 1.0)} 0%,
+${renderColor(color, 0.8)} 10%,
+${renderColor(color, 0.6)} 40%,
+#00000000 50%,#00000000 100%)`;
+  label.innerText = text.split('').reverse().join('');
+  currentSelection.mapWrapper.appendChild(label);
 
   selectionsMapWrapper.appendChild(mapWrapper);
   selections.push(currentSelection);
@@ -503,18 +514,21 @@ const rotateLogo = () => {
 };
 
 const getRandomColor = () => {
-  const letters = '0123456789ABCDEF';
-  let color = '';
-  for (let i = 0; i < 6; i++) {
-    color += letters[Math.floor(Math.random() * 16)];
-  }
-  return color;
+  return [
+    Math.floor(Math.random() * 255),
+    Math.floor(Math.random() * 255),
+    Math.floor(Math.random() * 255)
+  ];
 };
 
-const getContrastYIQ = (hexcolor: string) => {
-  const r = parseInt(hexcolor.substr(0, 2), 16);
-  const g = parseInt(hexcolor.substr(2, 2), 16);
-  const b = parseInt(hexcolor.substr(4, 2), 16);
+const renderColor =(color: Array<number>, transparency: number) => {
+  return `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${transparency})`;
+}
+
+const getContrastYIQ = (color: Array<number>) => {
+  const r = color[0];
+  const g = color[1];
+  const b = color[2];
   const yiq = (r * 299 + g * 587 + b * 114) / 1000;
   return yiq >= 128 ? 'black' : 'white';
 };

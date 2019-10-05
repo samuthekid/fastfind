@@ -10,6 +10,8 @@ body {
 
 
 
+/* #################### FFELEM #################### */
+
 .ffelem {
   position: relative;
   z-index: 1;
@@ -150,10 +152,10 @@ body {
   border-bottom-left-radius: var(--elem-radius-selected);
   border-top-right-radius: var(--elem-radius-selected);
   border-bottom-right-radius: var(--elem-radius-selected);
-  border-top: solid 1px #ffffff55 !important;
-  border-bottom: solid 1px #ffffff55 !important;
-  border-left: solid 1px #ffffff55 !important;
-  border-right: solid 1px #ffffff55 !important;
+  border-top: solid 1px rgba(255,255,255,0.4) !important;
+  border-bottom: solid 1px rgba(255,255,255,0.4) !important;
+  border-left: solid 1px rgba(255,255,255,0.4) !important;
+  border-right: solid 1px rgba(255,255,255,0.4) !important;
   top: var(--elem-big);
   left: var(--elem-big);
   right: var(--elem-big);
@@ -161,8 +163,8 @@ body {
 }
 
 .ffelemMiddle.selectedClass::before {
-  border-top: solid 1px #ffffff55 !important;
-  border-bottom: solid 1px #ffffff55 !important;
+  border-top: solid 1px rgba(255,255,255,0.4) !important;
+  border-bottom: solid 1px rgba(255,255,255,0.4) !important;
   top: var(--elem-big);
   bottom: var(--elem-big);
 }
@@ -170,9 +172,9 @@ body {
 .ffelemStart.selectedClass::before {
   border-top-left-radius: var(--elem-radius-selected);
   border-bottom-left-radius: var(--elem-radius-selected);
-  border-top: solid 1px #ffffff55 !important;
-  border-bottom: solid 1px #ffffff55 !important;
-  border-left: solid 1px #ffffff55 !important;
+  border-top: solid 1px rgba(255,255,255,0.4) !important;
+  border-bottom: solid 1px rgba(255,255,255,0.4) !important;
+  border-left: solid 1px rgba(255,255,255,0.4) !important;
   top: var(--elem-big);
   left: var(--elem-big);
   bottom: var(--elem-big);
@@ -181,9 +183,9 @@ body {
 .ffelemEnd.selectedClass::before {
   border-top-right-radius: var(--elem-radius-selected);
   border-bottom-right-radius: var(--elem-radius-selected);
-  border-top: solid 1px #ffffff55 !important;
-  border-bottom: solid 1px #ffffff55 !important;
-  border-right: solid 1px #ffffff55 !important;
+  border-top: solid 1px rgba(255,255,255,0.4) !important;
+  border-bottom: solid 1px rgba(255,255,255,0.4) !important;
+  border-right: solid 1px rgba(255,255,255,0.4) !important;
   top: var(--elem-big);
   right: var(--elem-big);
   bottom: var(--elem-big);
@@ -197,10 +199,10 @@ body {
   border-bottom-left-radius: var(--elem-radius-selected);
   border-top-right-radius: var(--elem-radius-selected);
   border-bottom-right-radius: var(--elem-radius-selected);
-  border-top: solid 1px #ffffff !important;
-  border-bottom: solid 1px #ffffff !important;
-  border-left: solid 1px #ffffff !important;
-  border-right: solid 1px #ffffff !important;
+  border-top: solid 1px rgba(255,255,255,1.0) !important;
+  border-bottom: solid 1px rgba(255,255,255,1.0) !important;
+  border-left: solid 1px rgba(255,255,255,1.0) !important;
+  border-right: solid 1px rgba(255,255,255,1.0) !important;
   top: var(--elem-big);
   left: var(--elem-big);
   right: var(--elem-big);
@@ -209,8 +211,8 @@ body {
 
 .ffelemMiddle.selected::before {
   animation: highlightMiddle .6s cubic-bezier(.6, 0, .4, 1);
-  border-top: solid 1px #ffffff !important;
-  border-bottom: solid 1px #ffffff !important;
+  border-top: solid 1px rgba(255,255,255,1.0) !important;
+  border-bottom: solid 1px rgba(255,255,255,1.0) !important;
   top: var(--elem-big);
   bottom: var(--elem-big);
 }
@@ -219,9 +221,9 @@ body {
   animation: highlightStart .6s cubic-bezier(.6, 0, .4, 1);
   border-top-left-radius: var(--elem-radius-selected);
   border-bottom-left-radius: var(--elem-radius-selected);
-  border-top: solid 1px #ffffff !important;
-  border-bottom: solid 1px #ffffff !important;
-  border-left: solid 1px #ffffff !important;
+  border-top: solid 1px rgba(255,255,255,1.0) !important;
+  border-bottom: solid 1px rgba(255,255,255,1.0) !important;
+  border-left: solid 1px rgba(255,255,255,1.0) !important;
   top: var(--elem-big);
   left: var(--elem-big);
   bottom: var(--elem-big);
@@ -231,15 +233,17 @@ body {
   animation: highlightEnd .6s cubic-bezier(.6, 0, .4, 1);
   border-top-right-radius: var(--elem-radius-selected);
   border-bottom-right-radius: var(--elem-radius-selected);
-  border-top: solid 1px #ffffff !important;
-  border-bottom: solid 1px #ffffff !important;
-  border-right: solid 1px #ffffff !important;
+  border-top: solid 1px rgba(255,255,255,1.0) !important;
+  border-bottom: solid 1px rgba(255,255,255,1.0) !important;
+  border-right: solid 1px rgba(255,255,255,1.0) !important;
   top: var(--elem-big);
   right: var(--elem-big);
   bottom: var(--elem-big);
 }
 
 
+
+/* #################### FFELEM ANIMATIONS #################### */
 
 @keyframes highlight {
   0% {
@@ -335,15 +339,11 @@ body {
 
 
 
-
-
-
-
-
+/* #################### PAGE LOOP LOGO #################### */
 
 .repeatLogoWrapper {
   opacity: 0;
-  background-color: #5a5a5ab3;
+  background-color: rgba(90,90,90,0.7);
   position: fixed;
   top: 50%;
   left: 50%;
@@ -378,6 +378,10 @@ body {
   100% { opacity: 0; }
 }
 
+
+
+/* #################### SELECTIONS MAP WRAPPER #################### */
+
 .selectionsMapWrapper {
   display: flex;
   min-width: 0px;
@@ -393,6 +397,10 @@ body {
   background: rgba(0,0,0,0.6);
 }
 
+
+
+/* #################### MAP WRAPPER #################### */
+
 .selectionsMapWrapper .mapWrapper {
   position: absolute;
   right: 0px;
@@ -404,21 +412,17 @@ body {
   position: relative;
 }
 
-.mapWrapper.selected .mapLabel {
-  padding-top: 2vh;
-  color: #000000;
-  background: linear-gradient(
-    to bottom,
-    rgba(255,255,255,1.0) 0%,
-    rgba(255,255,255,0.6) 25%,
-    rgba(255,255,255,0.1) 35%,
-    rgba(255,255,255,0) 100%
-  );
+.mapWrapper.selected {
+  z-index: 2;
 }
 
 .mapWrapper:hover {
-  background: rgba(255,255,255,0.8);
+  background: rgba(255,255,255,0.4);
 }
+
+
+
+/* #################### INDICATORS #################### */
 
 .mapIndicator {
   position: absolute;
@@ -426,9 +430,17 @@ body {
   width: 10px;
   height: 6px;
   margin-left: 4px;
-  border: solid 1px #ffffff !important;
+  box-shadow: 0px 0px 3px 0px rgba(0,0,0,0.8);
+  border-radius: 1px;
   transition: all .1s ease;
   z-index: 2;
+  cursor: pointer;
+}
+
+.mapWrapper.selected .mapIndicator {
+  border: solid 0.5px rgba(255,255,255,0.4) !important;
+  width: 9px;
+  height: 5px;
 }
 
 .mapIndicator:hover {
@@ -436,64 +448,70 @@ body {
   margin-left: 0px;
 }
 
-.mapIndicator.selected {
+.mapWrapper.selected .mapIndicator:hover {
+  width: 14px;
+  margin-left: 0px;
+}
+
+.mapWrapper.selected .mapIndicator.selected {
+  border: solid 0.5px rgba(255,255,255,1.0) !important;
   width: 18px;
   margin-left: -4px;
   z-index: 1;
 }
 
+
+
+/* #################### MAP LABEL #################### */
+
 .mapLabel {
   visibility: hidden;
   font-size: 11px;
   font-family: monospace;
-  color: #FFFFFFAA;
+  color: rgba(255,255,255,1.0);
   padding-left: 0px;
   padding-right: 0px;
-  padding-top: 4px;
-  height: 100vh;
+  padding-top: 50vh;
+  margin-top: 14vh;
+  height: 85vh;
   width: 14px;
   user-select: none;
   transform: rotate(180deg);
+  box-sizing: content-box;
   unicode-bidi: bidi-override;
   direction: rtl;
   text-align: left;
   line-height: 14px;
   writing-mode: vertical-rl;
-  background: linear-gradient(
-    to bottom,
-    rgba(0,0,0,1.0) 0%,
-    rgba(0,0,0,0.6) 25%,
-    rgba(0,0,0,0.1) 35%,
-    rgba(0,0,0,0) 100%
-  );
   transition: all .1s ease;
+}
+
+.mapWrapper:hover .mapLabel {
+  margin-top: 13vh;
+  padding-top: 30vh;
+}
+
+.mapWrapper.selected .mapLabel {
+  margin-top: 11vh;
+  padding-top: 10vh;
 }
 
 .selectionsMapWrapper:hover .mapLabel {
   visibility: visible;
 }
-
-.mapWrapper:hover .mapLabel {
-  padding-top: 2vh;
-  color: #FFFFFFFF;
-}
-
-.mapWrapper:hover.selected .mapLabel {
-  color: #000000;
-}
 `;
 
 export const colors = [
-  '#1EA896',
-  '#FF6164',
-  '#0071BC',
-  '#1FB85C',
-  '#F75C03',
-  '#659B5E',
-  '#FAA916',
-  '#C2202C',
-  '#B52890',
-  '#4930F0',
-  '#5A136C',
-  '#17442B'
+  [30, 168, 150],
+  [255, 97, 100],
+  [0, 113, 188],
+  [31, 184, 92],
+  [247, 92, 3],
+  [101, 155, 94],
+  [250, 169, 22],
+  [194, 32, 44],
+  [181, 40, 144],
+  [73, 48, 240],
+  [90, 19, 108],
+  [23, 68, 43]
 ];
