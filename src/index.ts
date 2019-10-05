@@ -5,11 +5,19 @@ import ResizeObserver from 'resize-observer-polyfill';
 // TODO:
 // - html text "breaks" after removing elements
 // - typing is missing in some places
+// - performance
 const DEBUG_ON = false;
 
-let viewPortDelta = 60;
+let viewPortDelta = 20;
 let currentColor = 0;
-let pageHeight = 0;
+let pageHeight = Math.max(
+  document.body.scrollHeight,
+  document.body.offsetHeight,
+  document.documentElement.clientHeight,
+  document.documentElement.scrollHeight,
+  document.documentElement.offsetHeight
+);
+
 let settings = {
   mainKey: 'f',
   unselectAllKey: 'd',
@@ -42,6 +50,8 @@ let repeatLogo: HTMLElement = document.createElement('img');
 let repeatLogoWrapper: HTMLElement = document.createElement('div');
 
 let selectionsMapWrapper: HTMLElement = document.createElement('div');
+let selectionsMapPin: HTMLElement = document.createElement('div');
+let mapPin: HTMLElement = document.createElement('img');
 
 const initFF = () => {
   const style = document.createElement('style');
@@ -56,6 +66,17 @@ const initFF = () => {
 
   selectionsMapWrapper.className = 'selectionsMapWrapper';
   document.body.appendChild(selectionsMapWrapper);
+
+  selectionsMapPin.className = 'selectionsMapPin';
+  selectionsMapPin.onclick = () => {
+    selectionsMapPin.classList.toggle('fixed');
+    selectionsMapWrapper.classList.toggle('fixed');
+  };
+  selectionsMapWrapper.appendChild(selectionsMapPin);
+
+  mapPin.setAttribute('src', chrome.extension.getURL('assets/pin.png'));
+  mapPin.className = 'mapPin';
+  selectionsMapPin.appendChild(mapPin);
 
   document.body.addEventListener('keydown', onKeyDown);
 
@@ -251,6 +272,8 @@ const removeAllElements = () => {
 
 const createElement = (text: string, selectedText: any, selection) => {
   let activeElements = 0;
+  const scrollToTop =
+      document.documentElement.scrollTop || document.body.scrollTop || 0;
 
   const anchorAndFocusAreTheSame = selectedText.anchorNode === selectedText.focusNode;
   let selectionOffsetToEnd;
@@ -452,8 +475,6 @@ const createElement = (text: string, selectedText: any, selection) => {
     });
 
     let indicator = document.createElement('div');
-    const scrollToTop =
-    document.documentElement.scrollTop || document.body.scrollTop || 0;
     indicator.classList.add('mapIndicator');
     if (active) indicator.classList.add('selected');
     indicator.onclick = () => selectElement(currentSelection, element, true);
@@ -482,13 +503,17 @@ ${renderColor(color, 0.6)} 40%,
 
   selectionsMapWrapper.appendChild(mapWrapper);
   selections.push(currentSelection);
+
+  document.documentElement.scrollTop && document.documentElement.scrollTo({ top: scrollToTop });
+  document.body.scrollTop && document.body.scrollTo({ top: scrollToTop });
 };
 
 const redrawMapIndicators = () => {
   selections.forEach(instance => {
     instance.elements.forEach(element => {
       let elementPosition =
-        element.portions[0].getBoundingClientRect().top + document.documentElement.scrollTop;
+        element.portions[0].getBoundingClientRect().top +
+          (document.documentElement.scrollTop || document.body.scrollTop || 0);
       element.mapIndicator.style.transform = `translateY(${elementPosition / pageHeight * 100}vh)`;
     });
   });
@@ -548,18 +573,16 @@ const getParentIndex = (node: HTMLElement, reverse: boolean = false) => {
 
 const isElementInViewport = (element: HTMLElement) => {
   const rect = element.getBoundingClientRect();
-
-  return (
-    rect.top >= 0 + viewPortDelta &&
-    rect.left >= 0 + viewPortDelta &&
+  const isInViewport =
+    rect.top >= 0 + viewPortDelta && rect.left >= 0 &&
     rect.bottom <=
       (window.innerHeight || document.documentElement.clientHeight) - viewPortDelta &&
-    rect.right <= (window.innerWidth || document.documentElement.clientWidth) - viewPortDelta
-  );
+    rect.right <= (window.innerWidth || document.documentElement.clientWidth);
+  return isInViewport;
 };
 
 const getElementParents = node => {
-  var nodes = [node]
+  const nodes = [node]
   for (; node; node = node.parentNode) {
     nodes.unshift(node)
   }
@@ -567,12 +590,12 @@ const getElementParents = node => {
 }
 
 const commonAncestor = (node1: HTMLElement, node2: HTMLElement) => {
-  var parents1 = getElementParents(node1)
-  var parents2 = getElementParents(node2)
+  const parents1 = getElementParents(node1)
+  const parents2 = getElementParents(node2)
 
   if (parents1[0] != parents2[0]) throw "No common ancestor!"
 
-  for (var i = 0; i < parents1.length; i++) {
+  for (let i = 0; i < parents1.length; i++) {
     if (parents1[i] != parents2[i]) return parents1[i - 1]
   }
 }

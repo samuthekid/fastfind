@@ -68,7 +68,7 @@ body {
   border-bottom-left-radius: var(--elem-radius);
   border-top-right-radius: var(--elem-radius);
   border-bottom-right-radius: var(--elem-radius);
-  transition: all .1s ease;
+  transition: all .2s ease;
 }
 
 .ffelemMiddle::before {
@@ -80,7 +80,7 @@ body {
   bottom: var(--elem-normal);
   background: inherit;
   z-index: -1;
-  transition: all .1s ease;
+  transition: all .2s ease;
 }
 
 .ffelemStart::before {
@@ -94,7 +94,7 @@ body {
   z-index: -1;
   border-top-left-radius: var(--elem-radius);
   border-bottom-left-radius: var(--elem-radius);
-  transition: all .1s ease;
+  transition: all .2s ease;
 }
 
 .ffelemEnd::before {
@@ -108,7 +108,7 @@ body {
   z-index: -1;
   border-top-right-radius: var(--elem-radius);
   border-bottom-right-radius: var(--elem-radius);
-  transition: all .1s ease;
+  transition: all .2s ease;
 }
 
 
@@ -397,6 +397,52 @@ body {
   background: rgba(0,0,0,0.6);
 }
 
+.selectionsMapWrapper.fixed {
+  background: rgba(0,0,0,0.6);
+}
+
+
+
+/* #################### SELECTIONS MAP PIN #################### */
+
+.selectionsMapPin {
+  visibility: hidden;
+  width: 20px;
+  height: 20px;
+  background: rgba(0,0,0,0.6);
+  position: absolute;
+  left: -20px;
+}
+
+.selectionsMapPin.fixed {
+  visibility: visible;
+}
+
+.selectionsMapWrapper:hover .selectionsMapPin {
+  visibility: visible;
+}
+
+
+
+/* #################### MAP PIN #################### */
+
+.mapPin {
+  width: 100%;
+  padding: 4px;
+  opacity: 0.4;
+  filter: invert(100%);
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.selectionsMapPin.fixed .mapPin {
+  opacity: 1.0;
+}
+
+.mapPin:hover {
+  padding: 3px;
+}
+
 
 
 /* #################### MAP WRAPPER #################### */
@@ -412,8 +458,12 @@ body {
   position: relative;
 }
 
+.selectionsMapWrapper.fixed .mapWrapper {
+  position: relative;
+}
+
 .mapWrapper.selected {
-  z-index: 2;
+  z-index: 3;
 }
 
 .mapWrapper:hover {
@@ -432,9 +482,10 @@ body {
   margin-left: 4px;
   box-shadow: 0px 0px 3px 0px rgba(0,0,0,0.8);
   border-radius: 1px;
-  transition: all .1s ease;
+  transition: all .2s ease;
   z-index: 2;
   cursor: pointer;
+  box-sizing: content-box;
 }
 
 .mapWrapper.selected .mapIndicator {
@@ -483,7 +534,7 @@ body {
   text-align: left;
   line-height: 14px;
   writing-mode: vertical-rl;
-  transition: all .1s ease;
+  transition: all .2s ease;
 }
 
 .mapWrapper:hover .mapLabel {
@@ -492,11 +543,15 @@ body {
 }
 
 .mapWrapper.selected .mapLabel {
-  margin-top: 11vh;
+  margin-top: 12vh;
   padding-top: 10vh;
 }
 
 .selectionsMapWrapper:hover .mapLabel {
+  visibility: visible;
+}
+
+.selectionsMapWrapper.fixed .mapLabel {
   visibility: visible;
 }
 `;
