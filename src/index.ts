@@ -52,6 +52,7 @@ let repeatLogoWrapper: HTMLElement = document.createElement('div');
 
 let selectionsMapWrapper: HTMLElement = document.createElement('div');
 let selectionsMapPin: HTMLElement = document.createElement('div');
+let selectionsMapScroll: HTMLElement = document.createElement('div');
 let mapPin: HTMLElement = document.createElement('img');
 
 const initFF = () => {
@@ -94,12 +95,22 @@ const initFF = () => {
       document.documentElement.offsetHeight
     );
     if (newHeight != pageHeight) {
-      pageHeight = newHeight;
       console.log('page height change:', newHeight);
+      pageHeight = newHeight;
+      // selectionsMapScroll.style.height = '';
       redrawMapIndicators();
     }
   });
   resizeObserver.observe(document.body);
+
+  selectionsMapScroll.className = "selectionsMapScroll";
+  selectionsMapWrapper.appendChild(selectionsMapScroll);
+  selectionsMapScroll.style.height = `${(document.documentElement.scrollTop || document.body.scrollTop || 0) / pageHeight * 100}vh`;
+
+  window.addEventListener('scroll', () => requestAnimationFrame(() => {
+    selectionsMapScroll.style.transform =
+      `translateY(${(document.documentElement.scrollTop || document.body.scrollTop || 0) / pageHeight * 100}vh)`;
+  }));
 };
 
 const onKeyDown = (e: KeyboardEvent & { target: HTMLInputElement }) => {

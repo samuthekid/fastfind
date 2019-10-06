@@ -404,6 +404,19 @@ body {
 
 
 
+/* #################### SELECTIONS MAP SCROLL #################### */
+
+.selectionsMapScroll {
+  position: absolute;
+  width: 100%;
+  background: rgba(255,255,255,0.4);
+  opacity: 0.5;
+  z-index: 2;
+  pointer-events: none;
+}
+
+
+
 /* #################### SELECTIONS MAP PIN #################### */
 
 .selectionsMapPin {
