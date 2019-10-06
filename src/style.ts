@@ -20,6 +20,7 @@ body {
   border-bottom-left-radius: var(--elem-radius);
   border-top-right-radius: var(--elem-radius);
   border-bottom-right-radius: var(--elem-radius);
+  transition: all .2s ease;
 }
 
 .ffelemMiddle {
@@ -194,7 +195,7 @@ body {
 
 
 .ffelem.selected::before {
-  animation: highlight .6s cubic-bezier(.6, 0, .4, 1);
+  animation: highlight .5s cubic-bezier(.6, 0, .4, 1);
   border-top-left-radius: var(--elem-radius-selected);
   border-bottom-left-radius: var(--elem-radius-selected);
   border-top-right-radius: var(--elem-radius-selected);
@@ -210,7 +211,7 @@ body {
 }
 
 .ffelemMiddle.selected::before {
-  animation: highlightMiddle .6s cubic-bezier(.6, 0, .4, 1);
+  animation: highlightMiddle .5s cubic-bezier(.6, 0, .4, 1);
   border-top: solid 1px rgba(255,255,255,1.0) !important;
   border-bottom: solid 1px rgba(255,255,255,1.0) !important;
   top: var(--elem-big);
@@ -218,7 +219,7 @@ body {
 }
 
 .ffelemStart.selected::before {
-  animation: highlightStart .6s cubic-bezier(.6, 0, .4, 1);
+  animation: highlightStart .5s cubic-bezier(.6, 0, .4, 1);
   border-top-left-radius: var(--elem-radius-selected);
   border-bottom-left-radius: var(--elem-radius-selected);
   border-top: solid 1px rgba(255,255,255,1.0) !important;
@@ -230,7 +231,7 @@ body {
 }
 
 .ffelemEnd.selected::before {
-  animation: highlightEnd .6s cubic-bezier(.6, 0, .4, 1);
+  animation: highlightEnd .5s cubic-bezier(.6, 0, .4, 1);
   border-top-right-radius: var(--elem-radius-selected);
   border-bottom-right-radius: var(--elem-radius-selected);
   border-top: solid 1px rgba(255,255,255,1.0) !important;
@@ -252,13 +253,13 @@ body {
     right: var(--elem-big);
     bottom: var(--elem-big);
   }
-  10% {
+  15% {
     top: var(--elem-normal);
     left: var(--elem-normal);
     right: var(--elem-normal);
     bottom: var(--elem-normal);
   }
-  70% {
+  60% {
     top: var(--elem-max);
     left: var(--elem-max);
     right: var(--elem-max);
@@ -361,7 +362,7 @@ body {
 }
 
 .repeatLogo.active {
-  animation: rotateLogo .6s cubic-bezier(.6, 0, .4, 1);
+  animation: rotateLogo .5s cubic-bezier(.6, 0, .4, 1);
 }
 @keyframes rotateLogo {
   0%   { transform: rotate(-30deg); }
@@ -369,7 +370,7 @@ body {
 }
 
 .repeatLogoWrapper.active {
-  animation: rotateLogoWrapper .6s cubic-bezier(.6, 0, .4, 1);
+  animation: rotateLogoWrapper .5s cubic-bezier(.6, 0, .4, 1);
 }
 @keyframes rotateLogoWrapper {
   0%   { opacity: 0; }
@@ -433,6 +434,7 @@ body {
   filter: invert(100%);
   box-sizing: border-box;
   cursor: pointer;
+  transition: all .2s ease;
 }
 
 .selectionsMapPin.fixed .mapPin {

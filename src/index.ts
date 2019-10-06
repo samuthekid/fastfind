@@ -7,6 +7,7 @@ import ResizeObserver from 'resize-observer-polyfill';
 // - typing is missing in some places
 // - performance
 const DEBUG_ON = false;
+const AUTO_PIN_MAP = false;
 
 let viewPortDelta = 20;
 let currentColor = 0;
@@ -72,6 +73,10 @@ const initFF = () => {
     selectionsMapPin.classList.toggle('fixed');
     selectionsMapWrapper.classList.toggle('fixed');
   };
+  if (AUTO_PIN_MAP) {
+    selectionsMapPin.classList.toggle('fixed');
+    selectionsMapWrapper.classList.toggle('fixed');
+  }
   selectionsMapWrapper.appendChild(selectionsMapPin);
 
   mapPin.setAttribute('src', chrome.extension.getURL('assets/pin.png'));
@@ -90,6 +95,7 @@ const initFF = () => {
     );
     if (newHeight != pageHeight) {
       pageHeight = newHeight;
+      console.log('page height change:', newHeight);
       redrawMapIndicators();
     }
   });
@@ -108,7 +114,8 @@ const onKeyDown = (e: KeyboardEvent & { target: HTMLInputElement }) => {
   // trim removes spaces
   const text = selectedText.toString().trim();
 
-  if (e.key === settings.mainKey) {
+  if (e.key === settings.mainKey ||
+      (e.key === settings.mainKey.toUpperCase() && !e.shiftKey)) {
     // No support for multi-line for now...
     if (text && !text.includes('\n')) {
       const exists = selections.find(
@@ -124,23 +131,28 @@ const onKeyDown = (e: KeyboardEvent & { target: HTMLInputElement }) => {
     }
     e.preventDefault();
     e.stopPropagation();
-  } else if (e.key === settings.unselectAllKey && selections.length) {
+  } else if (e.key === settings.unselectAllKey && selections.length ||
+    (e.key === settings.unselectAllKey.toUpperCase() && !e.shiftKey)) {
     removeAllElements();
     e.preventDefault();
     e.stopPropagation();
-  } else if (e.key === settings.nextElementKey && selections.length) {
+  } else if (e.key === settings.nextElementKey && selections.length ||
+    (e.key === settings.nextElementKey.toUpperCase() && !e.shiftKey)) {
     cycleThroughElements(1);
     e.preventDefault();
     e.stopPropagation();
-  } else if (e.key === settings.previousElementKey && selections.length) {
+  } else if (e.key === settings.previousElementKey && selections.length ||
+    (e.key === settings.previousElementKey.toUpperCase() && !e.shiftKey)) {
     cycleThroughElements(-1);
     e.preventDefault();
     e.stopPropagation();
-  } else if (e.key === settings.nextInstanceKey && selections.length) {
+  } else if (e.key === settings.nextInstanceKey && selections.length ||
+    (e.key === settings.nextInstanceKey.toUpperCase() && !e.shiftKey)) {
     cycleThroughInstances(1);
     e.preventDefault();
     e.stopPropagation();
-  } else if (e.key === settings.previousInstanceKey && selections.length) {
+  } else if (e.key === settings.previousInstanceKey && selections.length ||
+    (e.key === settings.previousInstanceKey.toUpperCase() && !e.shiftKey)) {
     cycleThroughInstances(-1);
     e.preventDefault();
     e.stopPropagation();
@@ -191,13 +203,19 @@ const unselectElement = () => {
   selections.forEach(selection => {
     if (selection.active) {
       selection.active = false;
-      selection.mapWrapper.classList.remove('selected');
+      requestAnimationFrame(() => {
+        selection.mapWrapper.classList.remove('selected');
+      });
       selection.elements.forEach(elem => {
         if (elem.active) {
-          elem.portions.forEach(p => p.classList.remove('selected'));
-          elem.mapIndicator.classList.remove('selected');
+          requestAnimationFrame(() => {
+            elem.portions.forEach(p => p.classList.remove('selected'));
+            elem.mapIndicator.classList.remove('selected');
+          });
         } else {
-          elem.portions.forEach(p => p.classList.remove('selectedClass'));
+          requestAnimationFrame(() => {
+            elem.portions.forEach(p => p.classList.remove('selectedClass'));
+          });
         }
       });
     }
@@ -211,12 +229,16 @@ const selectElement = (instance, element, scrollIntoView) => {
   selections.forEach(selection => {
     if (selection === instance) {
       selection.active = true;
-      selection.mapWrapper.classList.add('selected');
+      requestAnimationFrame(() => {
+        selection.mapWrapper.classList.add('selected');
+      });
       selection.elements.forEach(elem => {
         if (elem === element) {
           elem.active = true;
-          elem.portions.forEach(p => p.classList.add('selected'));
-          elem.mapIndicator.classList.add('selected');
+          requestAnimationFrame(() => {
+            elem.portions.forEach(p => p.classList.add('selected'));
+            elem.mapIndicator.classList.add('selected');
+          });
           const scrollBehaviour: any = settings.smoothScrolling ? 'smooth' : 'instant';
           const scrollSettings: ScrollIntoViewOptions = {
             block: 'center',
@@ -227,7 +249,9 @@ const selectElement = (instance, element, scrollIntoView) => {
           }
         } else {
           elem.active = false;
-          elem.portions.forEach(p => p.classList.add('selectedClass'));
+          requestAnimationFrame(() => {
+            elem.portions.forEach(p => p.classList.add('selectedClass'));
+          });
         }
       });
     }
@@ -416,14 +440,16 @@ const createElement = (text: string, selectedText: any, selection) => {
         }
 
         const div = document.createElement('ffelem') as HTMLDivElement;
-        if (portion.index === 0 && portion.isEnd) div.classList.add('ffelem');
-        else if (portion.index === 0) div.classList.add('ffelemStart');
-        else if (portion.isEnd) div.classList.add('ffelemEnd');
-        else div.classList.add('ffelemMiddle');
-        div.style.backgroundColor = renderColor(color, 1.0);
-        div.style.color = contrast;
-        div.innerHTML = portion.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
         portions.push(div);
+        requestAnimationFrame(() => {
+          if (portion.index === 0 && portion.isEnd) div.classList.add('ffelem');
+          else if (portion.index === 0) div.classList.add('ffelemStart');
+          else if (portion.isEnd) div.classList.add('ffelemEnd');
+          else div.classList.add('ffelemMiddle');
+          div.style.backgroundColor = renderColor(color, 1.0);
+          div.style.color = contrast;
+          div.innerHTML = portion.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        });
 
         if (portion.isEnd) {
           const element: FFelement = { portions, active, mapIndicator: null };
@@ -468,9 +494,13 @@ const createElement = (text: string, selectedText: any, selection) => {
       div.onclick = () => selectElement(currentSelection, element, false);
 
       if (active) {
-        div.classList.add('selected');
+        requestAnimationFrame(() => {
+          div.classList.add('selected');
+        });
       } else if (someActive) {
-        div.classList.add('selectedClass');
+        requestAnimationFrame(() => {
+          div.classList.add('selectedClass');
+        });
       }
     });
 
@@ -499,11 +529,13 @@ ${renderColor(color, 0.8)} 10%,
 ${renderColor(color, 0.6)} 40%,
 #00000000 50%,#00000000 100%)`;
   label.innerText = text.split('').reverse().join('');
+
+  requestAnimationFrame(() => {
+    selectionsMapWrapper.appendChild(mapWrapper);
+  });
+
   currentSelection.mapWrapper.appendChild(label);
-
-  selectionsMapWrapper.appendChild(mapWrapper);
   selections.push(currentSelection);
-
   document.documentElement.scrollTop && document.documentElement.scrollTo({ top: scrollToTop });
   document.body.scrollTop && document.body.scrollTo({ top: scrollToTop });
 };
@@ -523,10 +555,12 @@ const onElementHover = (currentSelection: FFinstance) =>
   (event: MouseEvent) =>
     currentSelection.elements.forEach(element =>
       element.portions.forEach(portion =>
-        event.type === 'mouseover'
-          ? portion.classList.add('hovered')
-          : portion.classList.remove('hovered')
+        requestAnimationFrame(() =>
+          event.type === 'mouseover'
+            ? portion.classList.add('hovered')
+            : portion.classList.remove('hovered')
         )
+      )
     );
 
 const rotateLogo = () => {
