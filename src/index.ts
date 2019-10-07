@@ -1,23 +1,29 @@
 import * as findAndReplaceDOMText from 'findandreplacedomtext';
+import * as throttle from 'lodash/throttle';
 import { ffStyle, colors } from './style';
-import ResizeObserver from 'resize-observer-polyfill';
+
+const getPageHeight = () => {
+  return Math.max(
+    document.body.scrollHeight,
+    document.body.offsetHeight,
+    document.documentElement.clientHeight,
+    document.documentElement.scrollHeight,
+    document.documentElement.offsetHeight
+  );
+};
 
 // TODO:
+// - only animate ffelem AFTER scroll is over
 // - html text "breaks" after removing elements
 // - typing is missing in some places
-// - performance
+
 const DEBUG_ON = false;
 const AUTO_PIN_MAP = false;
 
 let viewPortDelta = 20;
 let currentColor = 0;
-let pageHeight = Math.max(
-  document.body.scrollHeight,
-  document.body.offsetHeight,
-  document.documentElement.clientHeight,
-  document.documentElement.scrollHeight,
-  document.documentElement.offsetHeight
-);
+let pageHeight = getPageHeight();
+let windowHeight = window.innerHeight;
 
 let settings = {
   mainKey: 'f',
@@ -58,59 +64,73 @@ let mapPin: HTMLElement = document.createElement('img');
 const initFF = () => {
   const style = document.createElement('style');
   style.innerHTML = ffStyle;
-  document.head.appendChild(style);
 
   repeatLogo.setAttribute('src', chrome.extension.getURL('assets/repeat.png'));
   repeatLogo.className = 'repeatLogo';
   repeatLogoWrapper.className = 'repeatLogoWrapper';
-  repeatLogoWrapper.appendChild(repeatLogo);
-  document.body.appendChild(repeatLogoWrapper);
 
   selectionsMapWrapper.className = 'selectionsMapWrapper';
-  document.body.appendChild(selectionsMapWrapper);
 
   selectionsMapPin.className = 'selectionsMapPin';
-  selectionsMapPin.onclick = () => {
+  selectionsMapPin.onclick = () => requestAnimationFrame(() => {
     selectionsMapPin.classList.toggle('fixed');
     selectionsMapWrapper.classList.toggle('fixed');
-  };
+  });
   if (AUTO_PIN_MAP) {
     selectionsMapPin.classList.toggle('fixed');
     selectionsMapWrapper.classList.toggle('fixed');
   }
-  selectionsMapWrapper.appendChild(selectionsMapPin);
-
-  mapPin.setAttribute('src', chrome.extension.getURL('assets/pin.png'));
-  mapPin.className = 'mapPin';
-  selectionsMapPin.appendChild(mapPin);
-
-  document.body.addEventListener('keydown', onKeyDown);
-
-  const resizeObserver = new ResizeObserver(() => {
-    let newHeight = Math.max(
-      document.body.scrollHeight,
-      document.body.offsetHeight,
-      document.documentElement.clientHeight,
-      document.documentElement.scrollHeight,
-      document.documentElement.offsetHeight
-    );
-    if (newHeight != pageHeight) {
-      console.log('page height change:', newHeight);
-      pageHeight = newHeight;
-      // selectionsMapScroll.style.height = '';
-      redrawMapIndicators();
-    }
-  });
-  resizeObserver.observe(document.body);
 
   selectionsMapScroll.className = "selectionsMapScroll";
-  selectionsMapWrapper.appendChild(selectionsMapScroll);
-  selectionsMapScroll.style.height = `${(document.documentElement.scrollTop || document.body.scrollTop || 0) / pageHeight * 100}vh`;
+  mapPin.setAttribute('src', chrome.extension.getURL('assets/pin.png'));
+  mapPin.className = 'mapPin';
+  
+  requestAnimationFrame(() => {
+    document.head.appendChild(style);
+    repeatLogoWrapper.appendChild(repeatLogo);
+    document.body.appendChild(repeatLogoWrapper);
+    document.body.appendChild(selectionsMapWrapper);
+    selectionsMapWrapper.appendChild(selectionsMapPin);
+    selectionsMapPin.appendChild(mapPin);
+    selectionsMapWrapper.appendChild(selectionsMapScroll);
+  });
 
-  window.addEventListener('scroll', () => requestAnimationFrame(() => {
+  windowHeight = window.innerHeight;
+  window.addEventListener('resize', throttle(
+    () => {
+      let newPageHeight = getPageHeight();
+      let newWindowHeight = window.innerHeight;
+      if (newPageHeight != pageHeight ||
+          newWindowHeight != windowHeight) {
+        windowHeight = newWindowHeight;
+        pageHeight = newPageHeight;
+        redrawMinimapScroll(true);
+        redrawMapIndicators();
+      }
+    }, 200)
+  );
+
+  window.addEventListener('scroll', () => redrawMinimapScroll(false));
+  document.body.addEventListener('keydown', onKeyDown);
+};
+
+const redrawMinimapScroll = (rescale: boolean) => {
+  if (!selections.length && !rescale) return;
+  requestAnimationFrame(() => {
+    pageHeight = getPageHeight();
+    const minHeight = 15;
+    const scrollHeight = (window.innerHeight / pageHeight) * window.innerHeight;
+    const finalHeight = parseFloat(Math.max(scrollHeight, minHeight).toFixed(3));
+    if(rescale)
+      selectionsMapScroll.style.height = `${finalHeight}px`;
+    const scrollToTop = (document.documentElement.scrollTop || document.body.scrollTop || 0);
+    let scrollDistance = scrollToTop / pageHeight * 100 - 0.04;
+    if (scrollHeight < minHeight) {
+      scrollDistance -= 0.3;
+    }
     selectionsMapScroll.style.transform =
-      `translateY(${(document.documentElement.scrollTop || document.body.scrollTop || 0) / pageHeight * 100}vh)`;
-  }));
+      `translateY(${scrollDistance.toFixed(3)}vh)`;
+  })
 };
 
 const onKeyDown = (e: KeyboardEvent & { target: HTMLInputElement }) => {
@@ -315,7 +335,6 @@ const createElement = (text: string, selectedText: any, selection) => {
   let selectedTextParent;
   let selectedTextIndex;
   const selectionTextTrimDelta = selection.length - text.length - selection.indexOf(text);
-  DEBUG_ON && console.log('selectionTextTrimDelta', selectionTextTrimDelta)
 
   if (anchorAndFocusAreTheSame) {
     if (selectedText.anchorOffset < selectedText.focusOffset) {
@@ -331,7 +350,6 @@ const createElement = (text: string, selectedText: any, selection) => {
     selectionOffsetToEnd += selectionTextTrimDelta;
   } else {
     const ancestor = commonAncestor(selectedText.anchorNode, selectedText.focusNode);
-    DEBUG_ON && console.log('ancestor', ancestor);
 
     const anchorParents = getElementParents(selectedText.anchorNode);
     const anchorAncestorIndex = anchorParents.indexOf(ancestor);
@@ -342,11 +360,8 @@ const createElement = (text: string, selectedText: any, selection) => {
     let focusIndexOnParent;
 
     anchorIndexOnParent = getParentIndex(anchorParents[anchorAncestorIndex + 1]);
-    DEBUG_ON && console.log("anchor relative", anchorParents[anchorAncestorIndex + 1]);
     focusIndexOnParent = getParentIndex(focusParents[focusAncestorIndex + 1]);
-    DEBUG_ON && console.log("focus relative", focusParents[focusAncestorIndex + 1]);
 
-    DEBUG_ON && console.log('anchorIndexOnParent focusIndexOnParent', anchorIndexOnParent, focusIndexOnParent);
     let node;
     let offset;
     let deltaCopy = selectionTextTrimDelta;
@@ -378,11 +393,6 @@ const createElement = (text: string, selectedText: any, selection) => {
     selectedTextIndex = getParentIndex(node, true);
   }
 
-  DEBUG_ON && console.log('index', selectedTextIndex);
-  DEBUG_ON && console.log('offset', selectionOffsetToEnd);
-  DEBUG_ON && console.log('parent', selectedTextParent);
-  DEBUG_ON && console.log("--------------------------------------------------");
-
   let color: Array<number>;
   if (currentColor < colors.length) {
     color = colors[currentColor++];
@@ -404,7 +414,6 @@ const createElement = (text: string, selectedText: any, selection) => {
       `${needsWBonStart ? '\\b' : ''}${excapedText}${needsWBonEnd ? '\\b' : ''}`,
       settings.matchCaseSensitive ? 'g' : 'gi'
     );
-    DEBUG_ON && console.log(excapedText, regexFinder);
   } catch (error) {
     if (DEBUG_ON) {
       console.error(error);
@@ -424,7 +433,6 @@ const createElement = (text: string, selectedText: any, selection) => {
             portion.node.parentElement.getClientRects().length
           );
 
-      DEBUG_ON && console.log("elem is visible", elementIsVisible);
       if (elementIsVisible) {
 
         let portionOffsetToEnd;
@@ -441,13 +449,6 @@ const createElement = (text: string, selectedText: any, selection) => {
               selectionOffsetToEnd === portionOffsetToEnd &&
               selectedTextParent === portion.node.parentElement;
           someActive = active || someActive;
-
-          DEBUG_ON && console.log("###", text, " active", active, portion.node);
-          DEBUG_ON && console.log("index", selectedTextIndex, portionIndex);
-          DEBUG_ON && console.log("parents", selectedTextParent, portion.node.parentElement)
-          DEBUG_ON && console.log("offsetToEnd", selectionOffsetToEnd, portionOffsetToEnd)
-          DEBUG_ON && console.log("--------------------------------------------------");
-          // debugger
         }
 
         const div = document.createElement('ffelem') as HTMLDivElement;
@@ -519,15 +520,15 @@ const createElement = (text: string, selectedText: any, selection) => {
     indicator.classList.add('mapIndicator');
     if (active) indicator.classList.add('selected');
     indicator.onclick = () => selectElement(currentSelection, element, true);
-    let elementPosition = portions[0].getBoundingClientRect().top + scrollToTop;
-    indicator.style.transform = `translateY(${elementPosition / pageHeight * 100}vh)`;
-    DEBUG_ON && console.log('DEBUG: createElement -> portions[0].getBoundingClientRect().top', portions[0].getBoundingClientRect().top)
-    DEBUG_ON && console.log('DEBUG: createElement -> scrollToTop', scrollToTop)
-    DEBUG_ON && console.log('DEBUG: createElement -> elementPosition', elementPosition)
-    DEBUG_ON && console.log('DEBUG: createElement -> pageHeight', pageHeight)
-    DEBUG_ON && console.log('DEBUG: ..............................')
-    indicator.style.backgroundColor = renderColor(color, 0.8);
-    mapWrapper.appendChild(indicator);
+    requestAnimationFrame(() => {
+      pageHeight = getPageHeight();
+      let elementPosition =
+        element.portions[0].getBoundingClientRect().top +
+        (document.documentElement.scrollTop || document.body.scrollTop || 0);
+      indicator.style.transform = `translateY(${elementPosition / pageHeight * 100}vh)`;
+      indicator.style.backgroundColor = renderColor(color, 0.8);
+      mapWrapper.insertBefore(indicator, mapWrapper.firstChild);
+    });
     element.mapIndicator = indicator;
   });
 
@@ -542,10 +543,11 @@ ${renderColor(color, 0.6)} 40%,
   label.innerText = text.split('').reverse().join('');
 
   requestAnimationFrame(() => {
+    currentSelection.mapWrapper.appendChild(label);
     selectionsMapWrapper.appendChild(mapWrapper);
   });
 
-  currentSelection.mapWrapper.appendChild(label);
+  if (!selections.length) redrawMinimapScroll(true);
   selections.push(currentSelection);
   document.documentElement.scrollTop && document.documentElement.scrollTo({ top: scrollToTop });
   document.body.scrollTop && document.body.scrollTo({ top: scrollToTop });
@@ -557,7 +559,9 @@ const redrawMapIndicators = () => {
       let elementPosition =
         element.portions[0].getBoundingClientRect().top +
           (document.documentElement.scrollTop || document.body.scrollTop || 0);
-      element.mapIndicator.style.transform = `translateY(${elementPosition / pageHeight * 100}vh)`;
+      requestAnimationFrame(() => {
+        element.mapIndicator.style.transform = `translateY(${elementPosition / pageHeight * 100}vh)`;
+      });
     });
   });
 };
@@ -645,4 +649,4 @@ const commonAncestor = (node1: HTMLElement, node2: HTMLElement) => {
   }
 }
 
-initFF();
+window.onload = initFF;
