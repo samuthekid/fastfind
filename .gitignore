@@ -4,6 +4,6 @@ package-lock.json
 .eslintrc
 *.code-workspace
 *.crx
+*.zip
 
 /node_modules/
-/dist/
