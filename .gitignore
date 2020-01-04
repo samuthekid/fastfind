@@ -6,4 +6,5 @@ package-lock.json
 *.crx
 *.zip
 
+/dist/
 /node_modules/

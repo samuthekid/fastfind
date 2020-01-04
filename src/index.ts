@@ -141,19 +141,23 @@ const onKeyDown = (e: KeyboardEvent & { target: HTMLInputElement }) => {
     e.metaKey)
     return false;
 
-  const selectedText = window.getSelection();
-  // trim removes spaces
-  const text = selectedText.toString().trim();
+  const selection = window.getSelection();
+  const text = selection.toString();
 
   if (e.key === settings.mainKey ||
       (e.key === settings.mainKey.toUpperCase() && !e.shiftKey)) {
-    // No support for multi-line for now...
-    if (text && !text.includes('\n')) {
+    if (text && text.length) {
+      // No support for multi-line for now...
+      if (
+        !text.trim().length ||
+        (text.indexOf('\n') != text.length - 1 && text.indexOf('\n') != -1)
+        )
+        return;
       const exists = selections.find(
         selection => selection.sanitizedText === text
       );
       if (!exists) {
-        createElement(text, selectedText, selectedText.toString());
+        createElement(text, selection);
       } else {
         removeSelectedOrLastElement();
       }
@@ -325,73 +329,19 @@ const removeAllElements = () => {
   selections = [];
 };
 
-const createElement = (text: string, selectedText: any, selection) => {
+const createElement = (text: string, selection: Selection) => {
   let activeElements = 0;
-  const scrollToTop =
-      document.documentElement.scrollTop || document.body.scrollTop || 0;
-
-  const anchorAndFocusAreTheSame = selectedText.anchorNode === selectedText.focusNode;
-  let selectionOffsetToEnd;
-  let selectedTextParent;
-  let selectedTextIndex;
-  const selectionTextTrimDelta = selection.length - text.length - selection.indexOf(text);
-
-  if (anchorAndFocusAreTheSame) {
-    if (selectedText.anchorOffset < selectedText.focusOffset) {
-      // left to right selection
-      selectionOffsetToEnd = selectedText.focusNode.textContent.length - selectedText.focusOffset;
-      selectedTextIndex = getParentIndex(selectedText.focusNode, true);
-    } else {
-      // right to left selection
-      selectionOffsetToEnd = selectedText.anchorNode.textContent.length - selectedText.anchorOffset;
-      selectedTextIndex = getParentIndex(selectedText.anchorNode, true);
-    }
-    selectedTextParent = selectedText.focusNode.parentElement;
-    selectionOffsetToEnd += selectionTextTrimDelta;
+  const selectionRange = selection.getRangeAt(0);
+  let activeSelectionNode = document.createElement('ffelem');
+  if (selectionRange.startContainer == selectionRange.endContainer) {
+    selectionRange.surroundContents(activeSelectionNode);
   } else {
-    const ancestor = commonAncestor(selectedText.anchorNode, selectedText.focusNode);
-
-    const anchorParents = getElementParents(selectedText.anchorNode);
-    const anchorAncestorIndex = anchorParents.indexOf(ancestor);
-    const focusParents = getElementParents(selectedText.focusNode);
-    const focusAncestorIndex = focusParents.indexOf(ancestor);
-
-    let anchorIndexOnParent;
-    let focusIndexOnParent;
-
-    anchorIndexOnParent = getParentIndex(anchorParents[anchorAncestorIndex + 1]);
-    focusIndexOnParent = getParentIndex(focusParents[focusAncestorIndex + 1]);
-
-    let node;
-    let offset;
-    let deltaCopy = selectionTextTrimDelta;
-    if (anchorIndexOnParent < focusIndexOnParent) {
-      // anchor is before focus on DOM
-      // left to right selection
-      selectionOffsetToEnd = selectedText.focusNode.textContent.length - selectedText.focusOffset;
-      node = selectedText.focusNode;
-      offset = selectedText.focusOffset;
-    } else {
-      // anchor is after focus on DOM
-      // right to left selection
-      selectionOffsetToEnd = selectedText.anchorNode.textContent.length - selectedText.anchorOffset;
-      node = selectedText.anchorNode;
-      offset = selectedText.anchorOffset;
-    }
-
-    if(deltaCopy >= offset) {
-      while(deltaCopy >= offset) {
-        node = node.previousSibling;
-        deltaCopy -= offset;
-        offset = node.textContent.length;
-        selectionOffsetToEnd = 0;
-      }
-    } else {
-      selectionOffsetToEnd += selectionTextTrimDelta;
-    }
-    selectedTextParent = node.parentElement;
-    selectedTextIndex = getParentIndex(node, true);
+    const newRange = document.createRange();
+    newRange.selectNode(selectionRange.endContainer);
+    newRange.surroundContents(activeSelectionNode);
+    newRange.collapse();
   }
+  const scrollToTop = document.documentElement.scrollTop || document.body.scrollTop || 0;
 
   let color: Array<number>;
   if (currentColor < colors.length) {
@@ -406,14 +356,9 @@ const createElement = (text: string, selectedText: any, selection) => {
   let someActive = false;
   let regexFinder = null;
   let excapedText = text.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
-  let needsWBonStart = RegExp(/^\w/).test(text);
-  let needsWBonEnd = RegExp(/\w$/).test(text);
 
   try {
-    regexFinder = RegExp(
-      `${needsWBonStart ? '\\b' : ''}${excapedText}${needsWBonEnd ? '\\b' : ''}`,
-      settings.matchCaseSensitive ? 'g' : 'gi'
-    );
+    regexFinder = RegExp(excapedText, settings.matchCaseSensitive ? 'g' : 'gi');
   } catch (error) {
     if (DEBUG_ON) {
       console.error(error);
@@ -421,7 +366,7 @@ const createElement = (text: string, selectedText: any, selection) => {
     }
     return;
   }
-  
+
   const finder = findAndReplaceDOMText(document.body, {
     preset: 'prose',
     find: regexFinder,
@@ -434,23 +379,6 @@ const createElement = (text: string, selectedText: any, selection) => {
           );
 
       if (elementIsVisible) {
-
-        let portionOffsetToEnd;
-        let portionIndex;
-        if (portion.isEnd) {
-          portionIndex = getParentIndex(portion.node, true);
-          portionOffsetToEnd =
-            Number(portion.node.textContent.length) - Number(portion.text.length);
-          if (portion.index === 0) portionOffsetToEnd -= portion.indexInNode;
-
-          active = active
-            ? active
-            : selectedTextIndex === portionIndex &&
-              selectionOffsetToEnd === portionOffsetToEnd &&
-              selectedTextParent === portion.node.parentElement;
-          someActive = active || someActive;
-        }
-
         const div = document.createElement('ffelem') as HTMLDivElement;
         portions.push(div);
         requestAnimationFrame(() => {
@@ -464,6 +392,8 @@ const createElement = (text: string, selectedText: any, selection) => {
         });
 
         if (portion.isEnd) {
+          active = active || getElementParents(portion.node).includes(activeSelectionNode);
+          someActive = active || someActive;
           const element: FFelement = { portions, active, mapIndicator: null };
           currentElements.push(element);
           portions = [];
@@ -476,6 +406,11 @@ const createElement = (text: string, selectedText: any, selection) => {
         return portion.text;
       }
     }
+  });
+  requestAnimationFrame(() => {
+    while(activeSelectionNode.childNodes.length)
+      activeSelectionNode.parentNode.insertBefore(activeSelectionNode.childNodes[0], activeSelectionNode);
+    activeSelectionNode.parentNode.removeChild(activeSelectionNode);
   });
   if (DEBUG_ON && currentElements.length && (activeElements === 0 || activeElements > 1)) {
     console.log('Active elements:', activeElements);
