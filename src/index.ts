@@ -153,15 +153,23 @@ const onKeyDown = (e: KeyboardEvent & { target: HTMLInputElement }) => {
           ) // No support for multi-line for now...
           return;
         createElement(text, selection);
+        e.preventDefault();
+        e.stopPropagation();
       } else {
-        cycleThroughElements(1);
+        if (selections.length) {
+          cycleThroughElements(1);
+          e.preventDefault();
+          e.stopPropagation();
+        }
       }
     } else {
       // SHIFT F
-      cycleThroughElements(-1);
+      if (selections.length) {
+        cycleThroughElements(-1);
+        e.preventDefault();
+        e.stopPropagation();
+      }
     }
-    e.preventDefault();
-    e.stopPropagation();
   } else if (selections.length &&
     e.key === settings.removeKey || e.key === settings.removeKey.toUpperCase()) {
     if (!e.shiftKey) {
