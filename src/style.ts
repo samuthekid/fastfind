@@ -344,7 +344,7 @@ body {
 
 .repeatLogoWrapper {
   opacity: 0;
-  background-color: rgba(90,90,90,0.7);
+  background-color: rgb(160,160,160);
   position: fixed;
   top: 50%;
   left: 50%;
@@ -356,13 +356,12 @@ body {
 }
 
 .repeatLogo {
-  opacity: .7;
   transform: rotate(-30deg);
   pointer-events: none;
 }
 
 .repeatLogo.active {
-  animation: rotateLogo .5s cubic-bezier(.6, 0, .4, 1);
+  animation: rotateLogo .7s cubic-bezier(.6, 0, .4, 1);
 }
 @keyframes rotateLogo {
   0%   { transform: rotate(-30deg); }
@@ -370,12 +369,12 @@ body {
 }
 
 .repeatLogoWrapper.active {
-  animation: rotateLogoWrapper .5s cubic-bezier(.6, 0, .4, 1);
+  animation: rotateLogoWrapper .7s cubic-bezier(.6, 0, .4, 1);
 }
 @keyframes rotateLogoWrapper {
   0%   { opacity: 0; }
   25%  { opacity: 1; }
-  65%  { opacity: 1; }
+  75%  { opacity: 1; }
   100% { opacity: 0; }
 }
 
@@ -544,12 +543,14 @@ body {
   user-select: none;
   transform: rotate(180deg);
   box-sizing: content-box;
-  unicode-bidi: bidi-override;
-  direction: rtl;
   text-align: left;
   line-height: 14px;
   writing-mode: vertical-rl;
   transition: all .2s ease;
+}
+
+.mapLabel:after {
+  content: attr(data-label);
 }
 
 .mapWrapper:hover .mapLabel {
@@ -558,6 +559,7 @@ body {
 }
 
 .mapWrapper.selected .mapLabel {
+  visibility: visible;
   margin-top: 12vh;
   padding-top: 10vh;
 }

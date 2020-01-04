@@ -526,7 +526,7 @@ ${renderColor(color, 1.0)} 0%,
 ${renderColor(color, 0.8)} 10%,
 ${renderColor(color, 0.6)} 40%,
 #00000000 50%,#00000000 100%)`;
-  label.innerText = text.split('').reverse().join('');
+  label.setAttribute('data-label', text);
 
   requestAnimationFrame(() => {
     currentSelection.mapWrapper.appendChild(label);
