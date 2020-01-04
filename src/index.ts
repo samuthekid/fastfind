@@ -26,13 +26,11 @@ let pageHeight = getPageHeight();
 let windowHeight = window.innerHeight;
 
 let settings = {
-  mainKey: 'f',
-  unselectAllKey: 'd',
+  selectKey: 'f',
+  removeKey: 'd',
   nextElementKey: 'r',
-  previousElementKey: 'e',
-  nextInstanceKey: 't',
-  previousInstanceKey: 'w',
-  showRotatingArrow: false,
+  nextInstanceKey: 'e',
+  showRotatingArrow: true,
   showSideMap: true,
   keepElementCentered: false,
   matchCaseSensitive: true,
@@ -144,51 +142,57 @@ const onKeyDown = (e: KeyboardEvent & { target: HTMLInputElement }) => {
   const selection = window.getSelection();
   const text = selection.toString();
 
-  if (e.key === settings.mainKey ||
-      (e.key === settings.mainKey.toUpperCase() && !e.shiftKey)) {
-    if (text && text.length) {
-      // No support for multi-line for now...
-      if (
-        !text.trim().length ||
-        (text.indexOf('\n') != text.length - 1 && text.indexOf('\n') != -1)
-        )
-        return;
-      const exists = selections.find(
-        selection => selection.sanitizedText === text
-      );
-      if (!exists) {
+  if (e.key === settings.selectKey || e.key === settings.selectKey.toUpperCase()) {
+    if (!e.shiftKey) {
+      // F
+      if (text && text.length) {
+        // something is selected
+        if (
+          !text.trim().length ||
+          (text.indexOf('\n') != text.length - 1 && text.indexOf('\n') != -1)
+          ) // No support for multi-line for now...
+          return;
         createElement(text, selection);
       } else {
-        removeSelectedOrLastElement();
+        cycleThroughElements(1);
       }
     } else {
-      removeSelectedOrLastElement();
+      // SHIFT F
+      cycleThroughElements(-1);
     }
     e.preventDefault();
     e.stopPropagation();
-  } else if (e.key === settings.unselectAllKey && selections.length ||
-    (e.key === settings.unselectAllKey.toUpperCase() && !e.shiftKey)) {
-    removeAllElements();
+  } else if (selections.length &&
+    e.key === settings.removeKey || e.key === settings.removeKey.toUpperCase()) {
+    if (!e.shiftKey) {
+      // D
+      removeSelectedOrLastElement();
+    } else {
+      // SHIFT D
+      removeAllElements();
+    }
     e.preventDefault();
     e.stopPropagation();
-  } else if (e.key === settings.nextElementKey && selections.length ||
-    (e.key === settings.nextElementKey.toUpperCase() && !e.shiftKey)) {
-    cycleThroughElements(1);
+  } else if (selections.length &&
+    e.key === settings.nextElementKey || e.key === settings.nextElementKey.toUpperCase()) {
+    if (!e.shiftKey) {
+      // R
+      cycleThroughAllElements(1);
+    } else {
+      // SHIFT R
+      cycleThroughAllElements(-1);
+    }
     e.preventDefault();
     e.stopPropagation();
-  } else if (e.key === settings.previousElementKey && selections.length ||
-    (e.key === settings.previousElementKey.toUpperCase() && !e.shiftKey)) {
-    cycleThroughElements(-1);
-    e.preventDefault();
-    e.stopPropagation();
-  } else if (e.key === settings.nextInstanceKey && selections.length ||
-    (e.key === settings.nextInstanceKey.toUpperCase() && !e.shiftKey)) {
-    cycleThroughInstances(1);
-    e.preventDefault();
-    e.stopPropagation();
-  } else if (e.key === settings.previousInstanceKey && selections.length ||
-    (e.key === settings.previousInstanceKey.toUpperCase() && !e.shiftKey)) {
-    cycleThroughInstances(-1);
+  } else if (selections.length &&
+    e.key === settings.nextInstanceKey || e.key === settings.nextInstanceKey.toUpperCase()) {
+    if (!e.shiftKey) {
+      // E
+      cycleThroughInstances(1);
+    } else {
+      // SHIFT E
+      cycleThroughInstances(-1);
+    }
     e.preventDefault();
     e.stopPropagation();
   }
@@ -224,6 +228,45 @@ const cycleThroughElements = (direction: number) => {
   }
   const nextActive = elements[nextIndex];
   selectElement(instance, nextActive, true);
+};
+
+const cycleThroughAllElements = (direction: number) => {
+  // select all single and initial ffelems
+  const ffelems = document.querySelectorAll('.ffelem, .ffelemStart');
+  let indexOnTree: number;
+  for (let i = 0; i < ffelems.length; i++) {
+    if (ffelems[i].classList.contains('selected')) {
+      indexOnTree = i;
+      break;
+    }
+  }
+  let target: Element;
+  if (direction === 1) {
+    if (indexOnTree === ffelems.length - 1) {
+      target = ffelems[0];
+      settings.showRotatingArrow && rotateLogo();
+    } else target = ffelems[indexOnTree + 1];
+  } else {
+    if (indexOnTree === 0) {
+      target = ffelems[ffelems.length - 1];
+      settings.showRotatingArrow && rotateLogo();
+    } else target = ffelems[indexOnTree - 1];
+  }
+  let targetInstance: FFinstance, targetElement: FFelement;
+  selections.find(selection => {
+    selection.elements.find(element => {
+      element.portions.find(portion => {
+        if (portion == target) {
+          targetInstance = selection;
+          targetElement = element;
+          return true;
+        }
+      });
+      if (targetElement) return true;
+    });
+    if (targetElement) return true;
+  });
+  selectElement(targetInstance, targetElement, true);
 };
 
 const getSelectedStructures = () => {
@@ -542,19 +585,6 @@ const getContrastYIQ = (color: Array<number>) => {
   return yiq >= 128 ? 'black' : 'white';
 };
 
-const getParentIndex = (node: HTMLElement, reverse: boolean = false) => {
-  let childNodes = node.parentNode.childNodes;
-  let index = 0;
-  childNodes.forEach((child, i) => {
-    if (child === node) index = i;
-  })
-  if (reverse) {
-    return childNodes.length - index - 1;
-  } else {
-    return index;
-  }
-};
-
 const isElementInViewport = (element: HTMLElement) => {
   const rect = element.getBoundingClientRect();
   const isInViewport =
@@ -571,17 +601,6 @@ const getElementParents = node => {
     nodes.unshift(node)
   }
   return nodes
-}
-
-const commonAncestor = (node1: HTMLElement, node2: HTMLElement) => {
-  const parents1 = getElementParents(node1)
-  const parents2 = getElementParents(node2)
-
-  if (parents1[0] != parents2[0]) throw "No common ancestor!"
-
-  for (let i = 0; i < parents1.length; i++) {
-    if (parents1[i] != parents2[i]) return parents1[i - 1]
-  }
 }
 
 window.onload = initFF;
