@@ -12,11 +12,6 @@ const getPageHeight = () => {
   );
 };
 
-// TODO:
-// - only animate ffelem AFTER scroll is over
-// - html text "breaks" after removing elements
-// - typing is missing in some places
-
 const DEBUG_ON = false;
 const AUTO_PIN_MAP = false;
 
@@ -212,10 +207,8 @@ const cycleThroughInstances = (direction: number) => {
   let nextIndex = selections.indexOf(instance) + direction;
   if (nextIndex >= selections.length) {
     nextIndex = 0;
-    // settings.showRotatingArrow && rotateLogo();
   } else if (nextIndex < 0) {
     nextIndex = selections.length - 1;
-    // settings.showRotatingArrow && rotateLogo();
   }
   const nextActive = selections[nextIndex];
   const selectedElement = nextActive.elements.find(elem => elem.active);
