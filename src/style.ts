@@ -391,6 +391,7 @@ body {
   top: 0px;
   z-index: 10000;
   background: none;
+  transition: background .2s ease;
 }
 
 .selectionsMapWrapper:hover {
@@ -399,6 +400,10 @@ body {
 
 .selectionsMapWrapper.fixed {
   background: rgba(0,0,0,0.6);
+}
+
+.selectionsMapWrapper.opaque {
+  background: rgba(0,0,0,1.0);
 }
 
 .selectionsMapWrapper.hidden {
@@ -430,19 +435,27 @@ body {
   position: absolute;
   left: -20px;
   bottom: 0px;
+  transition: background .2s ease;
 }
 
 .selectionsMapPin.fixed {
   visibility: visible;
 }
 
-.selectionsMapPin.fixed:nth-last-child(1),
 .selectionsMapPin.fixed:nth-last-child(2) {
+  visibility: hidden;
+}
+
+.selectionsMapPin.fixed:nth-last-child(3) {
   visibility: hidden;
 }
 
 .selectionsMapWrapper:hover .selectionsMapPin {
   visibility: visible;
+}
+
+.selectionsMapWrapper.opaque .selectionsMapPin {
+  background: rgba(0,0,0,1.0);
 }
 
 
@@ -456,8 +469,8 @@ body {
   filter: invert(100%);
   box-sizing: border-box;
   cursor: pointer;
-  transition: all .2s ease;
   transform: rotate(-45deg);
+  transition: opacity .2s ease;
 }
 
 .selectionsMapPin.fixed .mapPin {
@@ -466,6 +479,64 @@ body {
 
 .mapPin:hover {
   padding: 3px;
+}
+
+
+
+/* #################### SELECTIONS MAP OPACITY #################### */
+
+.selectionsMapOpacity {
+  visibility: hidden;
+  width: 20px;
+  height: 20px;
+  background: rgba(0,0,0,0.6);
+  position: absolute;
+  left: -20px;
+  bottom: 20px;
+  transition: background .2s ease;
+}
+
+.selectionsMapWrapper:hover .selectionsMapOpacity {
+  visibility: visible;
+}
+
+.selectionsMapWrapper.opaque .selectionsMapOpacity {
+  background: rgba(0,0,0,1.0);
+}
+
+
+
+/* #################### MAP OPACITY #################### */
+
+.mapOpacity {
+  visibility: hidden;
+  width: 60%;
+  height: 60%;
+  margin: 20%;
+  opacity: 0.4;
+  cursor: pointer;
+  border-radius: 50%;
+  border: solid .6px white;
+  transition: width .2s ease;
+  transition: height .2s ease;
+  transition: margin .2s ease;
+  transition: opacity .2s ease;
+  transition: background .2s ease;
+}
+
+.selectionsMapWrapper:hover .mapOpacity {
+  visibility: visible;
+}
+
+.mapOpacity:hover {
+  width: 70%;
+  height: 70%;
+  margin: 15%;
+}
+
+.selectionsMapWrapper.opaque .mapOpacity {
+  opacity: 1.0;
+  background: rgba(255,255,255,0.4);
 }
 
 
@@ -564,7 +635,7 @@ body {
   content: attr(data-label);
 }
 
-.mapLabel:after {
+.mapLabel::after {
   content: attr(data-number);
 }
 
@@ -593,11 +664,11 @@ body {
   color: transparent;
 }
 
-.selectionsMapWrapper.noLabels .mapLabel:after {
+.selectionsMapWrapper.noLabels .mapLabel::after {
   color: transparent;
 }
 
-.selectionsMapWrapper.noNumbers .mapLabel:after {
+.selectionsMapWrapper.noNumbers .mapLabel::after {
   color: transparent;
 }
 `;

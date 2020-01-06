@@ -13,6 +13,7 @@ const getPageHeight = () => {
 };
 
 const DEBUG_ON = false;
+let EXTENSION_LOADED = false;
 
 let viewPortDelta = 20;
 let currentColor = 0;
@@ -34,6 +35,7 @@ let settings = {
   // SIDE MAP
   showSideMap: true, // CHECKED
   showMapLabels: true, // CHECKED
+  opaqueSideMap: true, // CHECKED
   autoExpandSideMap: true, // CHECKED
   showNumberOfResults: true, // CHECKED
 
@@ -61,10 +63,16 @@ let repeatLogoWrapper: HTMLElement = document.createElement('div');
 
 let selectionsMapWrapper: HTMLElement = document.createElement('div');
 let selectionsMapPin: HTMLElement = document.createElement('div');
+let selectionsMapOpacity: HTMLElement = document.createElement('div');
 let selectionsMapScroll: HTMLElement = document.createElement('div');
 let mapPin: HTMLElement = document.createElement('img');
+let mapOpacity: HTMLElement = document.createElement('img');
 
 const initFF = () => {
+
+  if (EXTENSION_LOADED) return;
+  EXTENSION_LOADED = true;
+
   const style = document.createElement('style');
   style.innerHTML = ffStyle;
 
@@ -89,6 +97,13 @@ const initFF = () => {
     selectionsMapPin.classList.add('fixed');
     selectionsMapWrapper.classList.add('fixed');
   }
+  selectionsMapOpacity.classList.add('selectionsMapOpacity');
+  selectionsMapOpacity.onclick = () => requestAnimationFrame(() => {
+    selectionsMapWrapper.classList.toggle('opaque');
+  });
+  mapOpacity.classList.add('mapOpacity');
+  if (settings.opaqueSideMap)
+    selectionsMapWrapper.classList.add('opaque');
 
   selectionsMapScroll.classList.add("selectionsMapScroll");
   mapPin.setAttribute('src', chrome.extension.getURL('assets/pin.png'));
@@ -101,6 +116,8 @@ const initFF = () => {
     document.body.appendChild(selectionsMapWrapper);
     selectionsMapWrapper.appendChild(selectionsMapScroll);
     selectionsMapWrapper.appendChild(selectionsMapPin);
+    selectionsMapWrapper.appendChild(selectionsMapOpacity);
+    selectionsMapOpacity.appendChild(mapOpacity);
     selectionsMapPin.appendChild(mapPin);
   });
 
