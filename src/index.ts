@@ -13,7 +13,6 @@ const getPageHeight = () => {
 };
 
 const DEBUG_ON = false;
-const AUTO_PIN_MAP = false;
 
 let viewPortDelta = 20;
 let currentColor = 0;
@@ -21,15 +20,26 @@ let pageHeight = getPageHeight();
 let windowHeight = window.innerHeight;
 
 let settings = {
+  // KEYS
   selectKey: 'f',
   removeKey: 'd',
   nextElementKey: 'r',
   nextInstanceKey: 'e',
-  showRotatingArrow: true,
-  showSideMap: true,
-  keepElementCentered: false,
-  matchCaseSensitive: true,
-  smoothScrolling: true,
+
+  // EFFECTS
+  smoothScrolling: true, // CHECKED
+  showRotatingArrow: true, // CHECKED
+  keepElementCentered: true, // CHECKED
+
+  // SIDE MAP
+  showSideMap: true, // CHECKED
+  showMapLabels: true, // CHECKED
+  autoExpandSideMap: true, // CHECKED
+  showNumberOfResults: true, // CHECKED
+
+  // SETTINGS
+  forceWordBorders: false, // CHECKED
+  forceCaseSensitive: false, // CHECKED
 };
 
 interface FFelement {
@@ -59,33 +69,39 @@ const initFF = () => {
   style.innerHTML = ffStyle;
 
   repeatLogo.setAttribute('src', chrome.extension.getURL('assets/repeat.png'));
-  repeatLogo.className = 'repeatLogo';
-  repeatLogoWrapper.className = 'repeatLogoWrapper';
+  repeatLogo.classList.add('repeatLogo');
+  repeatLogoWrapper.classList.add('repeatLogoWrapper');
 
-  selectionsMapWrapper.className = 'selectionsMapWrapper';
+  selectionsMapWrapper.classList.add('selectionsMapWrapper');
+  if (!settings.showSideMap)
+    selectionsMapWrapper.classList.add('hidden');
+  if (!settings.showMapLabels)
+    selectionsMapWrapper.classList.add('noLabels');
+  if (!settings.showNumberOfResults)
+    selectionsMapWrapper.classList.add('noNumbers');
 
-  selectionsMapPin.className = 'selectionsMapPin';
+  selectionsMapPin.classList.add('selectionsMapPin');
   selectionsMapPin.onclick = () => requestAnimationFrame(() => {
     selectionsMapPin.classList.toggle('fixed');
     selectionsMapWrapper.classList.toggle('fixed');
   });
-  if (AUTO_PIN_MAP) {
-    selectionsMapPin.classList.toggle('fixed');
-    selectionsMapWrapper.classList.toggle('fixed');
+  if (settings.autoExpandSideMap) {
+    selectionsMapPin.classList.add('fixed');
+    selectionsMapWrapper.classList.add('fixed');
   }
 
-  selectionsMapScroll.className = "selectionsMapScroll";
+  selectionsMapScroll.classList.add("selectionsMapScroll");
   mapPin.setAttribute('src', chrome.extension.getURL('assets/pin.png'));
-  mapPin.className = 'mapPin';
+  mapPin.classList.add('mapPin');
   
   requestAnimationFrame(() => {
     document.head.appendChild(style);
     repeatLogoWrapper.appendChild(repeatLogo);
     document.body.appendChild(repeatLogoWrapper);
     document.body.appendChild(selectionsMapWrapper);
+    selectionsMapWrapper.appendChild(selectionsMapScroll);
     selectionsMapWrapper.appendChild(selectionsMapPin);
     selectionsMapPin.appendChild(mapPin);
-    selectionsMapWrapper.appendChild(selectionsMapScroll);
   });
 
   windowHeight = window.innerHeight;
@@ -135,32 +151,40 @@ const onKeyDown = (e: KeyboardEvent & { target: HTMLInputElement }) => {
     return false;
 
   const selection = window.getSelection();
-  const text = selection.toString();
+  let text = selection.toString();
 
   if (e.key === settings.selectKey || e.key === settings.selectKey.toUpperCase()) {
-    if (!e.shiftKey) {
-      // F
-      if (text && text.length) {
-        // something is selected
-        if (
-          !text.trim().length ||
-          (text.indexOf('\n') != text.length - 1 && text.indexOf('\n') != -1)
-          ) // No support for multi-line for now...
+    // something is selected
+    if (text && text.length && text.trim().length) {
+
+      // No support for multi-line for now...
+      const paragraphIndex = text.indexOf('\n');
+      if (paragraphIndex != -1) { // has at least one \n
+        if (paragraphIndex == text.length - 1) {// is at the end
+          text = text.slice(0, -1); // remove it
+        } else {
           return;
-        createElement(text, selection);
-        e.preventDefault();
-        e.stopPropagation();
-      } else {
-        if (selections.length) {
-          cycleThroughElements(1);
-          e.preventDefault();
-          e.stopPropagation();
         }
       }
+
+      if (!e.shiftKey) {
+        // F
+        createElement(text, selection, false);
+      } else {
+        // SHIFT F
+        createElement(text, selection, true);
+      }
+      e.preventDefault();
+      e.stopPropagation();
     } else {
-      // SHIFT F
       if (selections.length) {
-        cycleThroughElements(-1);
+        if (!e.shiftKey) {
+          // F
+          cycleThroughElements(1);
+        } else {
+          // SHIFT F
+          cycleThroughElements(-1);
+        }
         e.preventDefault();
         e.stopPropagation();
       }
@@ -222,10 +246,10 @@ const cycleThroughElements = (direction: number) => {
   let nextIndex = elements.indexOf(element) + direction;
   if (nextIndex >= elements.length) {
     nextIndex = 0;
-    settings.showRotatingArrow && rotateLogo();
+    rotateLogo();
   } else if (nextIndex < 0) {
     nextIndex = elements.length - 1;
-    settings.showRotatingArrow && rotateLogo();
+    rotateLogo();
   }
   const nextActive = elements[nextIndex];
   selectElement(instance, nextActive, true);
@@ -245,12 +269,12 @@ const cycleThroughAllElements = (direction: number) => {
   if (direction === 1) {
     if (indexOnTree === ffelems.length - 1) {
       target = ffelems[0];
-      settings.showRotatingArrow && rotateLogo();
+      rotateLogo();
     } else target = ffelems[indexOnTree + 1];
   } else {
     if (indexOnTree === 0) {
       target = ffelems[ffelems.length - 1];
-      settings.showRotatingArrow && rotateLogo();
+      rotateLogo();
     } else target = ffelems[indexOnTree - 1];
   }
   let targetInstance: FFinstance, targetElement: FFelement;
@@ -373,7 +397,7 @@ const removeAllElements = () => {
   selections = [];
 };
 
-const createElement = (text: string, selection: Selection) => {
+const createElement = (text: string, selection: Selection, shiftKey: boolean) => {
   let activeElements = 0;
   const selectionRange = selection.getRangeAt(0);
   let activeSelectionNode = document.createElement('ffelem');
@@ -398,11 +422,13 @@ const createElement = (text: string, selection: Selection) => {
   let portions: HTMLElement[] = [];
   let active = false;
   let someActive = false;
+  
   let regexFinder = null;
   let excapedText = text.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
-
+  const wordBorders = shiftKey || settings.forceWordBorders ? '\\b' : '' ;
+  const caseSensitive = shiftKey || settings.forceCaseSensitive ? 'g' : 'gi' ;
   try {
-    regexFinder = RegExp(excapedText, settings.matchCaseSensitive ? 'g' : 'gi');
+    regexFinder = RegExp(`${wordBorders}${excapedText}${wordBorders}`, caseSensitive);
   } catch (error) {
     if (DEBUG_ON) {
       console.error(error);
@@ -422,33 +448,31 @@ const createElement = (text: string, selection: Selection) => {
             portion.node.parentElement.getClientRects().length
           );
 
-      if (elementIsVisible) {
-        const div = document.createElement('ffelem') as HTMLDivElement;
-        portions.push(div);
-        requestAnimationFrame(() => {
-          if (portion.index === 0 && portion.isEnd) div.classList.add('ffelem');
-          else if (portion.index === 0) div.classList.add('ffelemStart');
-          else if (portion.isEnd) div.classList.add('ffelemEnd');
-          else div.classList.add('ffelemMiddle');
-          div.style.backgroundColor = renderColor(color, 1.0);
-          div.style.color = contrast;
-          div.innerHTML = portion.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-        });
+      if (!elementIsVisible) return portion.text;
 
-        if (portion.isEnd) {
-          active = active || getElementParents(portion.node).includes(activeSelectionNode);
-          someActive = active || someActive;
-          const element: FFelement = { portions, active, mapIndicator: null };
-          currentElements.push(element);
-          portions = [];
-          if (active) activeElements++;
-          active = false;
-        }
+      const div = document.createElement('ffelem') as HTMLDivElement;
+      portions.push(div);
+      requestAnimationFrame(() => {
+        if (portion.index === 0 && portion.isEnd) div.classList.add('ffelem');
+        else if (portion.index === 0) div.classList.add('ffelemStart');
+        else if (portion.isEnd) div.classList.add('ffelemEnd');
+        else div.classList.add('ffelemMiddle');
+        div.style.backgroundColor = renderColor(color, 1.0);
+        div.style.color = contrast;
+        div.innerHTML = portion.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      });
 
-        return div;
-      } else {
-        return portion.text;
+      if (portion.isEnd) {
+        active = active || getElementParents(portion.node).includes(activeSelectionNode);
+        someActive = active || someActive;
+        const element: FFelement = { portions, active, mapIndicator: null };
+        currentElements.push(element);
+        portions = [];
+        if (active) activeElements++;
+        active = false;
       }
+
+      return div;
     }
   });
   requestAnimationFrame(() => {
@@ -519,7 +543,8 @@ ${renderColor(color, 1.0)} 0%,
 ${renderColor(color, 0.8)} 10%,
 ${renderColor(color, 0.6)} 40%,
 #00000000 50%,#00000000 100%)`;
-  label.setAttribute('data-label', text);
+  label.setAttribute('data-label', `${text}${wordBorders ? '●' : ''}`);
+  label.setAttribute('data-number', ` (${currentElements.length})`);
 
   requestAnimationFrame(() => {
     currentSelection.mapWrapper.appendChild(label);
@@ -558,6 +583,7 @@ const onElementHover = (currentSelection: FFinstance) =>
     );
 
 const rotateLogo = () => {
+  if (!settings.showRotatingArrow) return;
   repeatLogo.classList.add('active');
   repeatLogoWrapper.classList.add('active');
   window.setTimeout(() => {
