@@ -123,11 +123,19 @@ body {
   border-bottom-left-radius: var(--elem-radius-selected);
   border-top-right-radius: var(--elem-radius-selected);
   border-bottom-right-radius: var(--elem-radius-selected);
+  border-top: solid 1px rgba(255,255,255,0.4) !important;
+  border-bottom: solid 1px rgba(255,255,255,0.4) !important;
+  border-left: solid 1px rgba(255,255,255,0.4) !important;
+  border-right: solid 1px rgba(255,255,255,0.4) !important;
 }
 
 .ffelemMiddle.hovered::before {
   top: var(--elem-big);
   bottom: var(--elem-big);
+  border-top: solid 1px rgba(255,255,255,0.4) !important;
+  border-bottom: solid 1px rgba(255,255,255,0.4) !important;
+  border-left: solid 1px rgba(255,255,255,0.4) !important;
+  border-right: solid 1px rgba(255,255,255,0.4) !important;
 }
 
 .ffelemStart.hovered::before {
@@ -136,6 +144,10 @@ body {
   bottom: var(--elem-big);
   border-top-left-radius: var(--elem-radius-selected);
   border-bottom-left-radius: var(--elem-radius-selected);
+  border-top: solid 1px rgba(255,255,255,0.4) !important;
+  border-bottom: solid 1px rgba(255,255,255,0.4) !important;
+  border-left: solid 1px rgba(255,255,255,0.4) !important;
+  border-right: solid 1px rgba(255,255,255,0.4) !important;
 }
 
 .ffelemEnd.hovered::before {
@@ -144,6 +156,10 @@ body {
   bottom: var(--elem-big);
   border-top-right-radius: var(--elem-radius-selected);
   border-bottom-right-radius: var(--elem-radius-selected);
+  border-top: solid 1px rgba(255,255,255,0.4) !important;
+  border-bottom: solid 1px rgba(255,255,255,0.4) !important;
+  border-left: solid 1px rgba(255,255,255,0.4) !important;
+  border-right: solid 1px rgba(255,255,255,0.4) !important;
 }
 
 
@@ -593,9 +609,21 @@ body {
 .mapIndicator:hover {
   width: 14px;
   margin-left: 0px;
+  border: solid 0.5px rgba(255,255,255,0.4) !important;
+}
+
+.mapIndicator.hovered {
+  width: 14px;
+  margin-left: 0px;
+  border: solid 0.5px rgba(255,255,255,0.4) !important;
 }
 
 .mapWrapper.selected .mapIndicator:hover {
+  width: 14px;
+  margin-left: 0px;
+}
+
+.mapWrapper.selected .mapIndicator.hovered {
   width: 14px;
   margin-left: 0px;
 }

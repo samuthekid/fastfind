@@ -521,9 +521,22 @@ const createElement = (text: string, selection: Selection, shiftKey: boolean) =>
   currentElements.forEach(element => {
     const { portions, active } = element;
 
+    let indicator = document.createElement('div');
+    indicator.classList.add('mapIndicator');
+    if (active) indicator.classList.add('selected');
+
     portions.forEach(div => {
-      div.onmouseover = div.onmouseout = onElementHover(currentSelection);
       div.onclick = () => selectElement(currentSelection, element, false);
+      div.onmouseover = div.onmouseout = (event: MouseEvent) =>
+        requestAnimationFrame(() => {
+          if (event.type === 'mouseover') {
+            div.classList.add('hovered')
+            indicator.classList.add('hovered')
+          } else {
+            div.classList.remove('hovered')
+            indicator.classList.remove('hovered')
+          }
+        });
 
       if (active) {
         requestAnimationFrame(() => {
@@ -536,10 +549,16 @@ const createElement = (text: string, selection: Selection, shiftKey: boolean) =>
       }
     });
 
-    let indicator = document.createElement('div');
-    indicator.classList.add('mapIndicator');
-    if (active) indicator.classList.add('selected');
     indicator.onclick = () => selectElement(currentSelection, element, true);
+    indicator.onmouseover = indicator.onmouseout = (event: MouseEvent) =>
+      requestAnimationFrame(() => {
+        element.portions.forEach(portion =>
+          event.type === 'mouseover'
+            ? portion.classList.add('hovered')
+            : portion.classList.remove('hovered')
+        );
+      });
+
     requestAnimationFrame(() => {
       pageHeight = getPageHeight();
       let elementPosition =
@@ -586,18 +605,6 @@ const redrawMapIndicators = () => {
     });
   });
 };
-
-const onElementHover = (currentSelection: FFinstance) =>
-  (event: MouseEvent) =>
-    currentSelection.elements.forEach(element =>
-      element.portions.forEach(portion =>
-        requestAnimationFrame(() =>
-          event.type === 'mouseover'
-            ? portion.classList.add('hovered')
-            : portion.classList.remove('hovered')
-        )
-      )
-    );
 
 const rotateLogo = () => {
   if (!settings.showRotatingArrow) return;
