@@ -454,18 +454,6 @@ body {
   transition: background .2s ease;
 }
 
-.selectionsMapPin.fixed {
-  visibility: visible;
-}
-
-.selectionsMapPin.fixed:nth-last-child(2) {
-  visibility: hidden;
-}
-
-.selectionsMapPin.fixed:nth-last-child(3) {
-  visibility: hidden;
-}
-
 .selectionsMapWrapper:hover .selectionsMapPin {
   visibility: visible;
 }
