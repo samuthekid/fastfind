@@ -29,8 +29,8 @@ let settings = {
 
   // EFFECTS
   smoothScrolling: true, // CHECKED
-  showRotatingArrow: true, // CHECKED
-  keepElementCentered: true, // CHECKED
+  showRotatingArrow: false, // CHECKED
+  keepElementCentered: false, // CHECKED
 
   // SIDE MAP
   showSideMap: true, // CHECKED
@@ -573,13 +573,14 @@ const createElement = (text: string, selection: Selection, shiftKey: boolean) =>
 
   const label = document.createElement('div');
   label.classList.add('mapLabel');
+  if (wordBorders) label.classList.add('underlined');
   label.style.background =
     `linear-gradient(to bottom,
 ${renderColor(color, 1.0)} 0%,
 ${renderColor(color, 0.8)} 10%,
 ${renderColor(color, 0.6)} 40%,
 #00000000 50%,#00000000 100%)`;
-  label.setAttribute('data-label', `${text}${wordBorders ? '●' : ''}`);
+  label.setAttribute('data-label', `${text}`);
   label.setAttribute('data-number', ` (${currentElements.length})`);
 
   requestAnimationFrame(() => {

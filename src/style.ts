@@ -647,8 +647,12 @@ body {
   transition: all .2s ease;
 }
 
-.mapLabel:before {
+.mapLabel::before {
   content: attr(data-label);
+}
+
+.mapLabel.underlined::before {
+  text-decoration: underline;
 }
 
 .mapLabel::after {
@@ -676,7 +680,7 @@ body {
   visibility: visible;
 }
 
-.selectionsMapWrapper.noLabels .mapLabel:before {
+.selectionsMapWrapper.noLabels .mapLabel::before {
   color: transparent;
 }
 
