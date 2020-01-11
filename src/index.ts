@@ -35,7 +35,8 @@ let settings = {
   // SIDE MAP
   showSideMap: true, // CHECKED
   showMapLabels: true, // CHECKED
-  opaqueSideMap: true, // CHECKED
+  opaqueSideMap: false, // CHECKED
+  lightThemeSideMap: false, // CHECKED
   autoExpandSideMap: true, // CHECKED
   showNumberOfResults: true, // CHECKED
 
@@ -64,9 +65,11 @@ let repeatLogoWrapper: HTMLElement = document.createElement('div');
 let selectionsMapWrapper: HTMLElement = document.createElement('div');
 let selectionsMapPin: HTMLElement = document.createElement('div');
 let selectionsMapOpacity: HTMLElement = document.createElement('div');
+let selectionsMapTheme: HTMLElement = document.createElement('div');
 let selectionsMapScroll: HTMLElement = document.createElement('div');
 let mapPin: HTMLElement = document.createElement('img');
 let mapOpacity: HTMLElement = document.createElement('div');
+let mapTheme: HTMLElement = document.createElement('div');
 
 const initFF = () => {
 
@@ -87,38 +90,55 @@ const initFF = () => {
     selectionsMapWrapper.classList.add('noLabels');
   if (!settings.showNumberOfResults)
     selectionsMapWrapper.classList.add('noNumbers');
+  if (settings.opaqueSideMap)
+    selectionsMapWrapper.classList.add('opaque');
+  if (settings.lightThemeSideMap)
+    selectionsMapWrapper.classList.add('lightTheme');
+  if (settings.autoExpandSideMap)
+    selectionsMapWrapper.classList.add('fixed');
 
-  selectionsMapPin.classList.add('selectionsMapPin');
+  // PIN BUTTON
+  selectionsMapPin.classList.add('selectionsMapButton', 'selectionsMapPin');
   selectionsMapPin.onclick = () => requestAnimationFrame(() => {
-    selectionsMapPin.classList.toggle('fixed');
     selectionsMapWrapper.classList.toggle('fixed');
   });
-  if (settings.autoExpandSideMap) {
-    selectionsMapPin.classList.add('fixed');
-    selectionsMapWrapper.classList.add('fixed');
-  }
-  selectionsMapOpacity.classList.add('selectionsMapOpacity');
+  mapPin.setAttribute('src', chrome.extension.getURL('assets/pin.png'));
+  mapPin.classList.add('mapPin');
+
+  // OPACITY BUTTON
+  selectionsMapOpacity.classList.add('selectionsMapButton', 'selectionsMapOpacity');
   selectionsMapOpacity.onclick = () => requestAnimationFrame(() => {
     selectionsMapWrapper.classList.toggle('opaque');
   });
   mapOpacity.classList.add('mapOpacity');
-  if (settings.opaqueSideMap)
-    selectionsMapWrapper.classList.add('opaque');
 
+  // THEME BUTTON
+  selectionsMapTheme.classList.add('selectionsMapButton', 'selectionsMapTheme');
+  selectionsMapTheme.onclick = () => requestAnimationFrame(() => {
+    selectionsMapWrapper.classList.toggle('lightTheme');
+  });
+  mapTheme.classList.add('mapTheme');
+
+  // SCROLL
   selectionsMapScroll.classList.add("selectionsMapScroll");
-  mapPin.setAttribute('src', chrome.extension.getURL('assets/pin.png'));
-  mapPin.classList.add('mapPin');
   
   requestAnimationFrame(() => {
     document.head.appendChild(style);
+
     repeatLogoWrapper.appendChild(repeatLogo);
     document.body.appendChild(repeatLogoWrapper);
-    document.body.appendChild(selectionsMapWrapper);
-    selectionsMapWrapper.appendChild(selectionsMapScroll);
-    selectionsMapWrapper.appendChild(selectionsMapPin);
-    selectionsMapWrapper.appendChild(selectionsMapOpacity);
-    selectionsMapOpacity.appendChild(mapOpacity);
+
     selectionsMapPin.appendChild(mapPin);
+    selectionsMapWrapper.appendChild(selectionsMapPin);
+
+    selectionsMapOpacity.appendChild(mapOpacity);
+    selectionsMapWrapper.appendChild(selectionsMapOpacity);
+
+    selectionsMapTheme.appendChild(mapTheme);
+    selectionsMapWrapper.appendChild(selectionsMapTheme);
+
+    selectionsMapWrapper.appendChild(selectionsMapScroll);
+    document.body.appendChild(selectionsMapWrapper);
   });
 
   windowHeight = window.innerHeight;

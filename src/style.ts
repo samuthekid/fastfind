@@ -413,16 +413,22 @@ body {
   transition: var(--animation-settings);
 }
 
-.selectionsMapWrapper:hover {
-  background: rgba(0,0,0,0.6);
-}
-
+.selectionsMapWrapper:hover,
 .selectionsMapWrapper.fixed {
   background: rgba(0,0,0,0.6);
 }
 
+.selectionsMapWrapper.lightTheme:hover,
+.selectionsMapWrapper.lightTheme.fixed {
+  background: rgba(255,255,255,0.8);
+}
+
 .selectionsMapWrapper.opaque {
   background: rgba(0,0,0,1.0);
+}
+
+.selectionsMapWrapper.opaque.lightTheme {
+  background: rgba(255,255,255,1.0);
 }
 
 .selectionsMapWrapper.hidden {
@@ -442,27 +448,42 @@ body {
   pointer-events: none;
 }
 
+.selectionsMapWrapper.lightTheme .selectionsMapScroll {
+  background: rgba(0,0,0,0.4);
+}
 
 
-/* #################### SELECTIONS MAP PIN #################### */
 
-.selectionsMapPin {
+/* #################### SELECTIONS MAP BUTTON #################### */
+
+.selectionsMapButton {
   visibility: hidden;
   width: 24px;
   height: 24px;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0,0,0,1.0);
   position: absolute;
   left: -24px;
+  transition: background .2s ease;
+}
+
+.selectionsMapPin {
   bottom: 0px;
-  transition: var(--animation-settings);
 }
 
-.selectionsMapWrapper:hover .selectionsMapPin {
+.selectionsMapOpacity {
+  bottom: 24px;
+}
+
+.selectionsMapTheme {
+  bottom: 48px;
+}
+
+.selectionsMapWrapper.lightTheme .selectionsMapButton {
+  background: rgba(255,255,255,1.0);
+}
+
+.selectionsMapWrapper:hover .selectionsMapButton {
   visibility: visible;
-}
-
-.selectionsMapWrapper.opaque .selectionsMapPin {
-  background: rgba(0,0,0,1.0);
 }
 
 
@@ -471,44 +492,25 @@ body {
 
 .mapPin {
   width: 100%;
-  padding: 4px;
+  padding: 5px;
   opacity: 0.4;
   filter: invert(100%);
   box-sizing: border-box;
   cursor: pointer;
   transform: rotate(-45deg);
-  transition: var(--animation-settings);
+  transition: opacity .2s ease, padding .2s ease;
 }
 
-.selectionsMapPin.fixed .mapPin {
+.selectionsMapWrapper.lightTheme .mapPin {
+  filter: none;
+}
+
+.selectionsMapWrapper.fixed .mapPin {
   opacity: 1.0;
 }
 
 .mapPin:hover {
   padding: 3px;
-}
-
-
-
-/* #################### SELECTIONS MAP OPACITY #################### */
-
-.selectionsMapOpacity {
-  visibility: hidden;
-  width: 24px;
-  height: 24px;
-  background: rgba(0,0,0,0.6);
-  position: absolute;
-  left: -24px;
-  bottom: 24px;
-  transition: var(--animation-settings);
-}
-
-.selectionsMapWrapper:hover .selectionsMapOpacity {
-  visibility: visible;
-}
-
-.selectionsMapWrapper.opaque .selectionsMapOpacity {
-  background: rgba(0,0,0,1.0);
 }
 
 
@@ -523,7 +525,16 @@ body {
   opacity: 0.4;
   cursor: pointer;
   border: solid .5px white !important;
-  transition: var(--animation-settings);
+  transition:
+    width .2s ease,
+    height .2s ease,
+    margin .2s ease,
+    opacity .2s ease,
+    background .2s ease;
+}
+
+.selectionsMapWrapper.lightTheme .mapOpacity {
+  border: solid .5px black !important;
 }
 
 .selectionsMapWrapper:hover .mapOpacity {
@@ -539,6 +550,54 @@ body {
 .selectionsMapWrapper.opaque .mapOpacity {
   opacity: 1.0;
   background: rgba(255,255,255,0.4);
+}
+
+.selectionsMapWrapper.lightTheme.opaque .mapOpacity {
+  opacity: 1.0;
+  background: rgba(0,0,0,0.4);
+}
+
+
+
+/* #################### MAP THEME #################### */
+
+.mapTheme {
+  visibility: hidden;
+  width: 100%;
+  opacity: 0.4;
+  filter: invert(100%);
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: opacity .2s ease;
+}
+
+.mapTheme::before {
+  content: '\\25D1';
+  position: relative;
+  top: -1px;
+  left: 4px;
+  font-size: 16px;
+  color: black;
+  transition: opacity .2s ease;
+}
+
+.selectionsMapWrapper.lightTheme .mapTheme {
+  opacity: 0.8;
+}
+
+.selectionsMapWrapper.lightTheme .mapTheme::before {
+  color: white;
+}
+
+.selectionsMapWrapper:hover .mapTheme {
+  visibility: visible;
+}
+
+.mapTheme:hover::before {
+  position: relative;
+  top: -3px;
+  left: 3px;
+  font-size: 18px;
 }
 
 
@@ -568,6 +627,10 @@ body {
   background: rgba(255,255,255,0.4);
 }
 
+.selectionsMapWrapper.lightTheme .mapWrapper:hover {
+  background: rgba(0,0,0,0.2);
+}
+
 
 
 /* #################### INDICATORS #################### */
@@ -592,23 +655,14 @@ body {
   height: 5px;
 }
 
-.mapIndicator:hover {
-  width: 14px;
-  margin-left: 0px;
-  border: solid 0.5px rgba(255,255,255,0.4) !important;
-}
-
+.mapIndicator:hover,
 .mapIndicator.hovered {
   width: 14px;
   margin-left: 0px;
   border: solid 0.5px rgba(255,255,255,0.4) !important;
 }
 
-.mapWrapper.selected .mapIndicator:hover {
-  width: 14px;
-  margin-left: 0px;
-}
-
+.mapWrapper.selected .mapIndicator:hover,
 .mapWrapper.selected .mapIndicator.hovered {
   width: 14px;
   margin-left: 0px;
@@ -645,6 +699,10 @@ body {
   transition: var(--animation-settings);
 }
 
+.selectionsMapWrapper.lightTheme .mapLabel {
+  color: rgba(0,0,0,0.8);
+}
+
 .mapLabel::before {
   content: attr(data-label);
 }
@@ -659,11 +717,19 @@ body {
   color: rgba(255,255,255,1.0);
 }
 
+.selectionsMapWrapper.lightTheme .mapWrapper:hover .mapLabel {
+  color: rgba(0,0,0,1.0);
+}
+
 .mapWrapper.selected .mapLabel {
   visibility: visible;
   margin-top: 12vh;
   padding-top: 10vh;
   color: rgba(255,255,255,1.0);
+}
+
+.selectionsMapWrapper.lightTheme .mapWrapper.selected .mapLabel {
+  color: rgba(0,0,0,1.0);
 }
 
 .selectionsMapWrapper:hover .mapLabel {
