@@ -134,8 +134,6 @@ body {
   bottom: var(--elem-big);
   border-top: solid 1px rgba(255,255,255,0.4) !important;
   border-bottom: solid 1px rgba(255,255,255,0.4) !important;
-  border-left: solid 1px rgba(255,255,255,0.4) !important;
-  border-right: solid 1px rgba(255,255,255,0.4) !important;
 }
 
 .ffelemStart.hovered::before {
@@ -147,7 +145,6 @@ body {
   border-top: solid 1px rgba(255,255,255,0.4) !important;
   border-bottom: solid 1px rgba(255,255,255,0.4) !important;
   border-left: solid 1px rgba(255,255,255,0.4) !important;
-  border-right: solid 1px rgba(255,255,255,0.4) !important;
 }
 
 .ffelemEnd.hovered::before {
@@ -158,7 +155,6 @@ body {
   border-bottom-right-radius: var(--elem-radius-selected);
   border-top: solid 1px rgba(255,255,255,0.4) !important;
   border-bottom: solid 1px rgba(255,255,255,0.4) !important;
-  border-left: solid 1px rgba(255,255,255,0.4) !important;
   border-right: solid 1px rgba(255,255,255,0.4) !important;
 }
 

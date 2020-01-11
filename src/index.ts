@@ -525,28 +525,26 @@ const createElement = (text: string, selection: Selection, shiftKey: boolean) =>
     indicator.classList.add('mapIndicator');
     if (active) indicator.classList.add('selected');
 
-    portions.forEach(div => {
-      div.onclick = () => selectElement(currentSelection, element, false);
-      div.onmouseover = div.onmouseout = (event: MouseEvent) =>
+    portions.forEach(portion => {
+      portion.onclick = () => selectElement(currentSelection, element, false);
+      portion.onmouseover = portion.onmouseout = (event: MouseEvent) => {
         requestAnimationFrame(() => {
           if (event.type === 'mouseover') {
-            div.classList.add('hovered')
-            indicator.classList.add('hovered')
+            indicator.classList.add('hovered');
+            element.portions.forEach(p => p.classList.add('hovered'));
           } else {
-            div.classList.remove('hovered')
-            indicator.classList.remove('hovered')
+            indicator.classList.remove('hovered');
+            element.portions.forEach(p => p.classList.remove('hovered'));
           }
         });
+      };
 
-      if (active) {
-        requestAnimationFrame(() => {
-          div.classList.add('selected');
-        });
-      } else if (someActive) {
-        requestAnimationFrame(() => {
-          div.classList.add('selectedClass');
-        });
-      }
+      requestAnimationFrame(() => {
+        if (active)
+          portion.classList.add('selected');
+        else if (someActive)
+          portion.classList.add('selectedClass');
+      });
     });
 
     indicator.onclick = () => selectElement(currentSelection, element, true);
