@@ -66,7 +66,7 @@ let selectionsMapPin: HTMLElement = document.createElement('div');
 let selectionsMapOpacity: HTMLElement = document.createElement('div');
 let selectionsMapScroll: HTMLElement = document.createElement('div');
 let mapPin: HTMLElement = document.createElement('img');
-let mapOpacity: HTMLElement = document.createElement('img');
+let mapOpacity: HTMLElement = document.createElement('div');
 
 const initFF = () => {
 
@@ -442,10 +442,15 @@ const createElement = (text: string, selection: Selection, shiftKey: boolean) =>
   
   let regexFinder = null;
   let excapedText = text.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
-  const wordBorders = shiftKey || settings.forceWordBorders ? '\\b' : '' ;
-  const caseSensitive = shiftKey || settings.forceCaseSensitive ? 'g' : 'gi' ;
+  const wordBorders = shiftKey || settings.forceWordBorders;
+  const wordBordersHandler = wordBorders ? '\\b' : '' ;
+  const caseSensitive = shiftKey || settings.forceCaseSensitive;
+  const caseSensitiveHandler = caseSensitive ? 'g' : 'gi' ;
   try {
-    regexFinder = RegExp(`${wordBorders}${excapedText}${wordBorders}`, caseSensitive);
+    regexFinder = RegExp(
+      `${wordBordersHandler}${excapedText}${wordBordersHandler}`,
+      caseSensitiveHandler,
+    );
   } catch (error) {
     if (DEBUG_ON) {
       console.error(error);
@@ -571,15 +576,21 @@ const createElement = (text: string, selection: Selection, shiftKey: boolean) =>
 
   const label = document.createElement('div');
   label.classList.add('mapLabel');
-  if (wordBorders) label.classList.add('underlined');
   label.style.background =
     `linear-gradient(to bottom,
 ${renderColor(color, 1.0)} 0%,
 ${renderColor(color, 0.8)} 10%,
 ${renderColor(color, 0.6)} 40%,
 #00000000 50%,#00000000 100%)`;
-  label.setAttribute('data-label', `${text}`);
   label.setAttribute('data-number', ` (${currentElements.length})`);
+  label.setAttribute(
+    'data-label',
+    `${text} ${
+      wordBorders ? String.fromCharCode(0x2551) : ''
+    }${
+      caseSensitive ? 'Aa' : ''
+    }`
+  );
 
   requestAnimationFrame(() => {
     currentSelection.mapWrapper.appendChild(label);

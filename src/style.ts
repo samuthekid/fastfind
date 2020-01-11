@@ -441,11 +441,11 @@ body {
 
 .selectionsMapPin {
   visibility: hidden;
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   background: rgba(0,0,0,0.6);
   position: absolute;
-  left: -20px;
+  left: -24px;
   bottom: 0px;
   transition: background .2s ease;
 }
@@ -487,12 +487,12 @@ body {
 
 .selectionsMapOpacity {
   visibility: hidden;
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   background: rgba(0,0,0,0.6);
   position: absolute;
-  left: -20px;
-  bottom: 20px;
+  left: -24px;
+  bottom: 24px;
   transition: background .2s ease;
 }
 
@@ -510,18 +510,18 @@ body {
 
 .mapOpacity {
   visibility: hidden;
-  width: 60%;
+  width: 40%;
   height: 60%;
-  margin: 20%;
+  margin: 20% 30%;
   opacity: 0.4;
   cursor: pointer;
-  border-radius: 50%;
-  border: solid .6px white;
-  transition: width .2s ease;
-  transition: height .2s ease;
-  transition: margin .2s ease;
-  transition: opacity .2s ease;
-  transition: background .2s ease;
+  border: solid .5px white !important;
+  transition:
+    width .2s ease,
+    height .2s ease,
+    margin .2s ease,
+    opacity .2s ease,
+    background .2s ease;
 }
 
 .selectionsMapWrapper:hover .mapOpacity {
@@ -529,9 +529,9 @@ body {
 }
 
 .mapOpacity:hover {
-  width: 70%;
+  width: 50%;
   height: 70%;
-  margin: 15%;
+  margin: 15% 25%;
 }
 
 .selectionsMapWrapper.opaque .mapOpacity {
@@ -645,10 +645,6 @@ body {
 
 .mapLabel::before {
   content: attr(data-label);
-}
-
-.mapLabel.underlined::before {
-  text-decoration: underline;
 }
 
 .mapLabel::after {
