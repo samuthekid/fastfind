@@ -463,6 +463,7 @@ body {
   background: rgba(0,0,0,1.0);
   position: absolute;
   left: -24px;
+  cursor: pointer;
   transition: background .2s ease;
 }
 
@@ -496,7 +497,6 @@ body {
   opacity: 0.4;
   filter: invert(100%);
   box-sizing: border-box;
-  cursor: pointer;
   transform: rotate(-45deg);
   transition: opacity .2s ease, padding .2s ease;
 }
@@ -523,7 +523,6 @@ body {
   height: 60%;
   margin: 20% 30%;
   opacity: 0.4;
-  cursor: pointer;
   border: solid .5px white !important;
   transition:
     width .2s ease,
@@ -567,7 +566,6 @@ body {
   opacity: 0.4;
   filter: invert(100%);
   box-sizing: border-box;
-  cursor: pointer;
   transition: opacity .2s ease;
 }
 
@@ -578,7 +576,12 @@ body {
   left: 4px;
   font-size: 16px;
   color: black;
-  transition: opacity .2s ease;
+  transition:
+    opacity .2s ease,
+    color .2s ease,
+    top .2s ease,
+    left .2s ease,
+    font-size .2s ease;
 }
 
 .selectionsMapWrapper.lightTheme .mapTheme {
@@ -594,7 +597,6 @@ body {
 }
 
 .mapTheme:hover::before {
-  position: relative;
   top: -3px;
   left: 3px;
   font-size: 18px;
