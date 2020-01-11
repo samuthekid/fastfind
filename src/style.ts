@@ -1,11 +1,18 @@
 export const ffStyle = `
 body {
+  --elem-small: 1px;
   --elem-normal: 0px;
-  --elem-big: -2px;
-  --elem-max: -4px;
+  --elem-expanded: -1px;
+  --elem-big: -3px;
+  --elem-max: -5px;
 
   --elem-radius: 2px;
   --elem-radius-selected: 3px;
+
+  --highlight-animation-duration: .3s;
+  --highlight-animation-effect: cubic-bezier(.6, 0, .4, 1);
+
+  --animation-settings: all .2s ease;
 }
 
 
@@ -20,7 +27,7 @@ body {
   border-bottom-left-radius: var(--elem-radius);
   border-top-right-radius: var(--elem-radius);
   border-bottom-right-radius: var(--elem-radius);
-  transition: all .2s ease;
+  transition: var(--animation-settings);
 }
 
 .ffelemMiddle {
@@ -69,7 +76,7 @@ body {
   border-bottom-left-radius: var(--elem-radius);
   border-top-right-radius: var(--elem-radius);
   border-bottom-right-radius: var(--elem-radius);
-  transition: all .2s ease;
+  transition: var(--animation-settings);
 }
 
 .ffelemMiddle::before {
@@ -81,7 +88,7 @@ body {
   bottom: var(--elem-normal);
   background: inherit;
   z-index: -1;
-  transition: all .2s ease;
+  transition: var(--animation-settings);
 }
 
 .ffelemStart::before {
@@ -95,7 +102,7 @@ body {
   z-index: -1;
   border-top-left-radius: var(--elem-radius);
   border-bottom-left-radius: var(--elem-radius);
-  transition: all .2s ease;
+  transition: var(--animation-settings);
 }
 
 .ffelemEnd::before {
@@ -109,7 +116,53 @@ body {
   z-index: -1;
   border-top-right-radius: var(--elem-radius);
   border-bottom-right-radius: var(--elem-radius);
-  transition: all .2s ease;
+  transition: var(--animation-settings);
+}
+
+
+
+.ffelem.selectedClass::before {
+  border-top-left-radius: var(--elem-radius-selected);
+  border-bottom-left-radius: var(--elem-radius-selected);
+  border-top-right-radius: var(--elem-radius-selected);
+  border-bottom-right-radius: var(--elem-radius-selected);
+  border-top: solid 1px rgba(255,255,255,0.4) !important;
+  border-bottom: solid 1px rgba(255,255,255,0.4) !important;
+  border-left: solid 1px rgba(255,255,255,0.4) !important;
+  border-right: solid 1px rgba(255,255,255,0.4) !important;
+  top: var(--elem-expanded);
+  left: var(--elem-expanded);
+  right: var(--elem-expanded);
+  bottom: var(--elem-expanded);
+}
+
+.ffelemMiddle.selectedClass::before {
+  border-top: solid 1px rgba(255,255,255,0.4) !important;
+  border-bottom: solid 1px rgba(255,255,255,0.4) !important;
+  top: var(--elem-expanded);
+  bottom: var(--elem-expanded);
+}
+
+.ffelemStart.selectedClass::before {
+  border-top-left-radius: var(--elem-radius-selected);
+  border-bottom-left-radius: var(--elem-radius-selected);
+  border-top: solid 1px rgba(255,255,255,0.4) !important;
+  border-bottom: solid 1px rgba(255,255,255,0.4) !important;
+  border-left: solid 1px rgba(255,255,255,0.4) !important;
+  top: var(--elem-expanded);
+  left: var(--elem-expanded);
+  bottom: var(--elem-expanded);
+}
+
+.ffelemEnd.selectedClass::before {
+  border-top-right-radius: var(--elem-radius-selected);
+  border-bottom-right-radius: var(--elem-radius-selected);
+  border-top: solid 1px rgba(255,255,255,0.4) !important;
+  border-bottom: solid 1px rgba(255,255,255,0.4) !important;
+  border-right: solid 1px rgba(255,255,255,0.4) !important;
+  top: var(--elem-expanded);
+  right: var(--elem-expanded);
+  bottom: var(--elem-expanded);
 }
 
 
@@ -160,54 +213,8 @@ body {
 
 
 
-.ffelem.selectedClass::before {
-  border-top-left-radius: var(--elem-radius-selected);
-  border-bottom-left-radius: var(--elem-radius-selected);
-  border-top-right-radius: var(--elem-radius-selected);
-  border-bottom-right-radius: var(--elem-radius-selected);
-  border-top: solid 1px rgba(255,255,255,0.4) !important;
-  border-bottom: solid 1px rgba(255,255,255,0.4) !important;
-  border-left: solid 1px rgba(255,255,255,0.4) !important;
-  border-right: solid 1px rgba(255,255,255,0.4) !important;
-  top: var(--elem-big);
-  left: var(--elem-big);
-  right: var(--elem-big);
-  bottom: var(--elem-big);
-}
-
-.ffelemMiddle.selectedClass::before {
-  border-top: solid 1px rgba(255,255,255,0.4) !important;
-  border-bottom: solid 1px rgba(255,255,255,0.4) !important;
-  top: var(--elem-big);
-  bottom: var(--elem-big);
-}
-
-.ffelemStart.selectedClass::before {
-  border-top-left-radius: var(--elem-radius-selected);
-  border-bottom-left-radius: var(--elem-radius-selected);
-  border-top: solid 1px rgba(255,255,255,0.4) !important;
-  border-bottom: solid 1px rgba(255,255,255,0.4) !important;
-  border-left: solid 1px rgba(255,255,255,0.4) !important;
-  top: var(--elem-big);
-  left: var(--elem-big);
-  bottom: var(--elem-big);
-}
-
-.ffelemEnd.selectedClass::before {
-  border-top-right-radius: var(--elem-radius-selected);
-  border-bottom-right-radius: var(--elem-radius-selected);
-  border-top: solid 1px rgba(255,255,255,0.4) !important;
-  border-bottom: solid 1px rgba(255,255,255,0.4) !important;
-  border-right: solid 1px rgba(255,255,255,0.4) !important;
-  top: var(--elem-big);
-  right: var(--elem-big);
-  bottom: var(--elem-big);
-}
-
-
-
 .ffelem.selected::before {
-  animation: highlight .5s cubic-bezier(.6, 0, .4, 1);
+  animation: highlight var(--highlight-animation-duration) var(--highlight-animation-effect);
   border-top-left-radius: var(--elem-radius-selected);
   border-bottom-left-radius: var(--elem-radius-selected);
   border-top-right-radius: var(--elem-radius-selected);
@@ -223,7 +230,7 @@ body {
 }
 
 .ffelemMiddle.selected::before {
-  animation: highlightMiddle .5s cubic-bezier(.6, 0, .4, 1);
+  animation: highlightMiddle var(--highlight-animation-duration) var(--highlight-animation-effect);
   border-top: solid 1px rgba(255,255,255,1.0) !important;
   border-bottom: solid 1px rgba(255,255,255,1.0) !important;
   top: var(--elem-big);
@@ -231,7 +238,7 @@ body {
 }
 
 .ffelemStart.selected::before {
-  animation: highlightStart .5s cubic-bezier(.6, 0, .4, 1);
+  animation: highlightStart var(--highlight-animation-duration) var(--highlight-animation-effect);
   border-top-left-radius: var(--elem-radius-selected);
   border-bottom-left-radius: var(--elem-radius-selected);
   border-top: solid 1px rgba(255,255,255,1.0) !important;
@@ -243,7 +250,7 @@ body {
 }
 
 .ffelemEnd.selected::before {
-  animation: highlightEnd .5s cubic-bezier(.6, 0, .4, 1);
+  animation: highlightEnd var(--highlight-animation-duration) var(--highlight-animation-effect);
   border-top-right-radius: var(--elem-radius-selected);
   border-bottom-right-radius: var(--elem-radius-selected);
   border-top: solid 1px rgba(255,255,255,1.0) !important;
@@ -260,10 +267,10 @@ body {
 
 @keyframes highlight {
   0% {
-    top: var(--elem-big);
-    left: var(--elem-big);
-    right: var(--elem-big);
-    bottom: var(--elem-big);
+    top: var(--elem-small);
+    left: var(--elem-small);
+    right: var(--elem-small);
+    bottom: var(--elem-small);
   }
   15% {
     top: var(--elem-normal);
@@ -287,14 +294,14 @@ body {
 
 @keyframes highlightMiddle {
   0% {
-    top: var(--elem-big);
-    bottom: var(--elem-big);
+    top: var(--elem-small);
+    bottom: var(--elem-small);
   }
-  10% {
+  15% {
     top: var(--elem-normal);
     bottom: var(--elem-normal);
   }
-  70% {
+  60% {
     top: var(--elem-max);
     bottom: var(--elem-max);
   }
@@ -306,16 +313,16 @@ body {
 
 @keyframes highlightStart {
   0% {
-    top: var(--elem-big);
-    left: var(--elem-big);
-    bottom: var(--elem-big);
+    top: var(--elem-small);
+    left: var(--elem-small);
+    bottom: var(--elem-small);
   }
-  10% {
+  15% {
     top: var(--elem-normal);
     left: var(--elem-normal);
     bottom: var(--elem-normal);
   }
-  70% {
+  60% {
     top: var(--elem-max);
     left: var(--elem-max);
     bottom: var(--elem-max);
@@ -329,16 +336,16 @@ body {
 
 @keyframes highlightEnd {
   0% {
-    top: var(--elem-big);
-    right: var(--elem-big);
-    bottom: var(--elem-big);
+    top: var(--elem-small);
+    right: var(--elem-small);
+    bottom: var(--elem-small);
   }
-  10% {
+  15% {
     top: var(--elem-normal);
     right: var(--elem-normal);
     bottom: var(--elem-normal);
   }
-  70% {
+  60% {
     top: var(--elem-max);
     right: var(--elem-max);
     bottom: var(--elem-max);
@@ -403,7 +410,7 @@ body {
   top: 0px;
   z-index: 10000;
   background: none;
-  transition: background .2s ease;
+  transition: var(--animation-settings);
 }
 
 .selectionsMapWrapper:hover {
@@ -447,7 +454,7 @@ body {
   position: absolute;
   left: -24px;
   bottom: 0px;
-  transition: background .2s ease;
+  transition: var(--animation-settings);
 }
 
 .selectionsMapWrapper:hover .selectionsMapPin {
@@ -470,7 +477,7 @@ body {
   box-sizing: border-box;
   cursor: pointer;
   transform: rotate(-45deg);
-  transition: opacity .2s ease;
+  transition: var(--animation-settings);
 }
 
 .selectionsMapPin.fixed .mapPin {
@@ -493,7 +500,7 @@ body {
   position: absolute;
   left: -24px;
   bottom: 24px;
-  transition: background .2s ease;
+  transition: var(--animation-settings);
 }
 
 .selectionsMapWrapper:hover .selectionsMapOpacity {
@@ -516,12 +523,7 @@ body {
   opacity: 0.4;
   cursor: pointer;
   border: solid .5px white !important;
-  transition:
-    width .2s ease,
-    height .2s ease,
-    margin .2s ease,
-    opacity .2s ease,
-    background .2s ease;
+  transition: var(--animation-settings);
 }
 
 .selectionsMapWrapper:hover .mapOpacity {
@@ -578,7 +580,7 @@ body {
   margin-left: 4px;
   box-shadow: 0px 0px 3px 0px rgba(0,0,0,0.8);
   border-radius: 1px;
-  transition: all .2s ease;
+  transition: var(--animation-settings);
   z-index: 2;
   cursor: pointer;
   box-sizing: content-box;
@@ -640,7 +642,7 @@ body {
   text-align: left;
   line-height: 14px;
   writing-mode: vertical-rl;
-  transition: all .2s ease;
+  transition: var(--animation-settings);
 }
 
 .mapLabel::before {
