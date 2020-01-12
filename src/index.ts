@@ -13,6 +13,7 @@ const getPageHeight = () => {
 };
 
 const DEBUG_ON = false;
+const FIXED_BUTTONS = true;
 let EXTENSION_LOADED = false;
 
 let viewPortDelta = 20;
@@ -36,6 +37,7 @@ let settings = {
   showSideMap: true, // CHECKED
   showMapLabels: true, // CHECKED
   opaqueSideMap: false, // CHECKED
+  mapButtonsOnTop: true, // CHECKED
   lightThemeSideMap: false, // CHECKED
   autoExpandSideMap: true, // CHECKED
   showNumberOfResults: true, // CHECKED
@@ -59,17 +61,28 @@ interface FFinstance {
 }
 let selections: FFinstance[] = [];
 
-let repeatLogo: HTMLElement = document.createElement('img');
-let repeatLogoWrapper: HTMLElement = document.createElement('div');
+const repeatLogo: HTMLElement = document.createElement('img');
+const repeatLogoWrapper: HTMLElement = document.createElement('div');
 
-let selectionsMapWrapper: HTMLElement = document.createElement('div');
-let selectionsMapPin: HTMLElement = document.createElement('div');
-let selectionsMapOpacity: HTMLElement = document.createElement('div');
-let selectionsMapTheme: HTMLElement = document.createElement('div');
-let selectionsMapScroll: HTMLElement = document.createElement('div');
-let mapPin: HTMLElement = document.createElement('img');
-let mapOpacity: HTMLElement = document.createElement('div');
-let mapTheme: HTMLElement = document.createElement('div');
+const selectionsMapWrapper: HTMLElement = document.createElement('div');
+const selectionsMapScroll: HTMLElement = document.createElement('div');
+
+// PIN BUTTON
+const selectionsMapPin: HTMLElement = document.createElement('div');
+const mapPin: HTMLElement = document.createElement('img');
+
+// OPACITY BUTTON
+const selectionsMapOpacity: HTMLElement = document.createElement('div');
+const mapOpacity: HTMLElement = document.createElement('div');
+
+// THEME BUTTON
+const selectionsMapTheme: HTMLElement = document.createElement('div');
+const mapTheme: HTMLElement = document.createElement('div');
+
+// BUTTONS POSITION
+const selectionsButtonsPosition: HTMLElement = document.createElement('div');
+const buttonsPosition: HTMLElement = document.createElement('div');
+
 
 const initFF = () => {
 
@@ -84,7 +97,11 @@ const initFF = () => {
   repeatLogoWrapper.classList.add('repeatLogoWrapper');
 
   selectionsMapWrapper.classList.add('selectionsMapWrapper');
-  if (!settings.showSideMap)
+
+  if (FIXED_BUTTONS)
+    selectionsMapWrapper.classList.add('fixedButtons');
+
+    if (!settings.showSideMap)
     selectionsMapWrapper.classList.add('hidden');
   if (!settings.showMapLabels)
     selectionsMapWrapper.classList.add('noLabels');
@@ -92,6 +109,8 @@ const initFF = () => {
     selectionsMapWrapper.classList.add('noNumbers');
   if (settings.opaqueSideMap)
     selectionsMapWrapper.classList.add('opaque');
+  if (settings.mapButtonsOnTop)
+    selectionsMapWrapper.classList.add('buttonsOnTop');
   if (settings.lightThemeSideMap)
     selectionsMapWrapper.classList.add('lightTheme');
   if (settings.autoExpandSideMap)
@@ -119,6 +138,13 @@ const initFF = () => {
   });
   mapTheme.classList.add('mapTheme');
 
+  // BUTTONS POSITION
+  selectionsButtonsPosition.classList.add('selectionsMapButton', 'selectionsButtonsPosition');
+  selectionsButtonsPosition.onclick = () => requestAnimationFrame(() => {
+    selectionsMapWrapper.classList.toggle('buttonsOnTop');
+  });
+  buttonsPosition.classList.add('buttonsPosition');
+
   // SCROLL
   selectionsMapScroll.classList.add("selectionsMapScroll");
   
@@ -128,14 +154,21 @@ const initFF = () => {
     repeatLogoWrapper.appendChild(repeatLogo);
     document.body.appendChild(repeatLogoWrapper);
 
+    // PIN BUTTON
     selectionsMapPin.appendChild(mapPin);
     selectionsMapWrapper.appendChild(selectionsMapPin);
 
+    // OPACITY BUTTON
     selectionsMapOpacity.appendChild(mapOpacity);
     selectionsMapWrapper.appendChild(selectionsMapOpacity);
 
+    // THEME BUTTON
     selectionsMapTheme.appendChild(mapTheme);
     selectionsMapWrapper.appendChild(selectionsMapTheme);
+
+    // BUTTONS POSITION
+    selectionsButtonsPosition.appendChild(buttonsPosition);
+    selectionsMapWrapper.appendChild(selectionsButtonsPosition);
 
     selectionsMapWrapper.appendChild(selectionsMapScroll);
     document.body.appendChild(selectionsMapWrapper);

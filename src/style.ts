@@ -420,7 +420,7 @@ body {
 
 .selectionsMapWrapper.lightTheme:hover,
 .selectionsMapWrapper.lightTheme.fixed {
-  background: rgba(255,255,255,0.8);
+  background: rgba(255,255,255,0.5);
 }
 
 .selectionsMapWrapper.opaque {
@@ -460,7 +460,7 @@ body {
   visibility: hidden;
   width: 24px;
   height: 24px;
-  background: rgba(0,0,0,1.0);
+  background: rgba(0,0,0,0.6);
   position: absolute;
   left: -24px;
   cursor: pointer;
@@ -471,19 +471,48 @@ body {
   bottom: 0px;
 }
 
+.selectionsMapWrapper.buttonsOnTop .selectionsMapPin {
+  top: 0px;
+}
+
 .selectionsMapOpacity {
   bottom: 24px;
+}
+
+.selectionsMapWrapper.buttonsOnTop .selectionsMapOpacity {
+  top: 24px;
 }
 
 .selectionsMapTheme {
   bottom: 48px;
 }
 
+.selectionsMapWrapper.buttonsOnTop .selectionsMapTheme {
+  top: 48px;
+}
+
+.selectionsButtonsPosition {
+  bottom: 72px;
+}
+
+.selectionsMapWrapper.buttonsOnTop .selectionsButtonsPosition {
+  top: 72px;
+}
+
+.selectionsMapWrapper.opaque .selectionsMapButton {
+  background: rgba(0,0,0,1.0);
+}
+
 .selectionsMapWrapper.lightTheme .selectionsMapButton {
+  background: rgba(255,255,255,0.5);
+}
+
+.selectionsMapWrapper.opaque.lightTheme .selectionsMapButton {
   background: rgba(255,255,255,1.0);
 }
 
-.selectionsMapWrapper:hover .selectionsMapButton {
+.selectionsMapWrapper:hover .selectionsMapButton,
+.selectionsMapWrapper.fixedButtons .selectionsMapButton {
   visibility: visible;
 }
 
@@ -518,13 +547,13 @@ body {
 /* #################### MAP OPACITY #################### */
 
 .mapOpacity {
-  visibility: hidden;
   width: 40%;
   height: 60%;
   margin: 20% 30%;
   opacity: 0.4;
   border: solid .5px white !important;
   transition:
+    border .2s ease,
     width .2s ease,
     height .2s ease,
     margin .2s ease,
@@ -534,10 +563,6 @@ body {
 
 .selectionsMapWrapper.lightTheme .mapOpacity {
   border: solid .5px black !important;
-}
-
-.selectionsMapWrapper:hover .mapOpacity {
-  visibility: visible;
 }
 
 .mapOpacity:hover {
@@ -561,10 +586,8 @@ body {
 /* #################### MAP THEME #################### */
 
 .mapTheme {
-  visibility: hidden;
   width: 100%;
   opacity: 0.4;
-  filter: invert(100%);
   box-sizing: border-box;
   transition: opacity .2s ease;
 }
@@ -575,7 +598,7 @@ body {
   top: -1px;
   left: 4px;
   font-size: 16px;
-  color: black;
+  color: white;
   transition:
     opacity .2s ease,
     color .2s ease,
@@ -589,14 +612,54 @@ body {
 }
 
 .selectionsMapWrapper.lightTheme .mapTheme::before {
-  color: white;
-}
-
-.selectionsMapWrapper:hover .mapTheme {
-  visibility: visible;
+  color: black;
 }
 
 .mapTheme:hover::before {
+  top: -3px;
+  left: 3px;
+  font-size: 18px;
+}
+
+
+
+/* #################### BUTTONS POSITION #################### */
+
+.buttonsPosition {
+  width: 100%;
+  opacity: 0.4;
+  box-sizing: border-box;
+  transition: opacity .2s ease;
+}
+
+.buttonsPosition::before {
+  content: '▲';
+  position: relative;
+  top: -1px;
+  left: 4px;
+  font-size: 16px;
+  color: white;
+  transition:
+    opacity .2s ease,
+    color .2s ease,
+    top .2s ease,
+    left .2s ease,
+    font-size .2s ease;
+}
+
+.selectionsMapWrapper.buttonsOnTop .buttonsPosition::before {
+  content: '▼';
+}
+
+.selectionsMapWrapper.lightTheme .buttonsPosition {
+  opacity: 0.8;
+}
+
+.selectionsMapWrapper.lightTheme .buttonsPosition::before {
+  color: black;
+}
+
+.buttonsPosition:hover::before {
   top: -3px;
   left: 3px;
   font-size: 18px;
