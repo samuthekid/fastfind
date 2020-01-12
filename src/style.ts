@@ -13,6 +13,8 @@ body {
   --highlight-animation-effect: cubic-bezier(.6, 0, .4, 1);
 
   --animation-settings: all .2s ease;
+
+  --buttons-size: 24px;
 }
 
 
@@ -458,11 +460,11 @@ body {
 
 .selectionsMapButton {
   visibility: hidden;
-  width: 24px;
-  height: 24px;
+  width: var(--buttons-size);
+  height: var(--buttons-size);
   background: rgba(0,0,0,0.6);
   position: absolute;
-  left: -24px;
+  left: calc(-1 * var(--buttons-size));
   cursor: pointer;
   transition: background .2s ease;
 }
@@ -476,27 +478,27 @@ body {
 }
 
 .selectionsMapOpacity {
-  bottom: 24px;
+  bottom: calc(1 * var(--buttons-size));;
 }
 
 .selectionsMapWrapper.buttonsOnTop .selectionsMapOpacity {
-  top: 24px;
+  top: calc(1 * var(--buttons-size));;
 }
 
 .selectionsMapTheme {
-  bottom: 48px;
+  bottom: calc(2 * var(--buttons-size));;
 }
 
 .selectionsMapWrapper.buttonsOnTop .selectionsMapTheme {
-  top: 48px;
+  top: calc(2 * var(--buttons-size));;
 }
 
 .selectionsButtonsPosition {
-  bottom: 72px;
+  bottom: calc(3 * var(--buttons-size));;
 }
 
 .selectionsMapWrapper.buttonsOnTop .selectionsButtonsPosition {
-  top: 72px;
+  top: calc(3 * var(--buttons-size));;
 }
 
 .selectionsMapWrapper.opaque .selectionsMapButton {
