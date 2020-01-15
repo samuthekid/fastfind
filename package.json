@@ -1,7 +1,7 @@
 {
-  "name": "chrome-extension-react-typescript-boilerplate",
+  "name": "fast-find-browser-extension",
   "version": "1.0.0",
-  "description": "A boilerplate project to quickly build a Chrome extension using TypeScript and React (built using webpack).",
+  "description": "An extension that allows you to search for more that one token at the same time.",
   "scripts": {
     "build": "webpack --config webpack.prod.js",
     "clean": "rm -Rf dist/*",
@@ -9,7 +9,7 @@
     "watch": "NODE_ENV=development webpack --config webpack.dev.js --watch",
     "lint": "tslint 'src/**/*.ts'"
   },
-  "author": "Joe Martella",
+  "author": "Samuel Nunes",
   "license": "MIT",
   "devDependencies": {
     "@types/chrome": "0.0.83",

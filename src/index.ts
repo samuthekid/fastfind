@@ -1,32 +1,26 @@
 import * as findAndReplaceDOMText from 'findandreplacedomtext';
 import * as throttle from 'lodash/throttle';
-import { ffStyle, colors } from './style';
-
-const getPageHeight = () => {
-  return Math.max(
-    document.body.scrollHeight,
-    document.body.offsetHeight,
-    document.documentElement.clientHeight,
-    document.documentElement.scrollHeight,
-    document.documentElement.offsetHeight
-  );
-};
+import * as debounce from 'lodash/debounce';
+import { ffStyle, colors } from './styles';
+import * as Utils from './helpers';
 
 const DEBUG_ON = false;
-const FIXED_BUTTONS = true;
+const FIXED_BUTTONS = false;
 let EXTENSION_LOADED = false;
 
-let viewPortDelta = 20;
+const viewPortDelta = 20;
 let currentColor = 0;
-let pageHeight = getPageHeight();
+let pageHeight = Utils.getPageHeight();
 let windowHeight = window.innerHeight;
 
-let settings = {
+const settings = {
   // KEYS
   selectKey: 'f',
   removeKey: 'd',
   nextElementKey: 'r',
   nextInstanceKey: 'e',
+  wordBordersToggleKey: 'b',
+  caseSensitiveToggleKey: 'c',
 
   // EFFECTS
   smoothScrolling: true, // CHECKED
@@ -45,6 +39,8 @@ let settings = {
   // SETTINGS
   forceWordBorders: false, // CHECKED
   forceCaseSensitive: false, // CHECKED
+  megaFinderEnabled: true, // CHECKED
+  megaFinderOverride: true, // CHECKED
 };
 
 interface FFelement {
@@ -60,6 +56,15 @@ interface FFinstance {
   mapWrapper: HTMLElement;
 }
 let selections: FFinstance[] = [];
+let masterSelection: FFinstance;
+let masterIndex: number;
+let masterFlag: boolean = true;
+let masterCS: boolean = false;
+let masterWB: boolean = false;
+
+let handleMasterFinderDebouncedRef = null;
+const masterFinder: HTMLElement = document.createElement('div');
+const masterFinderWrapper: HTMLElement = document.createElement('div');
 
 const repeatLogo: HTMLElement = document.createElement('img');
 const repeatLogoWrapper: HTMLElement = document.createElement('div');
@@ -91,6 +96,15 @@ const initFF = () => {
 
   const style = document.createElement('style');
   style.innerHTML = ffStyle;
+
+  masterFinderWrapper.classList.add('masterFinderWrapper', 'disabled', 'noAnim');
+  masterFinder.classList.add('masterFinder');
+  masterFinder.setAttribute('contentEditable', 'true');
+  masterFinder.setAttribute('data-placeholder', 'FAST FIND');
+  handleMasterFinderDebouncedRef = debounce(handleMasterFinderDebounced, 260);
+  const masterFinderObserver = new MutationObserver(handleMasterFinder);
+  const config = { subtree: true, characterData: true };
+  masterFinderObserver.observe(masterFinder, config);
 
   repeatLogo.setAttribute('src', chrome.extension.getURL('assets/repeat.png'));
   repeatLogo.classList.add('repeatLogo');
@@ -151,6 +165,11 @@ const initFF = () => {
   requestAnimationFrame(() => {
     document.head.appendChild(style);
 
+    masterFinderWrapper.appendChild(document.createElement('div'));
+    masterFinderWrapper.appendChild(masterFinder);
+    masterFinderWrapper.appendChild(document.createElement('div'));
+    document.body.appendChild(masterFinderWrapper);
+
     repeatLogoWrapper.appendChild(repeatLogo);
     document.body.appendChild(repeatLogoWrapper);
 
@@ -177,8 +196,8 @@ const initFF = () => {
   windowHeight = window.innerHeight;
   window.addEventListener('resize', throttle(
     () => {
-      let newPageHeight = getPageHeight();
-      let newWindowHeight = window.innerHeight;
+      const newPageHeight = Utils.getPageHeight();
+      const newWindowHeight = window.innerHeight;
       if (newPageHeight != pageHeight ||
           newWindowHeight != windowHeight) {
         windowHeight = newWindowHeight;
@@ -190,13 +209,44 @@ const initFF = () => {
   );
 
   window.addEventListener('scroll', () => redrawMinimapScroll(false));
-  document.body.addEventListener('keydown', onKeyDown);
+  window.addEventListener('keydown', onKeyDown);
+};
+
+const handleMasterFinder = () => {
+  removeMasterFinderHighlight();
+  handleMasterFinderDebouncedRef();
+};
+
+const handleMasterFinderDebounced = () => {
+  const query = masterFinder.textContent;
+  if (!(query.length && query.trim().length)) return;
+  createElement(query, null, masterCS, masterWB);
+};
+
+const removeMasterFinderHighlight = () => {
+  masterFinderWrapper.classList.remove('noResults', 'sleeping');
+  if (masterSelection && masterFlag) {
+    masterFlag = false;
+    requestAnimationFrame(() => {
+      masterSelection.elements.forEach(element => {
+        element.portions.forEach(portion => {
+          while(portion.childNodes.length) {
+            portion.parentNode.insertBefore(portion.childNodes[0], portion);
+          }
+          portion.parentNode.removeChild(portion);
+        });
+      });
+      setMasterFinderInfo(true);
+      masterSelection = null;
+      masterFlag = true;
+    });
+  }
 };
 
 const redrawMinimapScroll = (rescale: boolean) => {
   if (!selections.length && !rescale) return;
   requestAnimationFrame(() => {
-    pageHeight = getPageHeight();
+    pageHeight = Utils.getPageHeight();
     const minHeight = 15;
     const scrollHeight = (window.innerHeight / pageHeight) * window.innerHeight;
     const finalHeight = parseFloat(Math.max(scrollHeight, minHeight).toFixed(3));
@@ -214,16 +264,122 @@ const redrawMinimapScroll = (rescale: boolean) => {
 
 const onKeyDown = (e: KeyboardEvent & { target: HTMLInputElement }) => {
   if (
-    e.target.contentEditable === 'true' ||
-    e.target.tagName.toLowerCase() === 'input' ||
-    e.target.tagName.toLowerCase() === 'textarea' ||
-    e.metaKey)
+    e.target !== masterFinder && (
+      e.target.contentEditable === 'true' ||
+      e.target.tagName.toLowerCase() === 'input' ||
+      e.target.tagName.toLowerCase() === 'textarea'
+    )
+  )
     return false;
 
+  const key = e.code.startsWith('Key') ? e.code.charAt(3).toLowerCase() : null;
+  const macOS = /(Mac)/i.test(navigator.platform);
   const selection = window.getSelection();
   let text = selection.toString();
 
-  if (e.key === settings.selectKey || e.key === settings.selectKey.toUpperCase()) {
+  // MASTER FINDER IS ENABLED
+  if (!masterFinderWrapper.classList.contains('disabled')) {
+    if (e.key === "Escape") {
+      // DISABLE MASTER FIND
+      e.preventDefault();
+      e.stopPropagation();
+      window.getSelection().empty();
+      removeMasterFinderHighlight();
+      masterFinderWrapper.classList.add('disabled');
+      setTimeout(() => {
+        // @ts-ignore
+        if (document.activeElement && document.activeElement.blur) {
+          // @ts-ignore
+          document.activeElement.blur();
+        }
+      }, 100);
+      return;
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (!masterSelection || !masterSelection.elements.length) return;
+
+      let newIndex = masterIndex;
+      if (!e.shiftKey) {
+        // next master result
+        newIndex++;
+        if (newIndex > masterSelection.elements.length - 1)
+          newIndex = 0;
+      } else {
+        // prev master result
+        newIndex--;
+        if (newIndex < 0)
+          newIndex = masterSelection.elements.length - 1;
+      }
+      masterSelection.elements[masterIndex].active = false;
+      masterSelection.elements[masterIndex].portions.forEach(p => p.classList.remove('selected'));
+      masterSelection.elements[newIndex].active = true;
+      masterSelection.elements[newIndex].portions.forEach(p => p.classList.add('selected'));
+      masterIndex = newIndex;
+
+      const elem = masterSelection.elements[newIndex];
+      if (!Utils.isElementInViewport(elem.portions[0], viewPortDelta)) {
+        const scrollBehaviour: any = settings.smoothScrolling ? 'smooth' : 'instant';
+        const scrollSettings: ScrollIntoViewOptions = {
+          block: 'center',
+          behavior: scrollBehaviour,
+        };
+        elem.portions[0].scrollIntoView(scrollSettings);
+      }
+      setMasterFinderInfo(false);
+      return;
+    } else if (e.altKey && key == settings.caseSensitiveToggleKey) {
+      e.preventDefault();
+      e.stopPropagation();
+      masterCS = !masterCS;
+      handleMasterFinder();
+    } else if (e.altKey && key == settings.wordBordersToggleKey) {
+      e.preventDefault();
+      e.stopPropagation();
+      masterWB = !masterWB;
+      handleMasterFinder();
+    }
+  }
+
+  // MASTER FINDER IS DISABLED
+  if (
+    (
+      key == settings.selectKey && (macOS && e.metaKey || !macOS && e.ctrlKey) &&
+      settings.megaFinderEnabled && settings.megaFinderOverride
+    ) || (
+      key == settings.selectKey && e.altKey &&
+      settings.megaFinderEnabled && !settings.megaFinderOverride
+    )
+  ) {
+    // ENABLE MASTER FIND
+    e.preventDefault();
+    e.stopPropagation();
+    masterFinderWrapper.classList.remove('noResults', 'sleeping');
+    if (masterFinderWrapper.classList.contains('disabled')) {
+      masterFinderWrapper.classList.remove('noAnim', 'disabled');
+      handleMasterFinderDebounced();
+    }
+    setTimeout(() => {
+      masterFinder.focus();
+      setTimeout(() => {
+        const sel = window.getSelection();
+        if (masterFinder.firstChild)
+          sel.setBaseAndExtent(
+            masterFinder.firstChild,
+            masterFinder.firstChild.textContent.length,
+            masterFinder.firstChild,
+            0,
+          );
+      }, 5);
+    }, 10);
+    return;
+  }
+
+  if (e.target === masterFinder || e.metaKey || e.ctrlKey || e.altKey) return false;
+
+  // NORMAL KEYS
+  if (key == settings.selectKey) {
     // something is selected
     if (text && text.length && text.trim().length) {
 
@@ -239,10 +395,10 @@ const onKeyDown = (e: KeyboardEvent & { target: HTMLInputElement }) => {
 
       if (!e.shiftKey) {
         // F
-        createElement(text, selection, false);
+        createElement(text, selection, false, false);
       } else {
         // SHIFT F
-        createElement(text, selection, true);
+        createElement(text, selection, true, true);
       }
       e.preventDefault();
       e.stopPropagation();
@@ -259,8 +415,7 @@ const onKeyDown = (e: KeyboardEvent & { target: HTMLInputElement }) => {
         e.stopPropagation();
       }
     }
-  } else if (selections.length &&
-    e.key === settings.removeKey || e.key === settings.removeKey.toUpperCase()) {
+  } else if (selections.length && key == settings.removeKey) {
     if (!e.shiftKey) {
       // D
       removeSelectedOrLastElement();
@@ -270,8 +425,7 @@ const onKeyDown = (e: KeyboardEvent & { target: HTMLInputElement }) => {
     }
     e.preventDefault();
     e.stopPropagation();
-  } else if (selections.length &&
-    e.key === settings.nextElementKey || e.key === settings.nextElementKey.toUpperCase()) {
+  } else if (selections.length && key == settings.nextElementKey) {
     if (!e.shiftKey) {
       // R
       cycleThroughAllElements(1);
@@ -281,8 +435,7 @@ const onKeyDown = (e: KeyboardEvent & { target: HTMLInputElement }) => {
     }
     e.preventDefault();
     e.stopPropagation();
-  } else if (selections.length &&
-    e.key === settings.nextInstanceKey || e.key === settings.nextInstanceKey.toUpperCase()) {
+  } else if (selections.length && key == settings.nextInstanceKey) {
     if (!e.shiftKey) {
       // E
       cycleThroughInstances(1);
@@ -365,8 +518,8 @@ const cycleThroughAllElements = (direction: number) => {
 };
 
 const getSelectedStructures = () => {
-  let instance = selections.find(instance => instance.active) || null;
-  let element = instance
+  const instance = selections.find(instance => instance.active) || null;
+  const element = instance
     ? instance.elements.find(element => element.active)
     : null;
   return { element, instance };
@@ -417,7 +570,10 @@ const selectElement = (instance, element, scrollIntoView) => {
             block: 'center',
             behavior: scrollBehaviour,
           };
-          if (settings.keepElementCentered || !isElementInViewport(elem.portions[0])) {
+          if (
+            settings.keepElementCentered ||
+            !Utils.isElementInViewport(elem.portions[0], viewPortDelta)
+          ) {
             scrollIntoView && elem.portions[0].scrollIntoView(scrollSettings);
           }
         } else {
@@ -467,37 +623,52 @@ const removeAllElements = () => {
   selections = [];
 };
 
-const createElement = (text: string, selection: Selection, shiftKey: boolean) => {
+const createElement = (text: string, selection: Selection, forceCS: boolean, forceWB: boolean) => {
   let activeElements = 0;
-  const selectionRange = selection.getRangeAt(0);
-  let activeSelectionNode = document.createElement('ffelem');
-  if (selectionRange.startContainer == selectionRange.endContainer) {
-    selectionRange.surroundContents(activeSelectionNode);
+  let activeSelectionNode = null;
+
+  if (selection) {
+    const selectionRange = selection.getRangeAt(0);
+    activeSelectionNode = document.createElement('ffelem');
+    if (selectionRange.startContainer == selectionRange.endContainer) {
+      selectionRange.surroundContents(activeSelectionNode);
+    } else {
+      const newRange = document.createRange();
+      newRange.selectNode(selectionRange.endContainer);
+      newRange.surroundContents(activeSelectionNode);
+      newRange.collapse();
+    }
   } else {
-    const newRange = document.createRange();
-    newRange.selectNode(selectionRange.endContainer);
-    newRange.surroundContents(activeSelectionNode);
-    newRange.collapse();
+    if (!masterFlag) {
+      setTimeout(() => {
+        createElement(text, null, forceCS, forceWB);
+      }, 5);
+      return;
+    }
   }
   const scrollToTop = document.documentElement.scrollTop || document.body.scrollTop || 0;
 
   let color: Array<number>;
-  if (currentColor < colors.length) {
-    color = colors[currentColor++];
-  } else {
-    color = getRandomColor();
+  let contrast;
+  if (selection) {
+    if (currentColor < colors.length) {
+      color = colors[currentColor++];
+    } else {
+      color = Utils.getRandomColor();
+    }
+    contrast = Utils.getContrastYIQ(color);
   }
-  const contrast = getContrastYIQ(color);
   const currentElements: FFelement[] = [];
+  let masterDistances = [];
   let portions: HTMLElement[] = [];
   let active = false;
   let someActive = false;
   
   let regexFinder = null;
-  let excapedText = text.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
-  const wordBorders = shiftKey || settings.forceWordBorders;
+  const excapedText = text.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+  const wordBorders = forceWB || settings.forceWordBorders;
   const wordBordersHandler = wordBorders ? '\\b' : '' ;
-  const caseSensitive = shiftKey || settings.forceCaseSensitive;
+  const caseSensitive = forceCS || settings.forceCaseSensitive;
   const caseSensitiveHandler = caseSensitive ? 'g' : 'gi' ;
   try {
     regexFinder = RegExp(
@@ -515,6 +686,8 @@ const createElement = (text: string, selection: Selection, shiftKey: boolean) =>
   const finder = findAndReplaceDOMText(document.body, {
     preset: 'prose',
     find: regexFinder,
+    filterElements: elem =>
+      !Utils.getElementParents(elem).includes(masterFinderWrapper),
     replace: portion => {
 
       const elementIsVisible =
@@ -528,46 +701,61 @@ const createElement = (text: string, selection: Selection, shiftKey: boolean) =>
       const div = document.createElement('ffelem') as HTMLDivElement;
       portions.push(div);
       requestAnimationFrame(() => {
-        if (portion.index === 0 && portion.isEnd) div.classList.add('ffelem');
-        else if (portion.index === 0) div.classList.add('ffelemStart');
-        else if (portion.isEnd) div.classList.add('ffelemEnd');
-        else div.classList.add('ffelemMiddle');
-        div.style.backgroundColor = renderColor(color, 1.0);
-        div.style.color = contrast;
+        if (selection) {
+          if (portion.index === 0 && portion.isEnd) div.classList.add('ffelem');
+          else if (portion.index === 0) div.classList.add('ffelemStart');
+          else if (portion.isEnd) div.classList.add('ffelemEnd');
+          else div.classList.add('ffelemMiddle');
+          div.style.backgroundColor = Utils.renderColor(color, 1.0);
+          div.style.color = contrast;
+        } else {
+          div.classList.add('ffelemMaster');
+        }
         div.innerHTML = portion.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
       });
 
       if (portion.isEnd) {
-        active = active || getElementParents(portion.node).includes(activeSelectionNode);
-        someActive = active || someActive;
+        if (selection) {
+          active = active || Utils.getElementParents(portion.node).includes(activeSelectionNode);
+          someActive = active || someActive;
+          if (active) activeElements++;
+        }
         const element: FFelement = { portions, active, mapIndicator: null };
         currentElements.push(element);
         portions = [];
-        if (active) activeElements++;
         active = false;
       }
 
       return div;
     }
   });
-  requestAnimationFrame(() => {
-    while(activeSelectionNode.childNodes.length)
-      activeSelectionNode.parentNode.insertBefore(activeSelectionNode.childNodes[0], activeSelectionNode);
-    activeSelectionNode.parentNode.removeChild(activeSelectionNode);
-  });
+  if (selection) {
+    requestAnimationFrame(() => {
+      while(activeSelectionNode.childNodes.length)
+        activeSelectionNode.parentNode.insertBefore(activeSelectionNode.childNodes[0], activeSelectionNode);
+      activeSelectionNode.parentNode.removeChild(activeSelectionNode);
+    });
+  }
   if (DEBUG_ON && currentElements.length && (activeElements === 0 || activeElements > 1)) {
     console.log('Active elements:', activeElements);
     console.log('Elements:', currentElements);
     debugger;
   }
 
-  if (!currentElements.length) return false;
+  if (!currentElements.length) {
+    if (!selection)
+      masterFinderWrapper.classList.add('noResults');
+    return false;
+  }
 
-  unselectElement();
-  window.getSelection().empty();
-  const mapWrapper = document.createElement('div');
-  mapWrapper.classList.add('mapWrapper');
-  mapWrapper.classList.add('selected');
+  let mapWrapper = null;
+  if (selection) {
+    unselectElement();
+    window.getSelection().empty();
+    mapWrapper = document.createElement('div');
+    mapWrapper.classList.add('mapWrapper');
+    mapWrapper.classList.add('selected');
+  }
   const currentSelection: FFinstance = {
     finder,
     active: true,
@@ -579,7 +767,17 @@ const createElement = (text: string, selection: Selection, shiftKey: boolean) =>
   currentElements.forEach(element => {
     const { portions, active } = element;
 
-    let indicator = document.createElement('div');
+    if (!selection) {
+      const distance = Utils.getDistanceBetweenElements(portions[0], masterFinder);
+      masterDistances.push({
+        distance,
+        isAbove: distance < 0,
+        isInViewport: Utils.isElementInViewport(portions[0], viewPortDelta),
+      });
+      return;
+    }
+
+    const indicator = document.createElement('div');
     indicator.classList.add('mapIndicator');
     if (active) indicator.classList.add('selected');
 
@@ -616,50 +814,78 @@ const createElement = (text: string, selection: Selection, shiftKey: boolean) =>
       });
 
     requestAnimationFrame(() => {
-      pageHeight = getPageHeight();
-      let elementPosition =
+      pageHeight = Utils.getPageHeight();
+      const elementPosition =
         element.portions[0].getBoundingClientRect().top +
         (document.documentElement.scrollTop || document.body.scrollTop || 0);
       indicator.style.transform = `translateY(${elementPosition / pageHeight * 100}vh)`;
-      indicator.style.backgroundColor = renderColor(color, 0.8);
+      indicator.style.backgroundColor = Utils.renderColor(color, 0.8);
       mapWrapper.insertBefore(indicator, mapWrapper.firstChild);
     });
     element.mapIndicator = indicator;
   });
 
-  const label = document.createElement('div');
-  label.classList.add('mapLabel');
-  label.style.background =
-    `linear-gradient(to bottom,
-${renderColor(color, 1.0)} 0%,
-${renderColor(color, 0.8)} 10%,
-${renderColor(color, 0.6)} 40%,
+  if (selection) {
+    const label = document.createElement('div');
+    label.classList.add('mapLabel');
+    label.style.background =
+      `linear-gradient(to bottom,
+${Utils.renderColor(color, 1.0)} 0%,
+${Utils.renderColor(color, 0.8)} 10%,
+${Utils.renderColor(color, 0.6)} 40%,
 #00000000 50%,#00000000 100%)`;
-  label.setAttribute('data-number', ` (${currentElements.length})`);
-  label.setAttribute(
-    'data-label',
-    `${text} ${
-      wordBorders ? String.fromCharCode(0x2551) : ''
-    }${
-      caseSensitive ? 'Aa' : ''
-    }`
-  );
+    label.setAttribute('data-number', ` (${currentElements.length})`);
+    label.setAttribute(
+      'data-label',
+      `${text} ${
+        wordBorders ? '|| ' : ''
+      }${
+        caseSensitive ? 'Aa' : ''
+      }`
+    );
 
-  requestAnimationFrame(() => {
-    currentSelection.mapWrapper.appendChild(label);
-    selectionsMapWrapper.appendChild(mapWrapper);
-  });
+    requestAnimationFrame(() => {
+      currentSelection.mapWrapper.appendChild(label);
+      selectionsMapWrapper.appendChild(mapWrapper);
+    });
 
-  if (!selections.length) redrawMinimapScroll(true);
-  selections.push(currentSelection);
-  document.documentElement.scrollTop && document.documentElement.scrollTo({ top: scrollToTop });
-  document.body.scrollTop && document.body.scrollTo({ top: scrollToTop });
+    if (!selections.length) redrawMinimapScroll(true);
+    selections.push(currentSelection);
+    document.documentElement.scrollTop && document.documentElement.scrollTo({ top: scrollToTop });
+    document.body.scrollTop && document.body.scrollTo({ top: scrollToTop });
+  } else {
+    // !selection
+    masterSelection = currentSelection;
+
+    let minDistance;
+    currentSelection.elements.forEach((_, index) => {
+      if (!minDistance || masterDistances[index].distance < minDistance) {
+        minDistance = masterDistances[index].distance;
+        masterIndex = index;
+      }
+    });
+    requestAnimationFrame(() => {
+      setMasterFinderInfo(false);
+      masterFinderWrapper.classList.add('sleeping');
+      const elem = currentSelection.elements[masterIndex];
+      elem.active = true;
+      elem.portions.forEach(portion => portion.classList.add('selected'));
+      if (!masterDistances[masterIndex].isInViewport) {
+        const scrollBehaviour: any = settings.smoothScrolling ? 'smooth' : 'instant';
+        const scrollSettings: ScrollIntoViewOptions = {
+          block: 'center',
+          behavior: scrollBehaviour,
+        };
+        elem.portions[0].scrollIntoView(scrollSettings);
+      }
+    });
+  }
 };
 
 const redrawMapIndicators = () => {
   selections.forEach(instance => {
     instance.elements.forEach(element => {
-      let elementPosition =
+      const elementPosition =
         element.portions[0].getBoundingClientRect().top +
           (document.documentElement.scrollTop || document.body.scrollTop || 0);
       requestAnimationFrame(() => {
@@ -679,42 +905,12 @@ const rotateLogo = () => {
   }, 810);
 };
 
-const getRandomColor = () => {
-  return [
-    Math.floor(Math.random() * 255),
-    Math.floor(Math.random() * 255),
-    Math.floor(Math.random() * 255)
-  ];
+const setMasterFinderInfo = (clean: boolean) => {
+  let value = '';
+  if (masterWB) value += '|| ';
+  if (masterCS) value += 'Aa ';
+  value += clean ? '' : masterIndex + 1 + ' / ' + masterSelection.elements.length;
+  masterFinder.setAttribute('data-info', value);
 };
-
-const renderColor =(color: Array<number>, transparency: number) => {
-  return `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${transparency})`;
-}
-
-const getContrastYIQ = (color: Array<number>) => {
-  const r = color[0];
-  const g = color[1];
-  const b = color[2];
-  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
-  return yiq >= 128 ? 'black' : 'white';
-};
-
-const isElementInViewport = (element: HTMLElement) => {
-  const rect = element.getBoundingClientRect();
-  const isInViewport =
-    rect.top >= 0 + viewPortDelta && rect.left >= 0 &&
-    rect.bottom <=
-      (window.innerHeight || document.documentElement.clientHeight) - viewPortDelta &&
-    rect.right <= (window.innerWidth || document.documentElement.clientWidth);
-  return isInViewport;
-};
-
-const getElementParents = node => {
-  const nodes = [node]
-  for (; node; node = node.parentNode) {
-    nodes.unshift(node)
-  }
-  return nodes
-}
 
 window.onload = initFF;

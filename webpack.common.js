@@ -54,6 +54,7 @@ module.exports = {
     new CopyPlugin([
       { from: 'src/icons', to: './icons' },
       { from: 'src/assets', to: './assets' },
+      { from: 'src/styles', to: './styles' },
       { from: 'src/*.html', to: './', flatten: true },
       { from: 'src/*.css', to: './', flatten: true },
       { from: 'src/*.json', to: './', flatten: true },
