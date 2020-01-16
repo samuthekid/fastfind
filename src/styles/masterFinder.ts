@@ -10,7 +10,7 @@ const masterFinder = `
   align-self: center;
   width: 100vw;
   position: fixed;
-  top: 48vh;
+  top: 10px;
   left: 0px;
   cursor: text;
   pointer-events: none;
@@ -19,8 +19,8 @@ const masterFinder = `
 
 .masterFinderWrapper.disabled {
   animation: wrapperAnimation .12s;
-  top: 50vh;
-  left: 30px;
+  top: 20px;
+  left: 10px;
   opacity: 0;
 }
 
@@ -33,13 +33,13 @@ const masterFinder = `
   min-width: 200px;
   font-size: 28px;
   white-space: nowrap;
-  border-bottom: solid 2px white !important;
+  border-bottom: solid 1px white !important;
   text-align: center;
   color: white;
   outline-width: 0;
   background: rgba(0,0,0,0.9);
-  padding: 10px 20px;
-  box-shadow: 20px 20px 12px 0px rgba(0,0,0,0.85);
+  padding: 6px 30px 18px 30px;
+  box-shadow: 14px 14px 12px 0px rgba(0,0,0,0.85);
   transition: var(--animation-settings);
   pointer-events: all;
 }
@@ -66,21 +66,21 @@ const masterFinder = `
 .masterFinder::after {
   content: attr(data-info);
   color: #acacac;
-  font-size: 11px;
+  font-size: 13px;
   position: absolute;
-  bottom: -1.5px;
+  bottom: -1px;
   right: 3px;
 }
 
 @keyframes wrapperAnimation {
   from {
-    top: 48vh;
+    top: 10px;
     left: 0px;
     opacity: 1;
   }
   to {
-    top: 50vh;
-    left: 30px;
+    top: 20px;
+    left: 10px;
     opacity: 0;
   }
 }
@@ -96,7 +96,7 @@ const masterFinder = `
 
 @keyframes finderAnimation {
   from {
-    box-shadow: 20px 20px 12px 0px rgba(0,0,0,0.85);
+    box-shadow: 14px 14px 12px 0px rgba(0,0,0,0.85);
   }
   to {
     box-shadow: 0px 0px 0px 0px rgba(0,0,0,0.85);

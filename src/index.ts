@@ -8,6 +8,9 @@ const DEBUG_ON = false;
 const FIXED_BUTTONS = false;
 let EXTENSION_LOADED = false;
 
+const SCROLL_THROTTLE_TIME = 200;
+const ONCHANGE_MASTERFINDER_DEBOUNCE_TIME = 200;
+
 const viewPortDelta = 20;
 let currentColor = 0;
 let pageHeight = Utils.getPageHeight();
@@ -39,8 +42,10 @@ const settings = {
   // SETTINGS
   forceWordBorders: false, // CHECKED
   forceCaseSensitive: false, // CHECKED
-  megaFinderEnabled: true, // CHECKED
-  megaFinderOverride: true, // CHECKED
+  masterFinderEnabled: true, // CHECKED
+  masterFinderOverride: true, // CHECKED
+  scrollToNearestResult: true, //CHECKED
+  scrollToResultAfterSearch: true, // CHECKED
 };
 
 interface FFelement {
@@ -57,6 +62,7 @@ interface FFinstance {
 }
 let selections: FFinstance[] = [];
 let masterSelection: FFinstance;
+let masterDistances = [];
 let masterIndex: number;
 let masterFlag: boolean = true;
 let masterCS: boolean = false;
@@ -101,10 +107,21 @@ const initFF = () => {
   masterFinder.classList.add('masterFinder');
   masterFinder.setAttribute('contentEditable', 'true');
   masterFinder.setAttribute('data-placeholder', 'FAST FIND');
-  handleMasterFinderDebouncedRef = debounce(handleMasterFinderDebounced, 260);
+  handleMasterFinderDebouncedRef = debounce(
+    handleMasterFinderDebounced,
+    ONCHANGE_MASTERFINDER_DEBOUNCE_TIME,
+  );
   const masterFinderObserver = new MutationObserver(handleMasterFinder);
   const config = { subtree: true, characterData: true };
   masterFinderObserver.observe(masterFinder, config);
+  masterFinder.onmouseover = masterFinder.onmouseout = (event: MouseEvent) => {
+    requestAnimationFrame(() => {
+      if (event.type === 'mouseover')
+        masterFinderWrapper.classList.remove('sleeping');
+      else
+        masterFinderWrapper.classList.add('sleeping');
+    });
+  };
 
   repeatLogo.setAttribute('src', chrome.extension.getURL('assets/repeat.png'));
   repeatLogo.classList.add('repeatLogo');
@@ -194,6 +211,8 @@ const initFF = () => {
   });
 
   windowHeight = window.innerHeight;
+
+  // ON RESIZE
   window.addEventListener('resize', throttle(
     () => {
       const newPageHeight = Utils.getPageHeight();
@@ -205,10 +224,20 @@ const initFF = () => {
         redrawMinimapScroll(true);
         redrawMapIndicators();
       }
-    }, 200)
+    }, SCROLL_THROTTLE_TIME)
   );
 
-  window.addEventListener('scroll', () => redrawMinimapScroll(false));
+  // ON SCROLL
+  window.addEventListener('scroll', throttle(
+    () => {
+      redrawMinimapScroll(false);
+      updateMasterFinderResultsPosition();
+      setMasterFinderInfo();
+    },
+    SCROLL_THROTTLE_TIME
+  ));
+
+  // ON KEY DOWN
   window.addEventListener('keydown', onKeyDown);
 };
 
@@ -236,7 +265,7 @@ const removeMasterFinderHighlight = () => {
           portion.parentNode.removeChild(portion);
         });
       });
-      setMasterFinderInfo(true);
+      setMasterFinderInfo();
       masterSelection = null;
       masterFlag = true;
     });
@@ -327,7 +356,7 @@ const onKeyDown = (e: KeyboardEvent & { target: HTMLInputElement }) => {
         };
         elem.portions[0].scrollIntoView(scrollSettings);
       }
-      setMasterFinderInfo(false);
+      setMasterFinderInfo();
       return;
     } else if (e.altKey && key == settings.caseSensitiveToggleKey) {
       e.preventDefault();
@@ -346,10 +375,10 @@ const onKeyDown = (e: KeyboardEvent & { target: HTMLInputElement }) => {
   if (
     (
       key == settings.selectKey && (macOS && e.metaKey || !macOS && e.ctrlKey) &&
-      settings.megaFinderEnabled && settings.megaFinderOverride
+      settings.masterFinderEnabled && settings.masterFinderOverride
     ) || (
       key == settings.selectKey && e.altKey &&
-      settings.megaFinderEnabled && !settings.megaFinderOverride
+      settings.masterFinderEnabled && !settings.masterFinderOverride
     )
   ) {
     // ENABLE MASTER FIND
@@ -659,7 +688,6 @@ const createElement = (text: string, selection: Selection, forceCS: boolean, for
     contrast = Utils.getContrastYIQ(color);
   }
   const currentElements: FFelement[] = [];
-  let masterDistances = [];
   let portions: HTMLElement[] = [];
   let active = false;
   let someActive = false;
@@ -743,89 +771,78 @@ const createElement = (text: string, selection: Selection, forceCS: boolean, for
   }
 
   if (!currentElements.length) {
-    if (!selection)
+    if (!selection) {
       masterFinderWrapper.classList.add('noResults');
+      masterSelection = null;
+      masterDistances = [];
+      setMasterFinderInfo();
+    }
     return false;
   }
 
-  let mapWrapper = null;
-  if (selection) {
-    unselectElement();
-    window.getSelection().empty();
-    mapWrapper = document.createElement('div');
-    mapWrapper.classList.add('mapWrapper');
-    mapWrapper.classList.add('selected');
-  }
   const currentSelection: FFinstance = {
     finder,
     active: true,
     elements: currentElements,
-    mapWrapper,
+    mapWrapper: null,
     sanitizedText: text,
   };
 
-  currentElements.forEach(element => {
-    const { portions, active } = element;
-
-    if (!selection) {
-      const distance = Utils.getDistanceBetweenElements(portions[0], masterFinder);
-      masterDistances.push({
-        distance,
-        isAbove: distance < 0,
-        isInViewport: Utils.isElementInViewport(portions[0], viewPortDelta),
-      });
-      return;
-    }
-
-    const indicator = document.createElement('div');
-    indicator.classList.add('mapIndicator');
-    if (active) indicator.classList.add('selected');
-
-    portions.forEach(portion => {
-      portion.onclick = () => selectElement(currentSelection, element, false);
-      portion.onmouseover = portion.onmouseout = (event: MouseEvent) => {
-        requestAnimationFrame(() => {
-          if (event.type === 'mouseover') {
-            indicator.classList.add('hovered');
-            element.portions.forEach(p => p.classList.add('hovered'));
-          } else {
-            indicator.classList.remove('hovered');
-            element.portions.forEach(p => p.classList.remove('hovered'));
-          }
-        });
-      };
-
-      requestAnimationFrame(() => {
-        if (active)
-          portion.classList.add('selected');
-        else if (someActive)
-          portion.classList.add('selectedClass');
-      });
-    });
-
-    indicator.onclick = () => selectElement(currentSelection, element, true);
-    indicator.onmouseover = indicator.onmouseout = (event: MouseEvent) =>
-      requestAnimationFrame(() => {
-        element.portions.forEach(portion =>
-          event.type === 'mouseover'
-            ? portion.classList.add('hovered')
-            : portion.classList.remove('hovered')
-        );
-      });
-
-    requestAnimationFrame(() => {
-      pageHeight = Utils.getPageHeight();
-      const elementPosition =
-        element.portions[0].getBoundingClientRect().top +
-        (document.documentElement.scrollTop || document.body.scrollTop || 0);
-      indicator.style.transform = `translateY(${elementPosition / pageHeight * 100}vh)`;
-      indicator.style.backgroundColor = Utils.renderColor(color, 0.8);
-      mapWrapper.insertBefore(indicator, mapWrapper.firstChild);
-    });
-    element.mapIndicator = indicator;
-  });
-
   if (selection) {
+    unselectElement();
+    window.getSelection().empty();
+    const mapWrapper = document.createElement('div');
+    mapWrapper.classList.add('mapWrapper');
+    mapWrapper.classList.add('selected');
+    currentSelection.mapWrapper = mapWrapper;
+
+    currentElements.forEach(element => {
+      const { portions, active } = element;
+      const indicator = document.createElement('div');
+      indicator.classList.add('mapIndicator');
+      if (active) indicator.classList.add('selected');
+  
+      portions.forEach(portion => {
+        portion.onclick = () => selectElement(currentSelection, element, false);
+        portion.onmouseover = portion.onmouseout = (event: MouseEvent) => {
+          requestAnimationFrame(() => {
+            if (event.type === 'mouseover') {
+              indicator.classList.add('hovered');
+              element.portions.forEach(p => p.classList.add('hovered'));
+            } else {
+              indicator.classList.remove('hovered');
+              element.portions.forEach(p => p.classList.remove('hovered'));
+            }
+          });
+        };
+  
+        requestAnimationFrame(() => {
+          if (active)
+            portion.classList.add('selected');
+          else if (someActive)
+            portion.classList.add('selectedClass');
+        });
+      });
+  
+      indicator.onclick = () => selectElement(currentSelection, element, true);
+      indicator.onmouseover = indicator.onmouseout = (event: MouseEvent) =>
+        requestAnimationFrame(() => {
+          element.portions.forEach(portion =>
+            event.type === 'mouseover'
+              ? portion.classList.add('hovered')
+              : portion.classList.remove('hovered')
+          );
+        });
+  
+      requestAnimationFrame(() => {
+        const position = Utils.getRatioPositionRelativeToDocument(element.portions[0])
+        indicator.style.transform = `translateY(${position}vh)`;
+        indicator.style.backgroundColor = Utils.renderColor(color, 0.8);
+        mapWrapper.insertBefore(indicator, mapWrapper.firstChild);
+      });
+      element.mapIndicator = indicator;
+    });
+
     const label = document.createElement('div');
     label.classList.add('mapLabel');
     label.style.background =
@@ -853,24 +870,32 @@ ${Utils.renderColor(color, 0.6)} 40%,
     selections.push(currentSelection);
     document.documentElement.scrollTop && document.documentElement.scrollTo({ top: scrollToTop });
     document.body.scrollTop && document.body.scrollTo({ top: scrollToTop });
+
   } else {
+
     // !selection
     masterSelection = currentSelection;
+    updateMasterFinderResultsPosition();
 
-    let minDistance;
-    currentSelection.elements.forEach((_, index) => {
-      if (!minDistance || masterDistances[index].distance < minDistance) {
-        minDistance = masterDistances[index].distance;
-        masterIndex = index;
-      }
-    });
+    if (settings.scrollToNearestResult) {
+      let minDistance;
+      currentSelection.elements.forEach((_, index) => {
+        let dist = Math.abs(masterDistances[index].distance);
+        if (!minDistance || dist < minDistance) {
+          minDistance = dist;
+          masterIndex = index;
+        }
+      });
+    } else {
+      masterIndex = 0;
+    }
     requestAnimationFrame(() => {
-      setMasterFinderInfo(false);
+      setMasterFinderInfo();
       masterFinderWrapper.classList.add('sleeping');
       const elem = currentSelection.elements[masterIndex];
       elem.active = true;
       elem.portions.forEach(portion => portion.classList.add('selected'));
-      if (!masterDistances[masterIndex].isInViewport) {
+      if (!masterDistances[masterIndex].isInViewport && settings.scrollToResultAfterSearch) {
         const scrollBehaviour: any = settings.smoothScrolling ? 'smooth' : 'instant';
         const scrollSettings: ScrollIntoViewOptions = {
           block: 'center',
@@ -905,12 +930,43 @@ const rotateLogo = () => {
   }, 810);
 };
 
-const setMasterFinderInfo = (clean: boolean) => {
+const setMasterFinderInfo = () => {
   let value = '';
-  if (masterWB) value += '|| ';
-  if (masterCS) value += 'Aa ';
-  value += clean ? '' : masterIndex + 1 + ' / ' + masterSelection.elements.length;
+  if (masterWB) value += '||\xa0\xa0\xa0\xa0';
+  if (masterCS) value += 'Aa\xa0\xa0\xa0\xa0';
+  const selElem = masterIndex ? masterIndex : 0;
+  let elemsPositions = { above: 0, visible: 0, below: 0};
+  let totalElems = 0;
+  if (masterSelection && masterSelection.elements.length) {
+    totalElems = masterSelection.elements.length || 0;
+    elemsPositions = masterDistances.reduce((prev, curr) => {
+      return {
+        ...prev,
+        above: prev.above + (curr.isAbove ? 1 : 0),
+        visible: prev.visible + (!curr.isAbove && curr.isInViewport ? 1 : 0),
+        below: prev.below + (!curr.isAbove && !curr.isInViewport ? 1 : 0),
+      };
+    }, elemsPositions);
+    value +=
+      elemsPositions.above + ' ▲\xa0' +
+      elemsPositions.visible + ' ⧉\xa0\xa0' +
+      elemsPositions.below + ' ▼\xa0\xa0\xa0\xa0';
+  }
+  value += (selElem + 1) + ' / ' + totalElems;
   masterFinder.setAttribute('data-info', value);
+};
+
+const updateMasterFinderResultsPosition = () => {
+  masterDistances = [];
+  if (!masterSelection || masterSelection.elements.length === 0) return;
+  masterSelection.elements.forEach(elem => {
+    const distance = Utils.getDistanceRelativeToViewport(elem.portions[0]);
+    masterDistances.push({
+      distance,
+      isAbove: distance < 0,
+      isInViewport: Utils.isElementInViewport(elem.portions[0], 0),
+    });
+  });
 };
 
 window.onload = initFF;

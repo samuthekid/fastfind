@@ -43,20 +43,18 @@ export const getElementParents = node => {
   for (; node; node = node.parentNode) {
     nodes.unshift(node)
   }
-  return nodes
+  return nodes;
 }
 
-export const getPositionAtCenter = (element: HTMLElement) => {
-  const {top, left, width, height} = element.getBoundingClientRect();
-  return {
-    x: left + width / 2,
-    y: top + height / 2
-  };
+export const getDistanceRelativeToViewport = (elem: HTMLElement) => {
+  const {top: topA, height: heightA} = elem.getBoundingClientRect();
+  return topA + heightA;
 }
 
-export const getDistanceBetweenElements = (a: HTMLElement, b: HTMLElement) => {
-  const aPosition = getPositionAtCenter(a);
-  const bPosition = getPositionAtCenter(b);
-
-  return Math.hypot(aPosition.x - bPosition.x, aPosition.y - bPosition.y);  
+export const getRatioPositionRelativeToDocument = (elem: HTMLElement) => {
+  const pageHeight = getPageHeight();
+  const elementPosition =
+    elem.getBoundingClientRect().top +
+    (document.documentElement.scrollTop || document.body.scrollTop || 0);
+  return elementPosition / pageHeight * 100;
 }
