@@ -351,7 +351,10 @@ const onKeyDown = (e: KeyboardEvent & { target: HTMLInputElement }) => {
       masterIndex = newIndex;
 
       const elem = masterSelection.elements[newIndex];
-      if (!Utils.isElementInViewport(elem.portions[0], viewPortDelta)) {
+      if (
+        settings.keepElementCentered ||
+        !Utils.isElementInViewport(elem.portions[0], viewPortDelta)
+      ) {
         const scrollBehaviour: any = settings.smoothScrolling ? 'smooth' : 'instant';
         const scrollSettings: ScrollIntoViewOptions = {
           block: 'center',
@@ -597,15 +600,15 @@ const selectElement = (instance, element, scrollIntoView) => {
             elem.portions.forEach(p => p.classList.add('selected'));
             elem.mapIndicator.classList.add('selected');
           });
-          const scrollBehaviour: any = settings.smoothScrolling ? 'smooth' : 'instant';
-          const scrollSettings: ScrollIntoViewOptions = {
-            block: 'center',
-            behavior: scrollBehaviour,
-          };
           if (
             settings.keepElementCentered ||
             !Utils.isElementInViewport(elem.portions[0], viewPortDelta)
           ) {
+            const scrollBehaviour: any = settings.smoothScrolling ? 'smooth' : 'instant';
+            const scrollSettings: ScrollIntoViewOptions = {
+              block: 'center',
+              behavior: scrollBehaviour,
+            };
             scrollIntoView && elem.portions[0].scrollIntoView(scrollSettings);
           }
         } else {
