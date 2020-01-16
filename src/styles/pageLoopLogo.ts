@@ -4,7 +4,7 @@ const pageLoopLogo = `
 
 .repeatLogoWrapper {
   opacity: 0;
-  background-color: rgb(160,160,160);
+  background-color: rgba(0,0,0,1.0);
   position: fixed;
   top: 50%;
   left: 50%;
@@ -18,6 +18,8 @@ const pageLoopLogo = `
 .repeatLogo {
   transform: rotate(-30deg);
   pointer-events: none;
+  filter: invert(1);
+  opacity: 0.4;
 }
 
 .repeatLogo.active {

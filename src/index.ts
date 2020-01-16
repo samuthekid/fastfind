@@ -8,7 +8,7 @@ const DEBUG_ON = false;
 const FIXED_BUTTONS = false;
 let EXTENSION_LOADED = false;
 
-const SCROLL_THROTTLE_TIME = 200;
+const SCROLL_THROTTLE_TIME = 16;
 const ONCHANGE_MASTERFINDER_DEBOUNCE_TIME = 200;
 
 const viewPortDelta = 20;
@@ -254,22 +254,21 @@ const handleMasterFinderDebounced = () => {
 
 const removeMasterFinderHighlight = () => {
   masterFinderWrapper.classList.remove('noResults', 'sleeping');
-  if (masterSelection && masterFlag) {
-    masterFlag = false;
-    requestAnimationFrame(() => {
+  requestAnimationFrame(() => {
+    if (masterSelection && masterFlag) {
+      masterFlag = false;
       masterSelection.elements.forEach(element => {
-        element.portions.forEach(portion => {
-          while(portion.childNodes.length) {
-            portion.parentNode.insertBefore(portion.childNodes[0], portion);
-          }
-          portion.parentNode.removeChild(portion);
-        });
+        element.portions.forEach(portion =>
+          Utils.replaceChildrenWithOriginalContent(portion)
+        );
       });
-      setMasterFinderInfo();
-      masterSelection = null;
-      masterFlag = true;
-    });
-  }
+    }
+    masterSelection = null;
+    masterIndex = null;
+    updateMasterFinderResultsPosition();
+    setMasterFinderInfo();
+    masterFlag = true;
+  });
 };
 
 const redrawMinimapScroll = (rescale: boolean) => {
@@ -333,13 +332,17 @@ const onKeyDown = (e: KeyboardEvent & { target: HTMLInputElement }) => {
       if (!e.shiftKey) {
         // next master result
         newIndex++;
-        if (newIndex > masterSelection.elements.length - 1)
+        if (newIndex > masterSelection.elements.length - 1) {
           newIndex = 0;
+          rotateLogo();
+        }
       } else {
         // prev master result
         newIndex--;
-        if (newIndex < 0)
+        if (newIndex < 0) {
           newIndex = masterSelection.elements.length - 1;
+          rotateLogo();
+        }
       }
       masterSelection.elements[masterIndex].active = false;
       masterSelection.elements[masterIndex].portions.forEach(p => p.classList.remove('selected'));
@@ -622,12 +625,9 @@ const removeElement = (selection: FFinstance) => {
   );
   selection.mapWrapper.remove();
   selection.elements.forEach(element => {
-    element.portions.forEach((portion: HTMLElement) => {
-      while(portion.childNodes.length) {
-        portion.parentNode.insertBefore(portion.childNodes[0], portion);
-      }
-      portion.parentNode.removeChild(portion);
-    });
+    element.portions.forEach((portion: HTMLElement) =>
+      Utils.replaceChildrenWithOriginalContent(portion)
+    );
   });
   // selection.finder.revert();
 };
@@ -772,10 +772,8 @@ const createElement = (text: string, selection: Selection, forceCS: boolean, for
 
   if (!currentElements.length) {
     if (!selection) {
+      removeMasterFinderHighlight();
       masterFinderWrapper.classList.add('noResults');
-      masterSelection = null;
-      masterDistances = [];
-      setMasterFinderInfo();
     }
     return false;
   }
@@ -932,9 +930,9 @@ const rotateLogo = () => {
 
 const setMasterFinderInfo = () => {
   let value = '';
-  if (masterWB) value += '||\xa0\xa0\xa0\xa0';
-  if (masterCS) value += 'Aa\xa0\xa0\xa0\xa0';
-  const selElem = masterIndex ? masterIndex : 0;
+  if (masterWB) value += '||\xa0\xa0\xa0';
+  if (masterCS) value += 'Aa\xa0\xa0\xa0';
+  const selElem = masterIndex !== null ? masterIndex : null;
   let elemsPositions = { above: 0, visible: 0, below: 0};
   let totalElems = 0;
   if (masterSelection && masterSelection.elements.length) {
@@ -950,9 +948,9 @@ const setMasterFinderInfo = () => {
     value +=
       elemsPositions.above + ' ▲\xa0' +
       elemsPositions.visible + ' ⧉\xa0\xa0' +
-      elemsPositions.below + ' ▼\xa0\xa0\xa0\xa0';
+      elemsPositions.below + ' ▼\xa0\xa0\xa0';
   }
-  value += (selElem + 1) + ' / ' + totalElems;
+  value += (selElem !== null ? selElem + 1 : 0) + ' / ' + totalElems;
   masterFinder.setAttribute('data-info', value);
 };
 

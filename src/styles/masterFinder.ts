@@ -37,7 +37,7 @@ const masterFinder = `
   text-align: center;
   color: white;
   outline-width: 0;
-  background: rgba(0,0,0,0.9);
+  background: rgba(0,0,0,1.0);
   padding: 6px 30px 18px 30px;
   box-shadow: 14px 14px 12px 0px rgba(0,0,0,0.85);
   transition: var(--animation-settings);
@@ -60,12 +60,12 @@ const masterFinder = `
 
 .masterFinder:empty::before {
   content: attr(data-placeholder);
-  color: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.2);
 }
 
 .masterFinder::after {
   content: attr(data-info);
-  color: #acacac;
+  color: rgba(255,255,255,1.0);
   font-size: 13px;
   position: absolute;
   bottom: -1px;
@@ -90,7 +90,7 @@ const masterFinder = `
     opacity: 1;
   }
   to {
-    opacity: 0.2;
+    opacity: 0.3;
   }
 }
 
