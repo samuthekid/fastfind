@@ -1,8 +1,8 @@
-import * as findAndReplaceDOMText from 'findandreplacedomtext';
-import * as throttle from 'lodash/throttle';
-import * as debounce from 'lodash/debounce';
-import { ffStyle, colors } from './styles';
-import * as Utils from './helpers';
+import * as findAndReplaceDOMText from "findandreplacedomtext";
+import * as throttle from "lodash/throttle";
+import * as debounce from "lodash/debounce";
+import { ffStyle, colors } from "./styles";
+import * as Utils from "./helpers";
 
 const DEBUG_ON = false;
 const FIXED_BUTTONS = false;
@@ -18,12 +18,12 @@ let windowHeight = window.innerHeight;
 
 const settings = {
   // KEYS
-  selectKey: 'f',
-  removeKey: 'd',
-  nextElementKey: 'r',
-  nextInstanceKey: 'e',
-  wordBordersToggleKey: 'b',
-  caseSensitiveToggleKey: 'c',
+  selectKey: "f",
+  removeKey: "d",
+  nextElementKey: "r",
+  nextInstanceKey: "e",
+  wordBordersToggleKey: "b",
+  caseSensitiveToggleKey: "c",
 
   // EFFECTS
   smoothScrolling: true, // CHECKED
@@ -45,7 +45,7 @@ const settings = {
   masterFinderEnabled: true, // CHECKED
   masterFinderOverride: true, // CHECKED
   scrollToNearestResult: true, //CHECKED
-  scrollToResultAfterSearch: true, // CHECKED
+  scrollToResultAfterSearch: true // CHECKED
 };
 
 interface FFelement {
@@ -69,122 +69,128 @@ let masterCS: boolean = false;
 let masterWB: boolean = false;
 
 let handleMasterFinderDebouncedRef = null;
-const masterFinder: HTMLElement = document.createElement('div');
-const masterFinderWrapper: HTMLElement = document.createElement('div');
+const masterFinder: HTMLElement = document.createElement("div");
+const masterFinderWrapper: HTMLElement = document.createElement("div");
 
-const repeatLogo: HTMLElement = document.createElement('img');
-const repeatLogoWrapper: HTMLElement = document.createElement('div');
+const repeatLogo: HTMLElement = document.createElement("img");
+const repeatLogoWrapper: HTMLElement = document.createElement("div");
 
-const selectionsMapWrapper: HTMLElement = document.createElement('div');
-const selectionsMapScroll: HTMLElement = document.createElement('div');
+const selectionsMapWrapper: HTMLElement = document.createElement("div");
+const selectionsMapScroll: HTMLElement = document.createElement("div");
 
 // PIN BUTTON
-const selectionsMapPin: HTMLElement = document.createElement('div');
-const mapPin: HTMLElement = document.createElement('img');
+const selectionsMapPin: HTMLElement = document.createElement("div");
+const mapPin: HTMLElement = document.createElement("img");
 
 // OPACITY BUTTON
-const selectionsMapOpacity: HTMLElement = document.createElement('div');
-const mapOpacity: HTMLElement = document.createElement('div');
+const selectionsMapOpacity: HTMLElement = document.createElement("div");
+const mapOpacity: HTMLElement = document.createElement("div");
 
 // THEME BUTTON
-const selectionsMapTheme: HTMLElement = document.createElement('div');
-const mapTheme: HTMLElement = document.createElement('div');
+const selectionsMapTheme: HTMLElement = document.createElement("div");
+const mapTheme: HTMLElement = document.createElement("div");
 
 // BUTTONS POSITION
-const selectionsButtonsPosition: HTMLElement = document.createElement('div');
-const buttonsPosition: HTMLElement = document.createElement('div');
-
+const selectionsButtonsPosition: HTMLElement = document.createElement("div");
+const buttonsPosition: HTMLElement = document.createElement("div");
 
 const initFF = () => {
-
   if (EXTENSION_LOADED) return;
   EXTENSION_LOADED = true;
 
-  const style = document.createElement('style');
+  const style = document.createElement("style");
   style.innerHTML = ffStyle;
 
-  masterFinderWrapper.classList.add('masterFinderWrapper', 'disabled', 'noAnim');
-  masterFinder.classList.add('masterFinder');
-  masterFinder.setAttribute('contentEditable', 'true');
-  masterFinder.setAttribute('data-placeholder', 'FAST FIND');
+  masterFinderWrapper.classList.add(
+    "masterFinderWrapper",
+    "disabled",
+    "noAnim"
+  );
+  masterFinder.classList.add("masterFinder");
+  masterFinder.setAttribute("contentEditable", "true");
+  masterFinder.setAttribute("data-placeholder", "FAST FIND");
   handleMasterFinderDebouncedRef = debounce(
     handleMasterFinderDebounced,
-    ONCHANGE_MASTERFINDER_DEBOUNCE_TIME,
+    ONCHANGE_MASTERFINDER_DEBOUNCE_TIME
   );
   const masterFinderObserver = new MutationObserver(handleMasterFinder);
   const config = { subtree: true, characterData: true };
   masterFinderObserver.observe(masterFinder, config);
   masterFinder.onmouseover = masterFinder.onmouseout = (event: MouseEvent) => {
     requestAnimationFrame(() => {
-      if (event.type === 'mouseover')
-        masterFinderWrapper.classList.remove('sleeping');
-      else
-        masterFinderWrapper.classList.add('sleeping');
+      if (event.type === "mouseover")
+        masterFinderWrapper.classList.remove("sleeping");
+      else masterFinderWrapper.classList.add("sleeping");
     });
   };
 
-  repeatLogo.setAttribute('src', chrome.extension.getURL('assets/repeat.png'));
-  repeatLogo.classList.add('repeatLogo');
-  repeatLogoWrapper.classList.add('repeatLogoWrapper');
+  repeatLogo.setAttribute("src", chrome.extension.getURL("assets/repeat.png"));
+  repeatLogo.classList.add("repeatLogo");
+  repeatLogoWrapper.classList.add("repeatLogoWrapper");
 
-  selectionsMapWrapper.classList.add('selectionsMapWrapper');
+  selectionsMapWrapper.classList.add("selectionsMapWrapper");
 
-  if (FIXED_BUTTONS)
-    selectionsMapWrapper.classList.add('fixedButtons');
+  if (FIXED_BUTTONS) selectionsMapWrapper.classList.add("fixedButtons");
 
-    if (!settings.showSideMap)
-    selectionsMapWrapper.classList.add('hidden');
-  if (!settings.showMapLabels)
-    selectionsMapWrapper.classList.add('noLabels');
+  if (!settings.showSideMap) selectionsMapWrapper.classList.add("hidden");
+  if (!settings.showMapLabels) selectionsMapWrapper.classList.add("noLabels");
   if (!settings.showNumberOfResults)
-    selectionsMapWrapper.classList.add('noNumbers');
-  if (settings.opaqueSideMap)
-    selectionsMapWrapper.classList.add('opaque');
+    selectionsMapWrapper.classList.add("noNumbers");
+  if (settings.opaqueSideMap) selectionsMapWrapper.classList.add("opaque");
   if (settings.mapButtonsOnTop)
-    selectionsMapWrapper.classList.add('buttonsOnTop');
+    selectionsMapWrapper.classList.add("buttonsOnTop");
   if (settings.lightThemeSideMap)
-    selectionsMapWrapper.classList.add('lightTheme');
-  if (settings.autoExpandSideMap)
-    selectionsMapWrapper.classList.add('fixed');
+    selectionsMapWrapper.classList.add("lightTheme");
+  if (settings.autoExpandSideMap) selectionsMapWrapper.classList.add("fixed");
 
   // PIN BUTTON
-  selectionsMapPin.classList.add('selectionsMapButton', 'selectionsMapPin');
-  selectionsMapPin.onclick = () => requestAnimationFrame(() => {
-    selectionsMapWrapper.classList.toggle('fixed');
-  });
-  mapPin.setAttribute('src', chrome.extension.getURL('assets/pin.png'));
-  mapPin.classList.add('mapPin');
+  selectionsMapPin.classList.add("selectionsMapButton", "selectionsMapPin");
+  selectionsMapPin.onclick = () =>
+    requestAnimationFrame(() => {
+      selectionsMapWrapper.classList.toggle("fixed");
+    });
+  mapPin.setAttribute("src", chrome.extension.getURL("assets/pin.png"));
+  mapPin.classList.add("mapPin");
 
   // OPACITY BUTTON
-  selectionsMapOpacity.classList.add('selectionsMapButton', 'selectionsMapOpacity');
-  selectionsMapOpacity.onclick = () => requestAnimationFrame(() => {
-    selectionsMapWrapper.classList.toggle('opaque');
-  });
-  mapOpacity.classList.add('mapOpacity');
+  selectionsMapOpacity.classList.add(
+    "selectionsMapButton",
+    "selectionsMapOpacity"
+  );
+  selectionsMapOpacity.onclick = () =>
+    requestAnimationFrame(() => {
+      selectionsMapWrapper.classList.toggle("opaque");
+    });
+  mapOpacity.classList.add("mapOpacity");
 
   // THEME BUTTON
-  selectionsMapTheme.classList.add('selectionsMapButton', 'selectionsMapTheme');
-  selectionsMapTheme.onclick = () => requestAnimationFrame(() => {
-    selectionsMapWrapper.classList.toggle('lightTheme');
-  });
-  mapTheme.classList.add('mapTheme');
+  selectionsMapTheme.classList.add("selectionsMapButton", "selectionsMapTheme");
+  selectionsMapTheme.onclick = () =>
+    requestAnimationFrame(() => {
+      selectionsMapWrapper.classList.toggle("lightTheme");
+    });
+  mapTheme.classList.add("mapTheme");
 
   // BUTTONS POSITION
-  selectionsButtonsPosition.classList.add('selectionsMapButton', 'selectionsButtonsPosition');
-  selectionsButtonsPosition.onclick = () => requestAnimationFrame(() => {
-    selectionsMapWrapper.classList.toggle('buttonsOnTop');
-  });
-  buttonsPosition.classList.add('buttonsPosition');
+  selectionsButtonsPosition.classList.add(
+    "selectionsMapButton",
+    "selectionsButtonsPosition"
+  );
+  selectionsButtonsPosition.onclick = () =>
+    requestAnimationFrame(() => {
+      selectionsMapWrapper.classList.toggle("buttonsOnTop");
+    });
+  buttonsPosition.classList.add("buttonsPosition");
 
   // SCROLL
   selectionsMapScroll.classList.add("selectionsMapScroll");
-  
+
   requestAnimationFrame(() => {
     document.head.appendChild(style);
 
-    masterFinderWrapper.appendChild(document.createElement('div'));
+    masterFinderWrapper.appendChild(document.createElement("div"));
     masterFinderWrapper.appendChild(masterFinder);
-    masterFinderWrapper.appendChild(document.createElement('div'));
+    masterFinderWrapper.appendChild(document.createElement("div"));
     document.body.appendChild(masterFinderWrapper);
 
     repeatLogoWrapper.appendChild(repeatLogo);
@@ -213,12 +219,12 @@ const initFF = () => {
   windowHeight = window.innerHeight;
 
   // ON RESIZE
-  window.addEventListener('resize', throttle(
-    () => {
+  window.addEventListener(
+    "resize",
+    throttle(() => {
       const newPageHeight = Utils.getPageHeight();
       const newWindowHeight = window.innerHeight;
-      if (newPageHeight != pageHeight ||
-          newWindowHeight != windowHeight) {
+      if (newPageHeight != pageHeight || newWindowHeight != windowHeight) {
         windowHeight = newWindowHeight;
         pageHeight = newPageHeight;
         redrawMinimapScroll(true);
@@ -228,17 +234,17 @@ const initFF = () => {
   );
 
   // ON SCROLL
-  window.addEventListener('scroll', throttle(
-    () => {
+  window.addEventListener(
+    "scroll",
+    throttle(() => {
       redrawMinimapScroll(false);
       updateMasterFinderResultsPosition();
       setMasterFinderInfo();
-    },
-    SCROLL_THROTTLE_TIME
-  ));
+    }, SCROLL_THROTTLE_TIME)
+  );
 
   // ON KEY DOWN
-  window.addEventListener('keydown', onKeyDown);
+  window.addEventListener("keydown", onKeyDown);
 };
 
 const handleMasterFinder = () => {
@@ -253,7 +259,7 @@ const handleMasterFinderDebounced = () => {
 };
 
 const removeMasterFinderHighlight = () => {
-  masterFinderWrapper.classList.remove('noResults', 'sleeping');
+  masterFinderWrapper.classList.remove("noResults", "sleeping");
   requestAnimationFrame(() => {
     if (masterSelection && masterFlag) {
       masterFlag = false;
@@ -277,43 +283,45 @@ const redrawMinimapScroll = (rescale: boolean) => {
     pageHeight = Utils.getPageHeight();
     const minHeight = 15;
     const scrollHeight = (window.innerHeight / pageHeight) * window.innerHeight;
-    const finalHeight = parseFloat(Math.max(scrollHeight, minHeight).toFixed(3));
-    if(rescale)
-      selectionsMapScroll.style.height = `${finalHeight}px`;
-    const scrollToTop = (document.documentElement.scrollTop || document.body.scrollTop || 0);
-    let scrollDistance = scrollToTop / pageHeight * 100 - 0.04;
+    const finalHeight = parseFloat(
+      Math.max(scrollHeight, minHeight).toFixed(3)
+    );
+    if (rescale) selectionsMapScroll.style.height = `${finalHeight}px`;
+    const scrollToTop =
+      document.documentElement.scrollTop || document.body.scrollTop || 0;
+    let scrollDistance = (scrollToTop / pageHeight) * 100 - 0.04;
     if (scrollHeight < minHeight) {
       scrollDistance -= 0.3;
     }
-    selectionsMapScroll.style.transform =
-      `translateY(${scrollDistance.toFixed(3)}vh)`;
-  })
+    selectionsMapScroll.style.transform = `translateY(${scrollDistance.toFixed(
+      3
+    )}vh)`;
+  });
 };
 
 const onKeyDown = (e: KeyboardEvent & { target: HTMLInputElement }) => {
   if (
-    e.target !== masterFinder && (
-      e.target.contentEditable === 'true' ||
-      e.target.tagName.toLowerCase() === 'input' ||
-      e.target.tagName.toLowerCase() === 'textarea'
-    )
+    e.target !== masterFinder &&
+    (e.target.contentEditable === "true" ||
+      e.target.tagName.toLowerCase() === "input" ||
+      e.target.tagName.toLowerCase() === "textarea")
   )
     return false;
 
-  const key = e.code.startsWith('Key') ? e.code.charAt(3).toLowerCase() : null;
+  const key = e.code.startsWith("Key") ? e.code.charAt(3).toLowerCase() : null;
   const macOS = /(Mac)/i.test(navigator.platform);
   const selection = window.getSelection();
   let text = selection.toString();
 
   // MASTER FINDER IS ENABLED
-  if (!masterFinderWrapper.classList.contains('disabled')) {
+  if (!masterFinderWrapper.classList.contains("disabled")) {
     if (e.key === "Escape") {
       // DISABLE MASTER FIND
       e.preventDefault();
       e.stopPropagation();
       window.getSelection().empty();
       removeMasterFinderHighlight();
-      masterFinderWrapper.classList.add('disabled');
+      masterFinderWrapper.classList.add("disabled");
       setTimeout(() => {
         // @ts-ignore
         if (document.activeElement && document.activeElement.blur) {
@@ -345,9 +353,13 @@ const onKeyDown = (e: KeyboardEvent & { target: HTMLInputElement }) => {
         }
       }
       masterSelection.elements[masterIndex].active = false;
-      masterSelection.elements[masterIndex].portions.forEach(p => p.classList.remove('selected'));
+      masterSelection.elements[masterIndex].portions.forEach(p =>
+        p.classList.remove("selected")
+      );
       masterSelection.elements[newIndex].active = true;
-      masterSelection.elements[newIndex].portions.forEach(p => p.classList.add('selected'));
+      masterSelection.elements[newIndex].portions.forEach(p =>
+        p.classList.add("selected")
+      );
       masterIndex = newIndex;
 
       const elem = masterSelection.elements[newIndex];
@@ -355,10 +367,12 @@ const onKeyDown = (e: KeyboardEvent & { target: HTMLInputElement }) => {
         settings.keepElementCentered ||
         !Utils.isElementInViewport(elem.portions[0], viewPortDelta)
       ) {
-        const scrollBehaviour: any = settings.smoothScrolling ? 'smooth' : 'instant';
+        const scrollBehaviour: any = settings.smoothScrolling
+          ? "smooth"
+          : "instant";
         const scrollSettings: ScrollIntoViewOptions = {
-          block: 'center',
-          behavior: scrollBehaviour,
+          block: "center",
+          behavior: scrollBehaviour
         };
         elem.portions[0].scrollIntoView(scrollSettings);
       }
@@ -379,20 +393,21 @@ const onKeyDown = (e: KeyboardEvent & { target: HTMLInputElement }) => {
 
   // MASTER FINDER IS DISABLED
   if (
-    (
-      key == settings.selectKey && (macOS && e.metaKey || !macOS && e.ctrlKey) &&
-      settings.masterFinderEnabled && settings.masterFinderOverride
-    ) || (
-      key == settings.selectKey && e.altKey &&
-      settings.masterFinderEnabled && !settings.masterFinderOverride
-    )
+    (key == settings.selectKey &&
+      ((macOS && e.metaKey) || (!macOS && e.ctrlKey)) &&
+      settings.masterFinderEnabled &&
+      settings.masterFinderOverride) ||
+    (key == settings.selectKey &&
+      e.altKey &&
+      settings.masterFinderEnabled &&
+      !settings.masterFinderOverride)
   ) {
     // ENABLE MASTER FIND
     e.preventDefault();
     e.stopPropagation();
-    masterFinderWrapper.classList.remove('noResults', 'sleeping');
-    if (masterFinderWrapper.classList.contains('disabled')) {
-      masterFinderWrapper.classList.remove('noAnim', 'disabled');
+    masterFinderWrapper.classList.remove("noResults", "sleeping");
+    if (masterFinderWrapper.classList.contains("disabled")) {
+      masterFinderWrapper.classList.remove("noAnim", "disabled");
       handleMasterFinderDebounced();
     }
     setTimeout(() => {
@@ -404,24 +419,26 @@ const onKeyDown = (e: KeyboardEvent & { target: HTMLInputElement }) => {
             masterFinder.firstChild,
             masterFinder.firstChild.textContent.length,
             masterFinder.firstChild,
-            0,
+            0
           );
       }, 5);
     }, 10);
     return;
   }
 
-  if (e.target === masterFinder || e.metaKey || e.ctrlKey || e.altKey) return false;
+  if (e.target === masterFinder || e.metaKey || e.ctrlKey || e.altKey)
+    return false;
 
   // NORMAL KEYS
   if (key == settings.selectKey) {
     // something is selected
     if (text && text.length && text.trim().length) {
-
       // No support for multi-line for now...
-      const paragraphIndex = text.indexOf('\n');
-      if (paragraphIndex != -1) { // has at least one \n
-        if (paragraphIndex == text.length - 1) {// is at the end
+      const paragraphIndex = text.indexOf("\n");
+      if (paragraphIndex != -1) {
+        // has at least one \n
+        if (paragraphIndex == text.length - 1) {
+          // is at the end
           text = text.slice(0, -1); // remove it
         } else {
           return;
@@ -515,10 +532,10 @@ const cycleThroughElements = (direction: number) => {
 
 const cycleThroughAllElements = (direction: number) => {
   // select all single and initial ffelems
-  const ffelems = document.querySelectorAll('.ffelem, .ffelemStart');
+  const ffelems = document.querySelectorAll(".ffelem, .ffelemStart");
   let indexOnTree: number;
   for (let i = 0; i < ffelems.length; i++) {
-    if (ffelems[i].classList.contains('selected')) {
+    if (ffelems[i].classList.contains("selected")) {
       indexOnTree = i;
       break;
     }
@@ -565,17 +582,17 @@ const unselectElement = () => {
     if (selection.active) {
       selection.active = false;
       requestAnimationFrame(() => {
-        selection.mapWrapper.classList.remove('selected');
+        selection.mapWrapper.classList.remove("selected");
       });
       selection.elements.forEach(elem => {
         if (elem.active) {
           requestAnimationFrame(() => {
-            elem.portions.forEach(p => p.classList.remove('selected'));
-            elem.mapIndicator.classList.remove('selected');
+            elem.portions.forEach(p => p.classList.remove("selected"));
+            elem.mapIndicator.classList.remove("selected");
           });
         } else {
           requestAnimationFrame(() => {
-            elem.portions.forEach(p => p.classList.remove('selectedClass'));
+            elem.portions.forEach(p => p.classList.remove("selectedClass"));
           });
         }
       });
@@ -591,30 +608,32 @@ const selectElement = (instance, element, scrollIntoView) => {
     if (selection === instance) {
       selection.active = true;
       requestAnimationFrame(() => {
-        selection.mapWrapper.classList.add('selected');
+        selection.mapWrapper.classList.add("selected");
       });
       selection.elements.forEach(elem => {
         if (elem === element) {
           elem.active = true;
           requestAnimationFrame(() => {
-            elem.portions.forEach(p => p.classList.add('selected'));
-            elem.mapIndicator.classList.add('selected');
+            elem.portions.forEach(p => p.classList.add("selected"));
+            elem.mapIndicator.classList.add("selected");
           });
           if (
             settings.keepElementCentered ||
             !Utils.isElementInViewport(elem.portions[0], viewPortDelta)
           ) {
-            const scrollBehaviour: any = settings.smoothScrolling ? 'smooth' : 'instant';
+            const scrollBehaviour: any = settings.smoothScrolling
+              ? "smooth"
+              : "instant";
             const scrollSettings: ScrollIntoViewOptions = {
-              block: 'center',
-              behavior: scrollBehaviour,
+              block: "center",
+              behavior: scrollBehaviour
             };
             scrollIntoView && elem.portions[0].scrollIntoView(scrollSettings);
           }
         } else {
           elem.active = false;
           requestAnimationFrame(() => {
-            elem.portions.forEach(p => p.classList.add('selectedClass'));
+            elem.portions.forEach(p => p.classList.add("selectedClass"));
           });
         }
       });
@@ -623,9 +642,7 @@ const selectElement = (instance, element, scrollIntoView) => {
 };
 
 const removeElement = (selection: FFinstance) => {
-  selection.elements.forEach(element =>
-    element.mapIndicator.remove()
-  );
+  selection.elements.forEach(element => element.mapIndicator.remove());
   selection.mapWrapper.remove();
   selection.elements.forEach(element => {
     element.portions.forEach((portion: HTMLElement) =>
@@ -655,13 +672,18 @@ const removeAllElements = () => {
   selections = [];
 };
 
-const createElement = (text: string, selection: Selection, forceCS: boolean, forceWB: boolean) => {
+const createElement = (
+  text: string,
+  selection: Selection,
+  forceCS: boolean,
+  forceWB: boolean
+) => {
   let activeElements = 0;
   let activeSelectionNode = null;
 
   if (selection) {
     const selectionRange = selection.getRangeAt(0);
-    activeSelectionNode = document.createElement('ffelem');
+    activeSelectionNode = document.createElement("ffelem");
     if (selectionRange.startContainer == selectionRange.endContainer) {
       selectionRange.surroundContents(activeSelectionNode);
     } else {
@@ -678,7 +700,8 @@ const createElement = (text: string, selection: Selection, forceCS: boolean, for
       return;
     }
   }
-  const scrollToTop = document.documentElement.scrollTop || document.body.scrollTop || 0;
+  const scrollToTop =
+    document.documentElement.scrollTop || document.body.scrollTop || 0;
 
   let color: Array<number>;
   let contrast;
@@ -694,17 +717,20 @@ const createElement = (text: string, selection: Selection, forceCS: boolean, for
   let portions: HTMLElement[] = [];
   let active = false;
   let someActive = false;
-  
+
   let regexFinder = null;
-  const excapedText = text.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+  const excapedText = text.replace(
+    /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
+    "\\$&"
+  );
   const wordBorders = forceWB || settings.forceWordBorders;
-  const wordBordersHandler = wordBorders ? '\\b' : '' ;
+  const wordBordersHandler = wordBorders ? "\\b" : "";
   const caseSensitive = forceCS || settings.forceCaseSensitive;
-  const caseSensitiveHandler = caseSensitive ? 'g' : 'gi' ;
+  const caseSensitiveHandler = caseSensitive ? "g" : "gi";
   try {
     regexFinder = RegExp(
       `${wordBordersHandler}${excapedText}${wordBordersHandler}`,
-      caseSensitiveHandler,
+      caseSensitiveHandler
     );
   } catch (error) {
     if (DEBUG_ON) {
@@ -715,39 +741,43 @@ const createElement = (text: string, selection: Selection, forceCS: boolean, for
   }
 
   const finder = findAndReplaceDOMText(document.body, {
-    preset: 'prose',
+    preset: "prose",
     find: regexFinder,
     filterElements: elem =>
       !Utils.getElementParents(elem).includes(masterFinderWrapper),
     replace: portion => {
-
-      const elementIsVisible =
-        !!( portion.node.parentElement.offsetWidth ||
-            portion.node.parentElement.offsetHeight ||
-            portion.node.parentElement.getClientRects().length
-          );
+      const elementIsVisible = !!(
+        portion.node.parentElement.offsetWidth ||
+        portion.node.parentElement.offsetHeight ||
+        portion.node.parentElement.getClientRects().length
+      );
 
       if (!elementIsVisible) return portion.text;
 
-      const div = document.createElement('ffelem') as HTMLDivElement;
+      const div = document.createElement("ffelem") as HTMLDivElement;
       portions.push(div);
       requestAnimationFrame(() => {
         if (selection) {
-          if (portion.index === 0 && portion.isEnd) div.classList.add('ffelem');
-          else if (portion.index === 0) div.classList.add('ffelemStart');
-          else if (portion.isEnd) div.classList.add('ffelemEnd');
-          else div.classList.add('ffelemMiddle');
+          if (portion.index === 0 && portion.isEnd) div.classList.add("ffelem");
+          else if (portion.index === 0) div.classList.add("ffelemStart");
+          else if (portion.isEnd) div.classList.add("ffelemEnd");
+          else div.classList.add("ffelemMiddle");
           div.style.backgroundColor = Utils.renderColor(color, 1.0);
           div.style.color = contrast;
         } else {
-          div.classList.add('ffelemMaster');
+          div.classList.add("ffelemMaster");
         }
-        div.innerHTML = portion.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        div.innerHTML = portion.text
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
       });
 
       if (portion.isEnd) {
         if (selection) {
-          active = active || Utils.getElementParents(portion.node).includes(activeSelectionNode);
+          active =
+            active ||
+            Utils.getElementParents(portion.node).includes(activeSelectionNode);
           someActive = active || someActive;
           if (active) activeElements++;
         }
@@ -762,21 +792,28 @@ const createElement = (text: string, selection: Selection, forceCS: boolean, for
   });
   if (selection) {
     requestAnimationFrame(() => {
-      while(activeSelectionNode.childNodes.length)
-        activeSelectionNode.parentNode.insertBefore(activeSelectionNode.childNodes[0], activeSelectionNode);
+      while (activeSelectionNode.childNodes.length)
+        activeSelectionNode.parentNode.insertBefore(
+          activeSelectionNode.childNodes[0],
+          activeSelectionNode
+        );
       activeSelectionNode.parentNode.removeChild(activeSelectionNode);
     });
   }
-  if (DEBUG_ON && currentElements.length && (activeElements === 0 || activeElements > 1)) {
-    console.log('Active elements:', activeElements);
-    console.log('Elements:', currentElements);
+  if (
+    DEBUG_ON &&
+    currentElements.length &&
+    (activeElements === 0 || activeElements > 1)
+  ) {
+    console.log("Active elements:", activeElements);
+    console.log("Elements:", currentElements);
     debugger;
   }
 
   if (!currentElements.length) {
     if (!selection) {
       removeMasterFinderHighlight();
-      masterFinderWrapper.classList.add('noResults');
+      masterFinderWrapper.classList.add("noResults");
     }
     return false;
   }
@@ -786,57 +823,57 @@ const createElement = (text: string, selection: Selection, forceCS: boolean, for
     active: true,
     elements: currentElements,
     mapWrapper: null,
-    sanitizedText: text,
+    sanitizedText: text
   };
 
   if (selection) {
     unselectElement();
     window.getSelection().empty();
-    const mapWrapper = document.createElement('div');
-    mapWrapper.classList.add('mapWrapper');
-    mapWrapper.classList.add('selected');
+    const mapWrapper = document.createElement("div");
+    mapWrapper.classList.add("mapWrapper");
+    mapWrapper.classList.add("selected");
     currentSelection.mapWrapper = mapWrapper;
 
     currentElements.forEach(element => {
       const { portions, active } = element;
-      const indicator = document.createElement('div');
-      indicator.classList.add('mapIndicator');
-      if (active) indicator.classList.add('selected');
-  
+      const indicator = document.createElement("div");
+      indicator.classList.add("mapIndicator");
+      if (active) indicator.classList.add("selected");
+
       portions.forEach(portion => {
         portion.onclick = () => selectElement(currentSelection, element, false);
         portion.onmouseover = portion.onmouseout = (event: MouseEvent) => {
           requestAnimationFrame(() => {
-            if (event.type === 'mouseover') {
-              indicator.classList.add('hovered');
-              element.portions.forEach(p => p.classList.add('hovered'));
+            if (event.type === "mouseover") {
+              indicator.classList.add("hovered");
+              element.portions.forEach(p => p.classList.add("hovered"));
             } else {
-              indicator.classList.remove('hovered');
-              element.portions.forEach(p => p.classList.remove('hovered'));
+              indicator.classList.remove("hovered");
+              element.portions.forEach(p => p.classList.remove("hovered"));
             }
           });
         };
-  
+
         requestAnimationFrame(() => {
-          if (active)
-            portion.classList.add('selected');
-          else if (someActive)
-            portion.classList.add('selectedClass');
+          if (active) portion.classList.add("selected");
+          else if (someActive) portion.classList.add("selectedClass");
         });
       });
-  
+
       indicator.onclick = () => selectElement(currentSelection, element, true);
       indicator.onmouseover = indicator.onmouseout = (event: MouseEvent) =>
         requestAnimationFrame(() => {
           element.portions.forEach(portion =>
-            event.type === 'mouseover'
-              ? portion.classList.add('hovered')
-              : portion.classList.remove('hovered')
+            event.type === "mouseover"
+              ? portion.classList.add("hovered")
+              : portion.classList.remove("hovered")
           );
         });
-  
+
       requestAnimationFrame(() => {
-        const position = Utils.getRatioPositionRelativeToDocument(element.portions[0])
+        const position = Utils.getRatioPositionRelativeToDocument(
+          element.portions[0]
+        );
         indicator.style.transform = `translateY(${position}vh)`;
         indicator.style.backgroundColor = Utils.renderColor(color, 0.8);
         mapWrapper.insertBefore(indicator, mapWrapper.firstChild);
@@ -844,22 +881,17 @@ const createElement = (text: string, selection: Selection, forceCS: boolean, for
       element.mapIndicator = indicator;
     });
 
-    const label = document.createElement('div');
-    label.classList.add('mapLabel');
-    label.style.background =
-      `linear-gradient(to bottom,
+    const label = document.createElement("div");
+    label.classList.add("mapLabel");
+    label.style.background = `linear-gradient(to bottom,
 ${Utils.renderColor(color, 1.0)} 0%,
 ${Utils.renderColor(color, 0.8)} 10%,
 ${Utils.renderColor(color, 0.6)} 40%,
 #00000000 50%,#00000000 100%)`;
-    label.setAttribute('data-number', ` (${currentElements.length})`);
+    label.setAttribute("data-number", ` (${currentElements.length})`);
     label.setAttribute(
-      'data-label',
-      `${text} ${
-        wordBorders ? '|| ' : ''
-      }${
-        caseSensitive ? 'Aa' : ''
-      }`
+      "data-label",
+      `${text} ${wordBorders ? "|| " : ""}${caseSensitive ? "Aa" : ""}`
     );
 
     requestAnimationFrame(() => {
@@ -869,11 +901,10 @@ ${Utils.renderColor(color, 0.6)} 40%,
 
     if (!selections.length) redrawMinimapScroll(true);
     selections.push(currentSelection);
-    document.documentElement.scrollTop && document.documentElement.scrollTo({ top: scrollToTop });
+    document.documentElement.scrollTop &&
+      document.documentElement.scrollTo({ top: scrollToTop });
     document.body.scrollTop && document.body.scrollTo({ top: scrollToTop });
-
   } else {
-
     // !selection
     masterSelection = currentSelection;
     updateMasterFinderResultsPosition();
@@ -892,15 +923,20 @@ ${Utils.renderColor(color, 0.6)} 40%,
     }
     requestAnimationFrame(() => {
       setMasterFinderInfo();
-      masterFinderWrapper.classList.add('sleeping');
+      masterFinderWrapper.classList.add("sleeping");
       const elem = currentSelection.elements[masterIndex];
       elem.active = true;
-      elem.portions.forEach(portion => portion.classList.add('selected'));
-      if (!masterDistances[masterIndex].isInViewport && settings.scrollToResultAfterSearch) {
-        const scrollBehaviour: any = settings.smoothScrolling ? 'smooth' : 'instant';
+      elem.portions.forEach(portion => portion.classList.add("selected"));
+      if (
+        !masterDistances[masterIndex].isInViewport &&
+        settings.scrollToResultAfterSearch
+      ) {
+        const scrollBehaviour: any = settings.smoothScrolling
+          ? "smooth"
+          : "instant";
         const scrollSettings: ScrollIntoViewOptions = {
-          block: 'center',
-          behavior: scrollBehaviour,
+          block: "center",
+          behavior: scrollBehaviour
         };
         elem.portions[0].scrollIntoView(scrollSettings);
       }
@@ -913,9 +949,11 @@ const redrawMapIndicators = () => {
     instance.elements.forEach(element => {
       const elementPosition =
         element.portions[0].getBoundingClientRect().top +
-          (document.documentElement.scrollTop || document.body.scrollTop || 0);
+        (document.documentElement.scrollTop || document.body.scrollTop || 0);
       requestAnimationFrame(() => {
-        element.mapIndicator.style.transform = `translateY(${elementPosition / pageHeight * 100}vh)`;
+        element.mapIndicator.style.transform = `translateY(${(elementPosition /
+          pageHeight) *
+          100}vh)`;
       });
     });
   });
@@ -923,20 +961,20 @@ const redrawMapIndicators = () => {
 
 const rotateLogo = () => {
   if (!settings.showRotatingArrow) return;
-  repeatLogo.classList.add('active');
-  repeatLogoWrapper.classList.add('active');
+  repeatLogo.classList.add("active");
+  repeatLogoWrapper.classList.add("active");
   window.setTimeout(() => {
-    repeatLogo.classList.remove('active');
-    repeatLogoWrapper.classList.remove('active');
+    repeatLogo.classList.remove("active");
+    repeatLogoWrapper.classList.remove("active");
   }, 810);
 };
 
 const setMasterFinderInfo = () => {
-  let value = '';
-  if (masterWB) value += '||\xa0\xa0\xa0';
-  if (masterCS) value += 'Aa\xa0\xa0\xa0';
+  let value = "";
+  if (masterWB) value += "||\xa0\xa0\xa0";
+  if (masterCS) value += "Aa\xa0\xa0\xa0";
   const selElem = masterIndex !== null ? masterIndex : null;
-  let elemsPositions = { above: 0, visible: 0, below: 0};
+  let elemsPositions = { above: 0, visible: 0, below: 0 };
   let totalElems = 0;
   if (masterSelection && masterSelection.elements.length) {
     totalElems = masterSelection.elements.length || 0;
@@ -945,16 +983,19 @@ const setMasterFinderInfo = () => {
         ...prev,
         above: prev.above + (curr.isAbove ? 1 : 0),
         visible: prev.visible + (!curr.isAbove && curr.isInViewport ? 1 : 0),
-        below: prev.below + (!curr.isAbove && !curr.isInViewport ? 1 : 0),
+        below: prev.below + (!curr.isAbove && !curr.isInViewport ? 1 : 0)
       };
     }, elemsPositions);
     value +=
-      elemsPositions.above + ' ▲\xa0' +
-      elemsPositions.visible + ' ⧉\xa0\xa0' +
-      elemsPositions.below + ' ▼\xa0\xa0\xa0';
+      elemsPositions.above +
+      " ▲\xa0" +
+      elemsPositions.visible +
+      " ⧉\xa0\xa0" +
+      elemsPositions.below +
+      " ▼\xa0\xa0\xa0";
   }
-  value += (selElem !== null ? selElem + 1 : 0) + ' / ' + totalElems;
-  masterFinder.setAttribute('data-info', value);
+  value += (selElem && isNaN(selElem) ? 0 : selElem + 1) + " / " + totalElems;
+  masterFinder.setAttribute("data-info", value);
 };
 
 const updateMasterFinderResultsPosition = () => {
@@ -965,7 +1006,7 @@ const updateMasterFinderResultsPosition = () => {
     masterDistances.push({
       distance,
       isAbove: distance < 0,
-      isInViewport: Utils.isElementInViewport(elem.portions[0], 0),
+      isInViewport: Utils.isElementInViewport(elem.portions[0], 0)
     });
   });
 };
