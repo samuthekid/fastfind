@@ -893,9 +893,9 @@ const createElement = (
   const label = document.createElement("div");
   label.classList.add("mapLabel");
   label.style.background = `linear-gradient(to bottom,
-${Utils.renderColor(color, 1.0)} 0%,
-${Utils.renderColor(color, 0.8)} 10%,
-${Utils.renderColor(color, 0.6)} 40%,
+${Utils.renderColor(color, selection ? 1.0 : 1.0)} 0%,
+${Utils.renderColor(color, selection ? 0.8 : 1.0)} 10%,
+${Utils.renderColor(color, selection ? 0.6 : 1.0)} 40%,
 #00000000 50%,#00000000 100%)`;
 
   // redraw scrollbar
@@ -993,7 +993,7 @@ const setMasterFinderInfo = () => {
   let value = "";
   if (masterWB) value += "||\xa0\xa0\xa0";
   if (masterCS) value += "Aa\xa0\xa0\xa0";
-  const selElem = masterIndex !== null ? masterIndex : null;
+  let selElem = masterIndex || 0;
   let elemsPositions = { above: 0, visible: 0, below: 0 };
   let totalElems = 0;
   if (masterSelection && masterSelection.elements.length) {
@@ -1013,8 +1013,13 @@ const setMasterFinderInfo = () => {
       " ⧉\xa0\xa0" +
       elemsPositions.below +
       " ▼\xa0\xa0\xa0";
+  } else {
+    selElem = null;
   }
-  value += (selElem && isNaN(selElem) ? 0 : selElem + 1) + " / " + totalElems;
+  value +=
+    (selElem === null || selElem === undefined ? 0 : selElem + 1) +
+    " / " +
+    totalElems;
   masterFinder.setAttribute("data-info", value);
 };
 

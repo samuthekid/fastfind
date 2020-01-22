@@ -78,10 +78,13 @@ const mapColumns = `
 
 .mapWrapper.master .mapIndicator.selected,
 .mapWrapper.selected .mapIndicator.selected {
-  border: solid 0.5px rgba(255,255,255,1.0) !important;
   width: 18px;
   margin-left: -4px;
   z-index: 1;
+}
+
+.mapWrapper.selected .mapIndicator.selected {
+  border: solid 0.5px rgba(255,255,255,1.0) !important;
 }
 
 .mapWrapper.master .mapIndicator {
