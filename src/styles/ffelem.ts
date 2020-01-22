@@ -4,11 +4,11 @@ const ffelem = `
 
 .ffelemMaster {
   color: black;
-  background-color: #FEFF03;
+  background-color: var(--master-yellow);
 }
 
 .ffelemMaster.selected {
-  background-color: #FF9631;
+  background-color: var(--master-orange);
 }
 
 .ffelem {

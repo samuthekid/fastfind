@@ -7,18 +7,28 @@ const mapColumns = `
   right: 0px;
   width: 14px;
   height: 100vh;
+  opacity: 0.6;
 }
 
-.selectionsMapWrapper:hover .mapWrapper {
-  position: relative;
-}
-
+.selectionsMapWrapper:hover .mapWrapper,
 .selectionsMapWrapper.fixed .mapWrapper {
   position: relative;
+  opacity: 1;
 }
 
 .mapWrapper.selected {
   z-index: 3;
+  opacity: 1;
+}
+
+.mapWrapper.master {
+  z-index: 4;
+  opacity: 1;
+  background: rgba(0,0,0,0.2);
+}
+
+.selectionsMapWrapper.lightTheme .mapWrapper.master {
+  background: rgba(255,255,255,0.5);
 }
 
 .mapWrapper:hover {
@@ -55,9 +65,9 @@ const mapColumns = `
 
 .mapIndicator:hover,
 .mapIndicator.hovered {
+  border: solid 0.5px rgba(255,255,255,0.4) !important;
   width: 14px;
   margin-left: 0px;
-  border: solid 0.5px rgba(255,255,255,0.4) !important;
 }
 
 .mapWrapper.selected .mapIndicator:hover,
@@ -66,6 +76,7 @@ const mapColumns = `
   margin-left: 0px;
 }
 
+.mapWrapper.master .mapIndicator.selected,
 .mapWrapper.selected .mapIndicator.selected {
   border: solid 0.5px rgba(255,255,255,1.0) !important;
   width: 18px;
@@ -73,7 +84,13 @@ const mapColumns = `
   z-index: 1;
 }
 
+.mapWrapper.master .mapIndicator {
+  background-color: var(--master-yellow);
+}
 
+.mapWrapper.master .mapIndicator.selected {
+  background-color: var(--master-orange);
+}
 
 /* #################### MAP LABEL #################### */
 
@@ -119,11 +136,16 @@ const mapColumns = `
   color: rgba(0,0,0,1.0);
 }
 
+.mapWrapper.master .mapLabel,
 .mapWrapper.selected .mapLabel {
   visibility: visible;
   margin-top: 12vh;
   padding-top: 10vh;
   color: rgba(255,255,255,1.0);
+}
+
+.mapWrapper.master .mapLabel {
+  color: rgba(0,0,0,1.0);
 }
 
 .selectionsMapWrapper.lightTheme .mapWrapper.selected .mapLabel {

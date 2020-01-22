@@ -1,9 +1,9 @@
-import ffelem from './ffelem';
-import mapButtons from './mapButtons';
-import mapColumns from './mapColumns';
-import mapWrapper from './mapWrapper';
-import masterFinder from './masterFinder';
-import pageLoopLogo from './pageLoopLogo';
+import ffelem from "./ffelem";
+import mapButtons from "./mapButtons";
+import mapColumns from "./mapColumns";
+import mapWrapper from "./mapWrapper";
+import masterFinder from "./masterFinder";
+import pageLoopLogo from "./pageLoopLogo";
 
 const ffStyleVars = `
 body {
@@ -22,6 +22,9 @@ body {
   --animation-settings: all .2s ease;
 
   --buttons-size: 24px;
+
+  --master-yellow: #FEFF03;
+  --master-orange: #FF9631;
 }
 `;
 
@@ -32,8 +35,8 @@ export const ffStyle = [
   masterFinder,
   mapWrapper,
   mapButtons,
-  mapColumns,
-].join('');
+  mapColumns
+].join("");
 
 export const colors = [
   [30, 168, 150],

@@ -8,7 +8,7 @@ const DEBUG_ON = false;
 const FIXED_BUTTONS = false;
 let EXTENSION_LOADED = false;
 
-const SCROLL_THROTTLE_TIME = 16;
+const SCROLL_THROTTLE_TIME = 10;
 const ONCHANGE_MASTERFINDER_DEBOUNCE_TIME = 200;
 
 const viewPortDelta = 20;
@@ -35,8 +35,8 @@ const settings = {
   showMapLabels: true, // CHECKED
   opaqueSideMap: false, // CHECKED
   mapButtonsOnTop: true, // CHECKED
-  lightThemeSideMap: false, // CHECKED
   autoExpandSideMap: true, // CHECKED
+  lightThemeSideMap: false, // CHECKED
   showNumberOfResults: true, // CHECKED
 
   // SETTINGS
@@ -227,7 +227,7 @@ const initFF = () => {
       if (newPageHeight != pageHeight || newWindowHeight != windowHeight) {
         windowHeight = newWindowHeight;
         pageHeight = newPageHeight;
-        redrawMinimapScroll(true);
+        redrawMinimapScroll();
         redrawMapIndicators();
       }
     }, SCROLL_THROTTLE_TIME)
@@ -237,7 +237,7 @@ const initFF = () => {
   window.addEventListener(
     "scroll",
     throttle(() => {
-      redrawMinimapScroll(false);
+      redrawMinimapScroll();
       updateMasterFinderResultsPosition();
       setMasterFinderInfo();
     }, SCROLL_THROTTLE_TIME)
@@ -263,11 +263,7 @@ const removeMasterFinderHighlight = () => {
   requestAnimationFrame(() => {
     if (masterSelection && masterFlag) {
       masterFlag = false;
-      masterSelection.elements.forEach(element => {
-        element.portions.forEach(portion =>
-          Utils.replaceChildrenWithOriginalContent(portion)
-        );
-      });
+      removeElement(masterSelection);
     }
     masterSelection = null;
     masterIndex = null;
@@ -277,8 +273,8 @@ const removeMasterFinderHighlight = () => {
   });
 };
 
-const redrawMinimapScroll = (rescale: boolean) => {
-  if (!selections.length && !rescale) return;
+const redrawMinimapScroll = () => {
+  if (!selections.length && !masterSelection) return;
   requestAnimationFrame(() => {
     pageHeight = Utils.getPageHeight();
     const minHeight = 15;
@@ -286,7 +282,7 @@ const redrawMinimapScroll = (rescale: boolean) => {
     const finalHeight = parseFloat(
       Math.max(scrollHeight, minHeight).toFixed(3)
     );
-    if (rescale) selectionsMapScroll.style.height = `${finalHeight}px`;
+    selectionsMapScroll.style.height = `${finalHeight}px`;
     const scrollToTop =
       document.documentElement.scrollTop || document.body.scrollTop || 0;
     let scrollDistance = (scrollToTop / pageHeight) * 100 - 0.04;
@@ -333,61 +329,24 @@ const onKeyDown = (e: KeyboardEvent & { target: HTMLInputElement }) => {
     } else if (e.key === "Enter") {
       e.preventDefault();
       e.stopPropagation();
-
       if (!masterSelection || !masterSelection.elements.length) return;
-
-      let newIndex = masterIndex;
-      if (!e.shiftKey) {
-        // next master result
-        newIndex++;
-        if (newIndex > masterSelection.elements.length - 1) {
-          newIndex = 0;
-          rotateLogo();
-        }
-      } else {
-        // prev master result
-        newIndex--;
-        if (newIndex < 0) {
-          newIndex = masterSelection.elements.length - 1;
-          rotateLogo();
-        }
-      }
-      masterSelection.elements[masterIndex].active = false;
-      masterSelection.elements[masterIndex].portions.forEach(p =>
-        p.classList.remove("selected")
-      );
-      masterSelection.elements[newIndex].active = true;
-      masterSelection.elements[newIndex].portions.forEach(p =>
-        p.classList.add("selected")
-      );
-      masterIndex = newIndex;
-
-      const elem = masterSelection.elements[newIndex];
-      if (
-        settings.keepElementCentered ||
-        !Utils.isElementInViewport(elem.portions[0], viewPortDelta)
-      ) {
-        const scrollBehaviour: any = settings.smoothScrolling
-          ? "smooth"
-          : "instant";
-        const scrollSettings: ScrollIntoViewOptions = {
-          block: "center",
-          behavior: scrollBehaviour
-        };
-        elem.portions[0].scrollIntoView(scrollSettings);
-      }
-      setMasterFinderInfo();
+      if (!e.shiftKey) cycleThroughMasterElements(1, null);
+      else cycleThroughMasterElements(-1, null);
       return;
     } else if (e.altKey && key == settings.caseSensitiveToggleKey) {
+      // toggle MASTER case sensitive
       e.preventDefault();
       e.stopPropagation();
       masterCS = !masterCS;
       handleMasterFinder();
+      return;
     } else if (e.altKey && key == settings.wordBordersToggleKey) {
+      // toggle MASTER word bounds
       e.preventDefault();
       e.stopPropagation();
       masterWB = !masterWB;
       handleMasterFinder();
+      return;
     }
   }
 
@@ -500,6 +459,40 @@ const onKeyDown = (e: KeyboardEvent & { target: HTMLInputElement }) => {
   }
 };
 
+const cycleThroughMasterElements = (direction: number, element: any) => {
+  let newIndex = masterIndex + direction;
+  if (element) newIndex = masterSelection.elements.indexOf(element);
+  if (newIndex > masterSelection.elements.length - 1) {
+    newIndex = 0;
+    rotateLogo();
+  } else if (newIndex < 0) {
+    newIndex = masterSelection.elements.length - 1;
+    rotateLogo();
+  }
+  masterSelection.elements[masterIndex].active = false;
+  masterSelection.elements[masterIndex].mapIndicator.classList.remove(
+    "selected"
+  );
+  masterSelection.elements[masterIndex].portions.forEach(p =>
+    p.classList.remove("selected")
+  );
+  masterSelection.elements[newIndex].active = true;
+  masterSelection.elements[newIndex].mapIndicator.classList.add("selected");
+  masterSelection.elements[newIndex].portions.forEach(p =>
+    p.classList.add("selected")
+  );
+  masterIndex = newIndex;
+
+  const elem = masterSelection.elements[newIndex].portions[0];
+  if (
+    settings.keepElementCentered ||
+    !Utils.isElementInViewport(elem, viewPortDelta)
+  ) {
+    scrollElementToCenter(elem);
+  }
+  setMasterFinderInfo();
+};
+
 const cycleThroughInstances = (direction: number) => {
   const { instance, element } = getSelectedStructures();
   if (!instance || !element) return false;
@@ -511,7 +504,7 @@ const cycleThroughInstances = (direction: number) => {
   }
   const nextActive = selections[nextIndex];
   const selectedElement = nextActive.elements.find(elem => elem.active);
-  selectElement(nextActive, selectedElement, true);
+  selectElement(nextActive, selectedElement);
 };
 
 const cycleThroughElements = (direction: number) => {
@@ -527,7 +520,7 @@ const cycleThroughElements = (direction: number) => {
     rotateLogo();
   }
   const nextActive = elements[nextIndex];
-  selectElement(instance, nextActive, true);
+  selectElement(instance, nextActive);
 };
 
 const cycleThroughAllElements = (direction: number) => {
@@ -566,7 +559,7 @@ const cycleThroughAllElements = (direction: number) => {
     });
     if (targetElement) return true;
   });
-  selectElement(targetInstance, targetElement, true);
+  selectElement(targetInstance, targetElement);
 };
 
 const getSelectedStructures = () => {
@@ -600,56 +593,44 @@ const unselectElement = () => {
   });
 };
 
-const selectElement = (instance, element, scrollIntoView) => {
+const selectElement = (instance, element) => {
   if (!element || !instance) return false;
   unselectElement();
 
-  selections.forEach(selection => {
-    if (selection === instance) {
-      selection.active = true;
+  instance.active = true;
+  requestAnimationFrame(() => {
+    instance.mapWrapper.classList.add("selected");
+  });
+  instance.elements.forEach(elem => {
+    if (elem === element) {
+      elem.active = true;
       requestAnimationFrame(() => {
-        selection.mapWrapper.classList.add("selected");
+        elem.portions.forEach(p => p.classList.add("selected"));
+        elem.mapIndicator.classList.add("selected");
       });
-      selection.elements.forEach(elem => {
-        if (elem === element) {
-          elem.active = true;
-          requestAnimationFrame(() => {
-            elem.portions.forEach(p => p.classList.add("selected"));
-            elem.mapIndicator.classList.add("selected");
-          });
-          if (
-            settings.keepElementCentered ||
-            !Utils.isElementInViewport(elem.portions[0], viewPortDelta)
-          ) {
-            const scrollBehaviour: any = settings.smoothScrolling
-              ? "smooth"
-              : "instant";
-            const scrollSettings: ScrollIntoViewOptions = {
-              block: "center",
-              behavior: scrollBehaviour
-            };
-            scrollIntoView && elem.portions[0].scrollIntoView(scrollSettings);
-          }
-        } else {
-          elem.active = false;
-          requestAnimationFrame(() => {
-            elem.portions.forEach(p => p.classList.add("selectedClass"));
-          });
-        }
+      if (
+        settings.keepElementCentered ||
+        !Utils.isElementInViewport(elem.portions[0], viewPortDelta)
+      ) {
+        scrollElementToCenter(elem.portions[0]);
+      }
+    } else {
+      elem.active = false;
+      requestAnimationFrame(() => {
+        elem.portions.forEach(p => p.classList.add("selectedClass"));
       });
     }
   });
 };
 
 const removeElement = (selection: FFinstance) => {
-  selection.elements.forEach(element => element.mapIndicator.remove());
-  selection.mapWrapper.remove();
   selection.elements.forEach(element => {
+    element.mapIndicator.remove();
     element.portions.forEach((portion: HTMLElement) =>
       Utils.replaceChildrenWithOriginalContent(portion)
     );
   });
-  // selection.finder.revert();
+  selection.mapWrapper.remove();
 };
 
 const removeSelectedOrLastElement = () => {
@@ -663,7 +644,7 @@ const removeSelectedOrLastElement = () => {
   if (selections.length) {
     const nextInstance = selections[selections.length - 1];
     const selectedElement = nextInstance.elements.find(elem => elem.active);
-    selectElement(nextInstance, selectedElement, true);
+    selectElement(nextInstance, selectedElement);
   }
 };
 
@@ -672,13 +653,18 @@ const removeAllElements = () => {
   selections = [];
 };
 
+//
+// Create Element
+//
 const createElement = (
-  text: string,
-  selection: Selection,
-  forceCS: boolean,
-  forceWB: boolean
+  text: string, // string containing the selection text
+  selection: Selection, // (optional) window selection object
+  forceCS: boolean, // force case sensitive
+  forceWB: boolean // force word bound
 ) => {
+  // will save the total number of active elements - used for debugging
   let activeElements = 0;
+  // will be the ref node to calculate the active element
   let activeSelectionNode = null;
 
   if (selection) {
@@ -693,6 +679,8 @@ const createElement = (
       newRange.collapse();
     }
   } else {
+    // flag used to make sure all the old elements
+    // are removed before adding new ones
     if (!masterFlag) {
       setTimeout(() => {
         createElement(text, null, forceCS, forceWB);
@@ -712,6 +700,9 @@ const createElement = (
       color = Utils.getRandomColor();
     }
     contrast = Utils.getContrastYIQ(color);
+  } else {
+    color = [254, 255, 3];
+    contrast = "black";
   }
   const currentElements: FFelement[] = [];
   let portions: HTMLElement[] = [];
@@ -740,12 +731,14 @@ const createElement = (
     return;
   }
 
+  // THIS IS THE KEY - will find all the portions of the elements in the DOM
   const finder = findAndReplaceDOMText(document.body, {
     preset: "prose",
     find: regexFinder,
     filterElements: elem =>
       !Utils.getElementParents(elem).includes(masterFinderWrapper),
     replace: portion => {
+      // if the element is inside a menu, doesn't add a ffelem
       const elementIsVisible = !!(
         portion.node.parentElement.offsetWidth ||
         portion.node.parentElement.offsetHeight ||
@@ -758,6 +751,7 @@ const createElement = (
       portions.push(div);
       requestAnimationFrame(() => {
         if (selection) {
+          // puts "normal", start, middle or end classes to the portions
           if (portion.index === 0 && portion.isEnd) div.classList.add("ffelem");
           else if (portion.index === 0) div.classList.add("ffelemStart");
           else if (portion.isEnd) div.classList.add("ffelemEnd");
@@ -767,6 +761,7 @@ const createElement = (
         } else {
           div.classList.add("ffelemMaster");
         }
+        // Does innerText works here? TODO
         div.innerHTML = portion.text
           .replace(/&/g, "&amp;")
           .replace(/</g, "&lt;")
@@ -774,6 +769,7 @@ const createElement = (
       });
 
       if (portion.isEnd) {
+        // if last one, save all the data and reset vars
         if (selection) {
           active =
             active ||
@@ -790,15 +786,13 @@ const createElement = (
       return div;
     }
   });
+  // END OF FINDER
+
   if (selection) {
-    requestAnimationFrame(() => {
-      while (activeSelectionNode.childNodes.length)
-        activeSelectionNode.parentNode.insertBefore(
-          activeSelectionNode.childNodes[0],
-          activeSelectionNode
-        );
-      activeSelectionNode.parentNode.removeChild(activeSelectionNode);
-    });
+    // remove this ref node from the tree
+    requestAnimationFrame(() =>
+      Utils.replaceChildrenWithOriginalContent(activeSelectionNode)
+    );
   }
   if (
     DEBUG_ON &&
@@ -811,6 +805,7 @@ const createElement = (
   }
 
   if (!currentElements.length) {
+    // no results => reset and return
     if (!selection) {
       removeMasterFinderHighlight();
       masterFinderWrapper.classList.add("noResults");
@@ -818,30 +813,51 @@ const createElement = (
     return false;
   }
 
+  if (selection) {
+    // clear selected element
+    // we have a new one!
+    unselectElement();
+    window.getSelection().empty();
+  }
+
+  // Side map (will include indicators and label)
+  const mapWrapper = document.createElement("div");
+  mapWrapper.classList.add("mapWrapper");
+  mapWrapper.classList.add(selection ? "selected" : "master");
+
   const currentSelection: FFinstance = {
     finder,
     active: true,
     elements: currentElements,
-    mapWrapper: null,
+    mapWrapper: mapWrapper,
     sanitizedText: text
   };
 
-  if (selection) {
-    unselectElement();
-    window.getSelection().empty();
-    const mapWrapper = document.createElement("div");
-    mapWrapper.classList.add("mapWrapper");
-    mapWrapper.classList.add("selected");
-    currentSelection.mapWrapper = mapWrapper;
+  currentElements.forEach(element => {
+    const { portions, active } = element;
+    // create indicator
+    const indicator = document.createElement("div");
+    indicator.classList.add("mapIndicator");
+    if (active) indicator.classList.add("selected");
 
-    currentElements.forEach(element => {
-      const { portions, active } = element;
-      const indicator = document.createElement("div");
-      indicator.classList.add("mapIndicator");
-      if (active) indicator.classList.add("selected");
+    if (!selection) {
+      // INDICATOR - ON CLICK
+      indicator.onclick = () => cycleThroughMasterElements(0, element);
+    } else {
+      // INDICATOR - ON CLICK - ON MOUSE OVER - ON MOUSE OUT
+      indicator.onclick = () => selectElement(currentSelection, element);
+      indicator.onmouseover = indicator.onmouseout = (event: MouseEvent) =>
+        requestAnimationFrame(() => {
+          element.portions.forEach(portion =>
+            event.type === "mouseover"
+              ? portion.classList.add("hovered")
+              : portion.classList.remove("hovered")
+          );
+        });
 
       portions.forEach(portion => {
-        portion.onclick = () => selectElement(currentSelection, element, false);
+        // PORTION - ON CLICK - ON MOUSE OVER - ON MOUSE OUT
+        portion.onclick = () => selectElement(currentSelection, element);
         portion.onmouseover = portion.onmouseout = (event: MouseEvent) => {
           requestAnimationFrame(() => {
             if (event.type === "mouseover") {
@@ -859,57 +875,57 @@ const createElement = (
           else if (someActive) portion.classList.add("selectedClass");
         });
       });
+    }
 
-      indicator.onclick = () => selectElement(currentSelection, element, true);
-      indicator.onmouseover = indicator.onmouseout = (event: MouseEvent) =>
-        requestAnimationFrame(() => {
-          element.portions.forEach(portion =>
-            event.type === "mouseover"
-              ? portion.classList.add("hovered")
-              : portion.classList.remove("hovered")
-          );
-        });
-
-      requestAnimationFrame(() => {
-        const position = Utils.getRatioPositionRelativeToDocument(
-          element.portions[0]
-        );
-        indicator.style.transform = `translateY(${position}vh)`;
+    requestAnimationFrame(() => {
+      const position = Utils.getRatioPositionRelativeToDocument(
+        element.portions[0]
+      );
+      indicator.style.transform = `translateY(${position}vh)`;
+      if (selection)
         indicator.style.backgroundColor = Utils.renderColor(color, 0.8);
-        mapWrapper.insertBefore(indicator, mapWrapper.firstChild);
-      });
-      element.mapIndicator = indicator;
+      mapWrapper.insertBefore(indicator, mapWrapper.firstChild);
     });
+    element.mapIndicator = indicator;
+  });
 
-    const label = document.createElement("div");
-    label.classList.add("mapLabel");
-    label.style.background = `linear-gradient(to bottom,
+  // create map label
+  const label = document.createElement("div");
+  label.classList.add("mapLabel");
+  label.style.background = `linear-gradient(to bottom,
 ${Utils.renderColor(color, 1.0)} 0%,
 ${Utils.renderColor(color, 0.8)} 10%,
 ${Utils.renderColor(color, 0.6)} 40%,
 #00000000 50%,#00000000 100%)`;
+
+  // redraw scrollbar
+  redrawMinimapScroll();
+
+  if (selection) {
     label.setAttribute("data-number", ` (${currentElements.length})`);
     label.setAttribute(
       "data-label",
       `${text} ${wordBorders ? "|| " : ""}${caseSensitive ? "Aa" : ""}`
     );
 
+    selections.push(currentSelection);
+
     requestAnimationFrame(() => {
       currentSelection.mapWrapper.appendChild(label);
-      selectionsMapWrapper.appendChild(mapWrapper);
+      // If there is a masterFinder side map
+      if (masterSelection)
+        selectionsMapWrapper.insertBefore(
+          mapWrapper,
+          masterSelection.mapWrapper
+        );
+      else selectionsMapWrapper.appendChild(mapWrapper);
     });
-
-    if (!selections.length) redrawMinimapScroll(true);
-    selections.push(currentSelection);
-    document.documentElement.scrollTop &&
-      document.documentElement.scrollTo({ top: scrollToTop });
-    document.body.scrollTop && document.body.scrollTo({ top: scrollToTop });
   } else {
-    // !selection
     masterSelection = currentSelection;
     updateMasterFinderResultsPosition();
 
     if (settings.scrollToNearestResult) {
+      // find the nearest result from viewport center
       let minDistance;
       currentSelection.elements.forEach((_, index) => {
         let dist = Math.abs(masterDistances[index].distance);
@@ -919,29 +935,33 @@ ${Utils.renderColor(color, 0.6)} 40%,
         }
       });
     } else {
+      // otherwise is the first in page
       masterIndex = 0;
     }
+
+    // elem is the selected element
+    const elem = currentSelection.elements[masterIndex];
+    elem.active = true;
     requestAnimationFrame(() => {
       setMasterFinderInfo();
       masterFinderWrapper.classList.add("sleeping");
-      const elem = currentSelection.elements[masterIndex];
-      elem.active = true;
+      elem.mapIndicator.classList.add("selected");
       elem.portions.forEach(portion => portion.classList.add("selected"));
+      currentSelection.mapWrapper.appendChild(label);
+      selectionsMapWrapper.appendChild(mapWrapper);
+
       if (
         !masterDistances[masterIndex].isInViewport &&
         settings.scrollToResultAfterSearch
       ) {
-        const scrollBehaviour: any = settings.smoothScrolling
-          ? "smooth"
-          : "instant";
-        const scrollSettings: ScrollIntoViewOptions = {
-          block: "center",
-          behavior: scrollBehaviour
-        };
-        elem.portions[0].scrollIntoView(scrollSettings);
+        scrollElementToCenter(elem.portions[0]);
       }
     });
   }
+
+  document.documentElement.scrollTop &&
+    document.documentElement.scrollTo({ top: scrollToTop });
+  document.body.scrollTop && document.body.scrollTo({ top: scrollToTop });
 };
 
 const redrawMapIndicators = () => {
@@ -1003,12 +1023,22 @@ const updateMasterFinderResultsPosition = () => {
   if (!masterSelection || masterSelection.elements.length === 0) return;
   masterSelection.elements.forEach(elem => {
     const distance = Utils.getDistanceRelativeToViewport(elem.portions[0]);
+    const isVisible = Utils.isElementInViewport(elem.portions[0], 0);
     masterDistances.push({
       distance,
-      isAbove: distance < 0,
-      isInViewport: Utils.isElementInViewport(elem.portions[0], 0)
+      isAbove: distance < 0 && !isVisible,
+      isInViewport: isVisible
     });
   });
+};
+
+const scrollElementToCenter = (elem: HTMLElement) => {
+  const scrollBehaviour: any = settings.smoothScrolling ? "smooth" : "instant";
+  const scrollSettings: ScrollIntoViewOptions = {
+    block: "center",
+    behavior: scrollBehaviour
+  };
+  elem.scrollIntoView(scrollSettings);
 };
 
 window.onload = initFF;
