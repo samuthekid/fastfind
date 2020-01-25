@@ -123,9 +123,14 @@ const initFF = () => {
     handleMasterFinderDebounced,
     ONCHANGE_MASTERFINDER_DEBOUNCE_TIME
   );
-  const masterFinderObserver = new MutationObserver(handleMasterFinder);
-  const config = { subtree: true, characterData: true };
-  masterFinderObserver.observe(masterFinder, config);
+  const masterFinderObserver1 = new MutationObserver(handleMasterFinder);
+  const masterFinderObserver2 = new MutationObserver(
+    handleMasterFinderChildList
+  );
+  const config1 = { subtree: true, characterData: true };
+  const config2 = { childList: true };
+  masterFinderObserver1.observe(masterFinder, config1);
+  masterFinderObserver2.observe(masterFinder, config2);
   masterFinder.onmouseover = masterFinder.onmouseout = (event: MouseEvent) => {
     requestAnimationFrame(() => {
       if (event.type === "mouseover")
@@ -253,6 +258,29 @@ const initFF = () => {
 
   // ON KEY DOWN
   window.addEventListener("keydown", onKeyDown);
+};
+
+const handleMasterFinderChildList = () => {
+  if (masterFinder.childElementCount) {
+    // Remove html
+    const content = masterFinder.innerHTML;
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = content;
+    const textContent = tempDiv.textContent || tempDiv.innerText || "";
+    masterFinder.innerHTML = textContent;
+
+    // Reapply cursor position or selection
+    const sel = window.getSelection();
+    const newRange = document.createRange();
+    newRange.setStart(
+      masterFinder.childNodes[masterFinder.childNodes.length - 1],
+      textContent.length
+    );
+    newRange.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(newRange);
+    handleMasterFinderDebouncedRef();
+  }
 };
 
 const handleMasterFinder = () => {

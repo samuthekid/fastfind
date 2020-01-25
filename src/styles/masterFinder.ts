@@ -33,7 +33,6 @@ const masterFinder = `
   min-width: 200px;
   font-size: 28px;
   white-space: nowrap;
-  border-bottom: solid 1px white !important;
   text-align: center;
   color: white;
   outline-width: 0;
