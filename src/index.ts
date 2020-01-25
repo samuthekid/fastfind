@@ -5,7 +5,7 @@ import { ffStyle, colors } from "./styles";
 import * as Utils from "./helpers";
 
 const DEBUG_ON = false;
-const FIXED_BUTTONS = false;
+const FIXED_BUTTONS = true;
 let EXTENSION_LOADED = false;
 
 const SCROLL_THROTTLE_TIME = 10;
@@ -48,6 +48,7 @@ const settings = {
   scrollToResultAfterSearch: true // CHECKED
 };
 
+// Interfaces
 interface FFelement {
   active: boolean;
   portions: HTMLElement[];
@@ -60,7 +61,11 @@ interface FFinstance {
   elements: FFelement[];
   mapWrapper: HTMLElement;
 }
+
+// MAIN ARRAY
 let selections: FFinstance[] = [];
+
+// MASTER FINDER STUFF
 let masterSelection: FFinstance;
 let masterDistances = [];
 let masterIndex: number;
@@ -68,29 +73,32 @@ let masterFlag: boolean = true;
 let masterCS: boolean = false;
 let masterWB: boolean = false;
 
+// Master Finder
 let handleMasterFinderDebouncedRef = null;
 const masterFinder: HTMLElement = document.createElement("div");
 const masterFinderWrapper: HTMLElement = document.createElement("div");
 
+// Repeat Logo
 const repeatLogo: HTMLElement = document.createElement("img");
 const repeatLogoWrapper: HTMLElement = document.createElement("div");
 
+// Side Map
 const selectionsMapWrapper: HTMLElement = document.createElement("div");
 const selectionsMapScroll: HTMLElement = document.createElement("div");
 
-// PIN BUTTON
+// Pin Button
 const selectionsMapPin: HTMLElement = document.createElement("div");
 const mapPin: HTMLElement = document.createElement("img");
 
-// OPACITY BUTTON
+// Opacity Button
 const selectionsMapOpacity: HTMLElement = document.createElement("div");
 const mapOpacity: HTMLElement = document.createElement("div");
 
-// THEME BUTTON
+// Theme Button
 const selectionsMapTheme: HTMLElement = document.createElement("div");
 const mapTheme: HTMLElement = document.createElement("div");
 
-// BUTTONS POSITION
+// Buttons Position
 const selectionsButtonsPosition: HTMLElement = document.createElement("div");
 const buttonsPosition: HTMLElement = document.createElement("div");
 
@@ -98,9 +106,11 @@ const initFF = () => {
   if (EXTENSION_LOADED) return;
   EXTENSION_LOADED = true;
 
+  // Styles
   const style = document.createElement("style");
   style.innerHTML = ffStyle;
 
+  // Master Finder
   masterFinderWrapper.classList.add(
     "masterFinderWrapper",
     "disabled",
@@ -124,12 +134,15 @@ const initFF = () => {
     });
   };
 
+  // Repeat Logo
   repeatLogo.setAttribute("src", chrome.extension.getURL("assets/repeat.png"));
   repeatLogo.classList.add("repeatLogo");
   repeatLogoWrapper.classList.add("repeatLogoWrapper");
 
+  // Side Map
   selectionsMapWrapper.classList.add("selectionsMapWrapper");
 
+  // Debug
   if (FIXED_BUTTONS) selectionsMapWrapper.classList.add("fixedButtons");
 
   if (!settings.showSideMap) selectionsMapWrapper.classList.add("hidden");
@@ -143,7 +156,7 @@ const initFF = () => {
     selectionsMapWrapper.classList.add("lightTheme");
   if (settings.autoExpandSideMap) selectionsMapWrapper.classList.add("fixed");
 
-  // PIN BUTTON
+  // Pin Button
   selectionsMapPin.classList.add("selectionsMapButton", "selectionsMapPin");
   selectionsMapPin.onclick = () =>
     requestAnimationFrame(() => {
@@ -152,7 +165,7 @@ const initFF = () => {
   mapPin.setAttribute("src", chrome.extension.getURL("assets/pin.png"));
   mapPin.classList.add("mapPin");
 
-  // OPACITY BUTTON
+  // Opacity Button
   selectionsMapOpacity.classList.add(
     "selectionsMapButton",
     "selectionsMapOpacity"
@@ -163,7 +176,7 @@ const initFF = () => {
     });
   mapOpacity.classList.add("mapOpacity");
 
-  // THEME BUTTON
+  // Theme Button
   selectionsMapTheme.classList.add("selectionsMapButton", "selectionsMapTheme");
   selectionsMapTheme.onclick = () =>
     requestAnimationFrame(() => {
@@ -171,7 +184,7 @@ const initFF = () => {
     });
   mapTheme.classList.add("mapTheme");
 
-  // BUTTONS POSITION
+  // Buttons Position
   selectionsButtonsPosition.classList.add(
     "selectionsMapButton",
     "selectionsButtonsPosition"
@@ -182,9 +195,11 @@ const initFF = () => {
     });
   buttonsPosition.classList.add("buttonsPosition");
 
-  // SCROLL
+  // Scroll
   selectionsMapScroll.classList.add("selectionsMapScroll");
 
+  // Add all to document body
+  // Order is important !
   requestAnimationFrame(() => {
     document.head.appendChild(style);
 
@@ -196,19 +211,12 @@ const initFF = () => {
     repeatLogoWrapper.appendChild(repeatLogo);
     document.body.appendChild(repeatLogoWrapper);
 
-    // PIN BUTTON
     selectionsMapPin.appendChild(mapPin);
     selectionsMapWrapper.appendChild(selectionsMapPin);
-
-    // OPACITY BUTTON
     selectionsMapOpacity.appendChild(mapOpacity);
     selectionsMapWrapper.appendChild(selectionsMapOpacity);
-
-    // THEME BUTTON
     selectionsMapTheme.appendChild(mapTheme);
     selectionsMapWrapper.appendChild(selectionsMapTheme);
-
-    // BUTTONS POSITION
     selectionsButtonsPosition.appendChild(buttonsPosition);
     selectionsMapWrapper.appendChild(selectionsButtonsPosition);
 
