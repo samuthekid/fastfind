@@ -5,7 +5,7 @@ import { ffStyle, colors } from "./styles";
 import * as Utils from "./helpers";
 
 const DEBUG_ON = false;
-const FIXED_BUTTONS = true;
+const FIXED_BUTTONS = false;
 let EXTENSION_LOADED = false;
 
 const SCROLL_THROTTLE_TIME = 10;
@@ -295,8 +295,8 @@ const handleMasterFinderDebounced = () => {
 };
 
 const removeMasterFinderHighlight = () => {
-  masterFinderWrapper.classList.remove("noResults", "sleeping");
   requestAnimationFrame(() => {
+    masterFinderWrapper.classList.remove("noResults", "sleeping");
     if (masterSelection && masterFlag) {
       masterFlag = false;
       removeElement(masterSelection);
@@ -328,6 +328,89 @@ const redrawMinimapScroll = () => {
     selectionsMapScroll.style.transform = `translateY(${scrollDistance.toFixed(
       3
     )}vh)`;
+  });
+};
+
+const transformFFElement = () => {
+  const { color, contrast } = getColorAndContrast(true);
+  const selectionRef = masterSelection;
+  let futureActiveElement = null;
+
+  const label = document.createElement("div");
+  label.classList.add("mapLabel");
+  label.style.background = `linear-gradient(to bottom,
+${Utils.renderColor(color, 1.0)} 0%,
+${Utils.renderColor(color, 0.8)} 10%,
+${Utils.renderColor(color, 0.6)} 40%,
+#00000000 50%,#00000000 100%)`;
+  label.setAttribute("data-number", ` (${masterSelection.elements.length})`);
+  label.setAttribute(
+    "data-label",
+    `${masterSelection.sanitizedText} ${masterWB ? "|| " : ""}${
+      masterCS ? "Aa" : ""
+    }`
+  );
+
+  requestAnimationFrame(() => {
+    masterSelection.elements.forEach(element => {
+      const { active, portions, mapIndicator } = element;
+      if (active) futureActiveElement = element;
+      portions.forEach((portion, index) => {
+        portion.classList.remove("ffelemMaster");
+        portion.style.backgroundColor = Utils.renderColor(color, 1.0);
+        portion.style.color = contrast;
+        if (portions.length === 1) portion.classList.add("ffelem");
+        else if (index === 0) portion.classList.add("ffelemStart");
+        else if (index === portions.length - 1)
+          portion.classList.add("ffelemEnd");
+        else portion.classList.add("ffelemMiddle");
+
+        // PORTION - ON CLICK - ON MOUSE OVER - ON MOUSE OUT
+        portion.onclick = () => selectElement(selectionRef, element);
+        portion.onmouseover = portion.onmouseout = (event: MouseEvent) => {
+          if (event.type === "mouseover") {
+            mapIndicator.classList.add("hovered");
+            portions.forEach(p => p.classList.add("hovered"));
+          } else {
+            mapIndicator.classList.remove("hovered");
+            portions.forEach(p => p.classList.remove("hovered"));
+          }
+        };
+      });
+      // INDICATOR - ON CLICK - ON MOUSE OVER - ON MOUSE OUT
+      mapIndicator.onclick = () => selectElement(selectionRef, element);
+      mapIndicator.onmouseover = mapIndicator.onmouseout = (
+        event: MouseEvent
+      ) =>
+        portions.forEach(portion =>
+          event.type === "mouseover"
+            ? portion.classList.add("hovered")
+            : portion.classList.remove("hovered")
+        );
+      mapIndicator.style.backgroundColor = Utils.renderColor(color, 0.8);
+    });
+    masterSelection.mapWrapper.classList.remove("master");
+    masterSelection.mapWrapper.removeChild(
+      masterSelection.mapWrapper.lastChild
+    );
+    masterSelection.mapWrapper.appendChild(label);
+    masterFinderWrapper.classList.add("disabled");
+    masterFinderWrapper.classList.remove("noResults", "sleeping");
+    masterFinder.innerHTML = null;
+    setTimeout(() => {
+      // @ts-ignore
+      if (document.activeElement && document.activeElement.blur) {
+        // @ts-ignore
+        document.activeElement.blur();
+      }
+    }, 100);
+
+    selections.push(masterSelection);
+    selectElement(masterSelection, futureActiveElement);
+    masterSelection = null;
+    masterIndex = null;
+    updateMasterFinderResultsPosition();
+    setMasterFinderInfo();
   });
 };
 
@@ -366,6 +449,10 @@ const onKeyDown = (e: KeyboardEvent & { target: HTMLInputElement }) => {
       e.preventDefault();
       e.stopPropagation();
       if (!masterSelection || !masterSelection.elements.length) return;
+      if (e.ctrlKey || e.metaKey) {
+        transformFFElement();
+        return;
+      }
       if (!e.shiftKey) cycleThroughMasterElements(1, null);
       else cycleThroughMasterElements(-1, null);
       return;
@@ -727,19 +814,7 @@ const createElement = (
   const scrollToTop =
     document.documentElement.scrollTop || document.body.scrollTop || 0;
 
-  let color: Array<number>;
-  let contrast;
-  if (selection) {
-    if (currentColor < colors.length) {
-      color = colors[currentColor++];
-    } else {
-      color = Utils.getRandomColor();
-    }
-    contrast = Utils.getContrastYIQ(color);
-  } else {
-    color = [254, 255, 3];
-    contrast = "black";
-  }
+  const { color, contrast } = getColorAndContrast(selection);
   const currentElements: FFelement[] = [];
   let portions: HTMLElement[] = [];
   let active = false;
@@ -1080,6 +1155,23 @@ const scrollElementToCenter = (elem: HTMLElement) => {
     behavior: scrollBehaviour
   };
   elem.scrollIntoView(scrollSettings);
+};
+
+const getColorAndContrast = selection => {
+  let color: Array<number>;
+  let contrast;
+  if (selection) {
+    if (currentColor < colors.length) {
+      color = colors[currentColor++];
+    } else {
+      color = Utils.getRandomColor();
+    }
+    contrast = Utils.getContrastYIQ(color);
+  } else {
+    color = [254, 255, 3];
+    contrast = "black";
+  }
+  return { color, contrast };
 };
 
 window.onload = initFF;
