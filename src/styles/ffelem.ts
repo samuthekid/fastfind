@@ -206,7 +206,9 @@ const ffelem = `
 
 
 .ffelem.selected::before {
-  animation: highlight var(--highlight-animation-duration) var(--highlight-animation-effect);
+  animation:
+    highlight var(--highlight-animation-duration) var(--highlight-animation-effect),
+    border 3s var(--highlight-animation-effect) infinite;
   border-top-left-radius: var(--elem-radius-selected);
   border-bottom-left-radius: var(--elem-radius-selected);
   border-top-right-radius: var(--elem-radius-selected);
@@ -222,7 +224,9 @@ const ffelem = `
 }
 
 .ffelemMiddle.selected::before {
-  animation: highlightMiddle var(--highlight-animation-duration) var(--highlight-animation-effect);
+  animation:
+    highlightMiddle var(--highlight-animation-duration) var(--highlight-animation-effect),
+    border 3s var(--highlight-animation-effect) infinite;
   border-top: solid 1px rgba(255,255,255,1.0) !important;
   border-bottom: solid 1px rgba(255,255,255,1.0) !important;
   top: var(--elem-big);
@@ -230,7 +234,9 @@ const ffelem = `
 }
 
 .ffelemStart.selected::before {
-  animation: highlightStart var(--highlight-animation-duration) var(--highlight-animation-effect);
+  animation:
+    highlightStart var(--highlight-animation-duration) var(--highlight-animation-effect),
+    border 3s var(--highlight-animation-effect) infinite;
   border-top-left-radius: var(--elem-radius-selected);
   border-bottom-left-radius: var(--elem-radius-selected);
   border-top: solid 1px rgba(255,255,255,1.0) !important;
@@ -242,7 +248,9 @@ const ffelem = `
 }
 
 .ffelemEnd.selected::before {
-  animation: highlightEnd var(--highlight-animation-duration) var(--highlight-animation-effect);
+  animation:
+    highlightEnd var(--highlight-animation-duration) var(--highlight-animation-effect),
+    border 3s var(--highlight-animation-effect) infinite;
   border-top-right-radius: var(--elem-radius-selected);
   border-bottom-right-radius: var(--elem-radius-selected);
   border-top: solid 1px rgba(255,255,255,1.0) !important;
@@ -257,14 +265,20 @@ const ffelem = `
 
 /* #################### FFELEM ANIMATIONS #################### */
 
+@keyframes border {
+  0% {
+    border-color: white;
+  }
+  50% {
+    border-color: black;
+  }
+  100% {
+    border-color: white;
+  }
+}
+
 @keyframes highlight {
   0% {
-    top: var(--elem-small);
-    left: var(--elem-small);
-    right: var(--elem-small);
-    bottom: var(--elem-small);
-  }
-  15% {
     top: var(--elem-normal);
     left: var(--elem-normal);
     right: var(--elem-normal);
@@ -286,10 +300,6 @@ const ffelem = `
 
 @keyframes highlightMiddle {
   0% {
-    top: var(--elem-small);
-    bottom: var(--elem-small);
-  }
-  15% {
     top: var(--elem-normal);
     bottom: var(--elem-normal);
   }
@@ -305,11 +315,6 @@ const ffelem = `
 
 @keyframes highlightStart {
   0% {
-    top: var(--elem-small);
-    left: var(--elem-small);
-    bottom: var(--elem-small);
-  }
-  15% {
     top: var(--elem-normal);
     left: var(--elem-normal);
     bottom: var(--elem-normal);
@@ -328,11 +333,6 @@ const ffelem = `
 
 @keyframes highlightEnd {
   0% {
-    top: var(--elem-small);
-    right: var(--elem-small);
-    bottom: var(--elem-small);
-  }
-  15% {
     top: var(--elem-normal);
     right: var(--elem-normal);
     bottom: var(--elem-normal);
