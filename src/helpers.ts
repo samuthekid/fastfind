@@ -1,3 +1,8 @@
+export const requestTypes = {
+  get_settings: "get_settings",
+  set_settings: "set_settings"
+};
+
 export const getPageHeight = () => {
   return Math.max(
     document.body.scrollHeight,

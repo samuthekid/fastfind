@@ -16,37 +16,7 @@ let currentColor = 0;
 let pageHeight = Utils.getPageHeight();
 let windowHeight = window.innerHeight;
 
-const settings = {
-  // KEYS
-  selectKey: "f",
-  removeKey: "d",
-  nextElementKey: "r",
-  nextInstanceKey: "e",
-  wordBordersToggleKey: "b",
-  caseSensitiveToggleKey: "c",
-
-  // EFFECTS
-  smoothScrolling: true, // CHECKED
-  showRotatingArrow: false, // CHECKED
-  keepElementCentered: false, // CHECKED
-
-  // SIDE MAP
-  showSideMap: true, // CHECKED
-  showMapLabels: true, // CHECKED
-  opaqueSideMap: false, // CHECKED
-  mapButtonsOnTop: true, // CHECKED
-  autoExpandSideMap: true, // CHECKED
-  lightThemeSideMap: false, // CHECKED
-  showNumberOfResults: true, // CHECKED
-
-  // SETTINGS
-  forceWordBorders: false, // CHECKED
-  forceCaseSensitive: false, // CHECKED
-  masterFinderEnabled: true, // CHECKED
-  masterFinderOverride: true, // CHECKED
-  scrollToNearestResult: true, //CHECKED
-  scrollToResultAfterSearch: true // CHECKED
-};
+let settings = null;
 
 // Interfaces
 interface FFelement {
@@ -1174,4 +1144,13 @@ const getColorAndContrast = selection => {
   return { color, contrast };
 };
 
-window.onload = initFF;
+// GET SETTINGS AND START!
+window.onload = () => {
+  chrome.runtime.sendMessage(
+    { data: Utils.requestTypes.get_settings },
+    newSettings => {
+      settings = newSettings;
+      initFF();
+    }
+  );
+};

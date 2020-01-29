@@ -1,16 +1,129 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset='utf-8'>
-  <meta http-equiv='X-UA-Compatible' content='IE=edge'>
-  <title>FastFind Settings</title>
-  <meta name='viewport' content='width=device-width, initial-scale=1'>
-  <link rel='stylesheet' type='text/css' media='screen' href='main.css'>
-  <script src='browser-action.js'></script>
-</head>
-<body>
-  <p>
-    Hello from settings.html
-  </p>
-</body>
-</html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>FastFind Settings</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" type="text/css" media="screen" href="main.css" />
+    <script src="browser-action.js"></script>
+  </head>
+  <body>
+    <img src="./icons/128.png">
+    <br/>
+    <a href="#home">Home</a>
+    <a href="#settings">Settings</a>
+    <a href="#sideMap">Side Map</a>
+    <a href="#masterFinder">Master Finder</a>
+
+    <div id="home">
+      <p>Description</p>
+      <p>Video presentation (on install or button)</p>
+      <p>Links (Github, store, twitter)</p>
+      <p>Donate Button</p>
+    </div>
+    
+    <div id="settings">
+      <h1>Settings</h1>
+
+      <label for="selectKey">Main selection key</label>
+      <input type="input" maxlength="1" id="selectKey">
+      <br/>
+
+      <label for="removeKey">Remove key</label>
+      <input type="input" maxlength="1" id="removeKey">
+      <br/>
+
+      <label for="nextElementKey">Next element key</label>
+      <input type="input" maxlength="1" id="nextElementKey">
+      <br/>
+
+      <label for="nextInstanceKey">Next instance key</label>
+      <input type="input" maxlength="1" id="nextInstanceKey">
+      <br/>
+
+      <label for="smoothScrolling">Smooth scrolling</label>
+      <input type="checkbox" id="smoothScrolling">
+      <br/>
+
+      <label for="keepElementCentered">Keep elements centered</label>
+      <input type="checkbox" id="keepElementCentered">
+      <br/>
+
+      <label for="showRotatingArrow">Show rotating logo</label>
+      <input type="checkbox" id="showRotatingArrow">
+      <br/>
+
+      <label for="forceWordBorders">Word borders always on</label>
+      <input type="checkbox" id="forceWordBorders">
+      <br/>
+
+      <label for="forceCaseSensitive">Case sensitive always on</label>
+      <input type="checkbox" id="forceCaseSensitive">
+      <br/>
+    </div>
+
+    <div id="sideMap">
+      <h1>Side Map</h1>
+
+      <label for="showSideMap">Show side map</label>
+      <input type="checkbox" id="showSideMap">
+      <br/>
+
+      <label for="autoExpandSideMap">Auto expand side map</label>
+      <input type="checkbox" id="autoExpandSideMap">
+      <br/>
+
+      <label for="opaqueSideMap">Use opaque background on side map</label>
+      <input type="checkbox" id="opaqueSideMap">
+      <br/>
+
+      <label for="lightThemeSideMap">Use light theme on side map</label>
+      <input type="checkbox" id="lightThemeSideMap">
+      <br/>
+
+      <label for="mapButtonsOnTop">Show side buttons on top</label>
+      <input type="checkbox" id="mapButtonsOnTop">
+      <br/>
+
+      <label for="showMapLabels">Show side map columns labels</label>
+      <input type="checkbox" id="showMapLabels">
+      <br/>
+
+      <label for="showNumberOfResults">Show number of results on labels</label>
+      <input type="checkbox" id="showNumberOfResults">
+      <br/>
+    </div>
+
+    <div id="masterFinder">
+      <h1>Master Finder</h1>
+
+      <label for="masterFinderEnabled">Enable master finder</label>
+      <input type="checkbox" id="masterFinderEnabled">
+      <br/>
+
+      <label for="masterFinderOverride">Override browser's native search</label>
+      <input type="checkbox" id="masterFinderOverride">
+      <br/>
+
+      <label for="wordBordersToggleKey">Toggle word borders (option || alt + KEY)</label>
+      <input type="input" maxlength="1" id="wordBordersToggleKey">
+      <br/>
+
+      <label for="caseSensitiveToggleKey">Toggle case sensitive (option || alt + KEY)</label>
+      <input type="input" maxlength="1" id="caseSensitiveToggleKey">
+      <br/>
+
+      <label for="scrollToResultAfterSearch">Scroll to result after search</label>
+      <input type="checkbox" id="scrollToResultAfterSearch">
+      <br/>
+
+      <label for="scrollToNearestResult">Scroll to nearest result from current location</label>
+      <input type="checkbox" id="scrollToNearestResult">
+      <br/>
+    </div>
+
+    <button id="saveButton">Save</button>
+    <p id="feedback" />
+  </body>
+</htm>
