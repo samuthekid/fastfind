@@ -228,6 +228,21 @@ const initFF = () => {
 
   // ON KEY DOWN
   window.addEventListener("keydown", onKeyDown);
+
+  // ON NEW SETTINGS
+  chrome.runtime.onMessage.addListener((request, sender) => {
+    const { set_settings } = Utils.requestTypes;
+    console.log("# request =", request.data);
+
+    switch (request.data) {
+      case set_settings:
+        settings = request.payload;
+        break;
+
+      default:
+        break;
+    }
+  });
 };
 
 const handleMasterFinderChildList = () => {

@@ -40,10 +40,14 @@ let settings = null;
 
 const retreiveSettings = () => {
   chrome.storage.local.get([LOCAL_STORAGE_KEY], data => {
-    const newSettings = data[LOCAL_STORAGE_KEY];
-    console.log("DEBUG: retreiveSettings", newSettings);
-    if (newSettings) settings = newSettings;
-    else saveSettings(defaultSettings);
+    const userSettings = data[LOCAL_STORAGE_KEY];
+    console.log("DEBUG: retreiveSettings", userSettings);
+    if (userSettings) {
+      settings = {
+        ...defaultSettings,
+        ...userSettings
+      };
+    } else saveSettings(defaultSettings);
   });
 };
 
@@ -55,6 +59,14 @@ const saveSettings = newSettings => {
     },
     () => {
       settings = newSettings;
+      chrome.tabs.query({}, tabs =>
+        tabs.forEach(tab =>
+          chrome.tabs.sendMessage(tab.id, {
+            data: requestTypes.set_settings,
+            payload: newSettings
+          })
+        )
+      );
     }
   );
 };
