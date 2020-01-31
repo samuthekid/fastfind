@@ -351,7 +351,7 @@ ${Utils.renderColor(color, 0.6)} 40%,
         else portion.classList.add("ffelemMiddle");
 
         // PORTION - ON CLICK - ON MOUSE OVER - ON MOUSE OUT
-        portion.onclick = () => selectElement(selectionRef, element);
+        portion.onclick = () => selectElement(selectionRef, element, false);
         portion.onmouseover = portion.onmouseout = (event: MouseEvent) => {
           if (event.type === "mouseover") {
             mapIndicator.classList.add("hovered");
@@ -363,7 +363,7 @@ ${Utils.renderColor(color, 0.6)} 40%,
         };
       });
       // INDICATOR - ON CLICK - ON MOUSE OVER - ON MOUSE OUT
-      mapIndicator.onclick = () => selectElement(selectionRef, element);
+      mapIndicator.onclick = () => selectElement(selectionRef, element, false);
       mapIndicator.onmouseover = mapIndicator.onmouseout = (
         event: MouseEvent
       ) =>
@@ -391,7 +391,7 @@ ${Utils.renderColor(color, 0.6)} 40%,
     }, 100);
 
     selections.push(masterSelection);
-    selectElement(masterSelection, futureActiveElement);
+    selectElement(masterSelection, futureActiveElement, true);
     masterSelection = null;
     masterIndex = null;
     updateMasterFinderResultsPosition();
@@ -612,7 +612,7 @@ const cycleThroughInstances = (direction: number) => {
   }
   const nextActive = selections[nextIndex];
   const selectedElement = nextActive.elements.find(elem => elem.active);
-  selectElement(nextActive, selectedElement);
+  selectElement(nextActive, selectedElement, true);
 };
 
 const cycleThroughElements = (direction: number) => {
@@ -628,7 +628,7 @@ const cycleThroughElements = (direction: number) => {
     rotateLogo();
   }
   const nextActive = elements[nextIndex];
-  selectElement(instance, nextActive);
+  selectElement(instance, nextActive, true);
 };
 
 const cycleThroughAllElements = (direction: number) => {
@@ -667,7 +667,7 @@ const cycleThroughAllElements = (direction: number) => {
     });
     if (targetElement) return true;
   });
-  selectElement(targetInstance, targetElement);
+  selectElement(targetInstance, targetElement, true);
 };
 
 const getSelectedStructures = () => {
@@ -701,7 +701,7 @@ const unselectElement = () => {
   });
 };
 
-const selectElement = (instance, element) => {
+const selectElement = (instance, element, followKeepCenterRule) => {
   if (!element || !instance) return false;
   unselectElement();
 
@@ -717,7 +717,7 @@ const selectElement = (instance, element) => {
         elem.mapIndicator.classList.add("selected");
       });
       if (
-        settings.keepElementCentered ||
+        (followKeepCenterRule && settings.keepElementCentered) ||
         !Utils.isElementInViewport(elem.portions[0], viewPortDelta)
       ) {
         scrollElementToCenter(elem.portions[0]);
@@ -752,7 +752,7 @@ const removeSelectedOrLastElement = () => {
   if (selections.length) {
     const nextInstance = selections[selections.length - 1];
     const selectedElement = nextInstance.elements.find(elem => elem.active);
-    selectElement(nextInstance, selectedElement);
+    selectElement(nextInstance, selectedElement, true);
   }
 };
 
@@ -941,7 +941,7 @@ const createElement = (
       indicator.onclick = () => cycleThroughMasterElements(0, element);
     } else {
       // INDICATOR - ON CLICK - ON MOUSE OVER - ON MOUSE OUT
-      indicator.onclick = () => selectElement(currentSelection, element);
+      indicator.onclick = () => selectElement(currentSelection, element, false);
       indicator.onmouseover = indicator.onmouseout = (event: MouseEvent) =>
         requestAnimationFrame(() => {
           element.portions.forEach(portion =>
@@ -953,7 +953,7 @@ const createElement = (
 
       portions.forEach(portion => {
         // PORTION - ON CLICK - ON MOUSE OVER - ON MOUSE OUT
-        portion.onclick = () => selectElement(currentSelection, element);
+        portion.onclick = () => selectElement(currentSelection, element, false);
         portion.onmouseover = portion.onmouseout = (event: MouseEvent) => {
           requestAnimationFrame(() => {
             if (event.type === "mouseover") {
