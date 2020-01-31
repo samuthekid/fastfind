@@ -1,4 +1,4 @@
-import { requestTypes } from "./helpers";
+import { requestTypes, entities } from "../helpers";
 
 console.log("Hello from settings page! 👋 -- FastFind");
 
@@ -38,8 +38,10 @@ const initFFSettings = () => {
   onSaveButton.onclick = () => {
     chrome.runtime.sendMessage(
       {
-        data: requestTypes.set_settings,
-        payload: settings
+        type: requestTypes.set_settings,
+        payload: settings,
+        to: entities.background,
+        from: entities.settings
       },
       success => {
         if (success) {
@@ -57,7 +59,11 @@ window.onload = () => {
   if (!window.location.href.includes("#")) window.location.href += "#home";
 
   chrome.runtime.sendMessage(
-    { data: requestTypes.get_settings },
+    {
+      type: requestTypes.get_settings,
+      to: entities.background,
+      from: entities.settings
+    },
     newSettings => {
       if (newSettings) {
         settings = newSettings;

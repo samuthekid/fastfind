@@ -30,9 +30,13 @@
     "scripts": ["background.js"],
     "persistent": false
   },
-  "options_page": "settings.html",
+  "options_page": "settings/index.html",
   "permissions": ["activeTab", "storage"],
-  "web_accessible_resources": ["assets/repeat.png", "assets/pin.png"],
+  "web_accessible_resources": [
+    "fast-find.js",
+    "assets/repeat.png",
+    "assets/pin.png"
+  ],
   "minimum_chrome_version": "70",
   "manifest_version": 2
 }

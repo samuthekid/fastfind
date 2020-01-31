@@ -1,6 +1,14 @@
+export const EXTENSION_ID = "nlgbmdhompikmahelomlhdnoeppnicio";
+
 export const requestTypes = {
   get_settings: "get_settings",
   set_settings: "set_settings"
+};
+export const entities = {
+  page: "page",
+  script: "script",
+  background: "background",
+  settings: "settings"
 };
 
 export const getPageHeight = () => {

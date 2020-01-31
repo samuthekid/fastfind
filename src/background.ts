@@ -1,4 +1,4 @@
-import { requestTypes } from "./helpers";
+import { requestTypes, entities } from "./helpers";
 
 console.log("Hello from background page! 👋 -- FastFind");
 
@@ -47,11 +47,11 @@ const retreiveSettings = () => {
         ...defaultSettings,
         ...userSettings
       };
-    } else saveSettings(defaultSettings);
+    } else saveSettings(defaultSettings, false);
   });
 };
 
-const saveSettings = newSettings => {
+const saveSettings = (newSettings, broadcast) => {
   console.log("DEBUG: saveSettings", newSettings);
   chrome.storage.local.set(
     {
@@ -59,31 +59,44 @@ const saveSettings = newSettings => {
     },
     () => {
       settings = newSettings;
-      chrome.tabs.query({}, tabs =>
-        tabs.forEach(tab =>
-          chrome.tabs.sendMessage(tab.id, {
-            data: requestTypes.set_settings,
-            payload: newSettings
-          })
-        )
-      );
+      broadcast &&
+        chrome.tabs.query({}, tabs =>
+          tabs.forEach(tab =>
+            chrome.tabs.sendMessage(tab.id, {
+              type: requestTypes.set_settings,
+              payload: newSettings,
+              to: entities.page
+            })
+          )
+        );
     }
   );
 };
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((data, sender, sendResponse) => {
   const { get_settings, set_settings } = requestTypes;
-  console.log("# Message from", sender.tab.title.slice(0, 16));
-  console.log("# request =", request.data);
+  const { to, payload, type, from } = data;
 
-  switch (request.data) {
+  if (to !== entities.background) return;
+
+  console.log("# Message from", sender.tab.title.slice(0, 16));
+  console.log("# type =", type);
+  console.log("##################################");
+
+  switch (type) {
     case get_settings:
-      sendResponse(settings);
+      if (from === entities.settings) sendResponse(settings);
+      else
+        chrome.tabs.sendMessage(sender.tab.id, {
+          type: requestTypes.set_settings,
+          payload: settings,
+          to: entities.page
+        });
       break;
 
     case set_settings:
-      saveSettings(request.payload);
-      sendResponse(true);
+      saveSettings(payload, true);
+      if (from === entities.settings) sendResponse(true);
       break;
 
     default:

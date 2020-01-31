@@ -32,6 +32,9 @@ interface FFinstance {
   mapWrapper: HTMLElement;
 }
 
+// SELF SCRIPT
+let selfScript = null;
+
 // MAIN ARRAY
 let selections: FFinstance[] = [];
 
@@ -76,6 +79,10 @@ const initFF = () => {
   if (EXTENSION_LOADED) return;
   EXTENSION_LOADED = true;
 
+  selfScript = document.head.getElementsByClassName("fast-find")[0];
+
+  if (!selfScript) return;
+
   // Styles
   const style = document.createElement("style");
   style.innerHTML = ffStyle;
@@ -110,7 +117,10 @@ const initFF = () => {
   };
 
   // Repeat Logo
-  repeatLogo.setAttribute("src", chrome.extension.getURL("assets/repeat.png"));
+  repeatLogo.setAttribute(
+    "src",
+    selfScript.getAttribute("data-ff-urls-repeat")
+  );
   repeatLogo.classList.add("repeatLogo");
   repeatLogoWrapper.classList.add("repeatLogoWrapper");
 
@@ -137,7 +147,7 @@ const initFF = () => {
     requestAnimationFrame(() => {
       selectionsMapWrapper.classList.toggle("fixed");
     });
-  mapPin.setAttribute("src", chrome.extension.getURL("assets/pin.png"));
+  mapPin.setAttribute("src", selfScript.getAttribute("data-ff-urls-pin"));
   mapPin.classList.add("mapPin");
 
   // Opacity Button
@@ -228,21 +238,6 @@ const initFF = () => {
 
   // ON KEY DOWN
   window.addEventListener("keydown", onKeyDown);
-
-  // ON NEW SETTINGS
-  chrome.runtime.onMessage.addListener((request, sender) => {
-    const { set_settings } = Utils.requestTypes;
-    console.log("# request =", request.data);
-
-    switch (request.data) {
-      case set_settings:
-        settings = request.payload;
-        break;
-
-      default:
-        break;
-    }
-  });
 };
 
 const handleMasterFinderChildList = () => {
@@ -1161,11 +1156,31 @@ const getColorAndContrast = selection => {
 
 // GET SETTINGS AND START!
 window.onload = () => {
-  chrome.runtime.sendMessage(
-    { data: Utils.requestTypes.get_settings },
-    newSettings => {
-      settings = newSettings;
-      initFF();
-    }
+  const { set_settings } = Utils.requestTypes;
+  const { page, background } = Utils.entities;
+
+  window.addEventListener(
+    "message",
+    ({ data }) => {
+      if (data.to !== page) return;
+      switch (data.type) {
+        case set_settings:
+          settings = data.payload;
+          if (!EXTENSION_LOADED) initFF();
+          break;
+
+        default:
+          break;
+      }
+    },
+    false
+  );
+
+  window.postMessage(
+    {
+      type: Utils.requestTypes.get_settings,
+      to: background
+    },
+    "*"
   );
 };

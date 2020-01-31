@@ -1,18 +1,19 @@
 // const ChromeExtensionReloader = require("webpack-chrome-extension-reloader");
-const ExtensionReloader  = require('webpack-extension-reloader');
-const CopyPlugin = require('copy-webpack-plugin');
+const ExtensionReloader = require("webpack-extension-reloader");
+const CopyPlugin = require("copy-webpack-plugin");
 const path = require("path");
 
 module.exports = {
   entry: {
-    "content-script": path.join(__dirname, "src/index.ts"),
-    "browser-action": path.join(__dirname, "src/settings.ts"),
-    background: path.join(__dirname, "src/background.ts")
+    "fast-find": path.join(__dirname, "src/FastFind.ts"),
+    "content-script": path.join(__dirname, "src/EntryPoint.ts"),
+    "browser-action": path.join(__dirname, "src/settings/index.ts"),
+    settings: path.join(__dirname, "src/settings/index.ts"),
+    background: path.join(__dirname, "src/Background.ts")
   },
   output: {
     path: path.join(__dirname, "dist/"),
-    filename: "[name].js",
-    libraryTarget: "umd"
+    filename: "[name].js"
   },
   module: {
     rules: [
@@ -52,12 +53,10 @@ module.exports = {
       }
     }),
     new CopyPlugin([
-      { from: 'src/icons', to: './icons' },
-      { from: 'src/assets', to: './assets' },
-      { from: 'src/styles', to: './styles' },
-      { from: 'src/*.html', to: './', flatten: true },
-      { from: 'src/*.css', to: './', flatten: true },
-      { from: 'src/*.json', to: './', flatten: true },
-    ]),
+      { from: "src/icons", to: "./icons" },
+      { from: "src/assets", to: "./assets" },
+      { from: "src/settings", to: "./settings" },
+      { from: "src/*.json", to: "./", flatten: true }
+    ])
   ]
 };
