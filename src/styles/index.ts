@@ -28,9 +28,10 @@ body {
 }
 `;
 
-export const ffStyle = [
+export const ffBodyStyles = [ffStyleVars, ffelem].join("");
+
+export const ffElementStyles = [
   ffStyleVars,
-  ffelem,
   pageLoopLogo,
   masterFinder,
   mapWrapper,

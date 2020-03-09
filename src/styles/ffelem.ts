@@ -208,7 +208,7 @@ const ffelem = `
 .ffelem.selected::before {
   animation:
     highlight var(--highlight-animation-duration) var(--highlight-animation-effect),
-    border 3s var(--highlight-animation-effect) infinite;
+    border 1.6s var(--highlight-animation-effect) infinite;
   border-top-left-radius: var(--elem-radius-selected);
   border-bottom-left-radius: var(--elem-radius-selected);
   border-top-right-radius: var(--elem-radius-selected);
@@ -226,7 +226,7 @@ const ffelem = `
 .ffelemMiddle.selected::before {
   animation:
     highlightMiddle var(--highlight-animation-duration) var(--highlight-animation-effect),
-    border 3s var(--highlight-animation-effect) infinite;
+    border 1.6s var(--highlight-animation-effect) infinite;
   border-top: solid 1px rgba(255,255,255,1.0) !important;
   border-bottom: solid 1px rgba(255,255,255,1.0) !important;
   top: var(--elem-big);
@@ -236,7 +236,7 @@ const ffelem = `
 .ffelemStart.selected::before {
   animation:
     highlightStart var(--highlight-animation-duration) var(--highlight-animation-effect),
-    border 3s var(--highlight-animation-effect) infinite;
+    border 1.6s var(--highlight-animation-effect) infinite;
   border-top-left-radius: var(--elem-radius-selected);
   border-bottom-left-radius: var(--elem-radius-selected);
   border-top: solid 1px rgba(255,255,255,1.0) !important;
@@ -250,7 +250,7 @@ const ffelem = `
 .ffelemEnd.selected::before {
   animation:
     highlightEnd var(--highlight-animation-duration) var(--highlight-animation-effect),
-    border 3s var(--highlight-animation-effect) infinite;
+    border 1.6s var(--highlight-animation-effect) infinite;
   border-top-right-radius: var(--elem-radius-selected);
   border-bottom-right-radius: var(--elem-radius-selected);
   border-top: solid 1px rgba(255,255,255,1.0) !important;
@@ -268,12 +268,15 @@ const ffelem = `
 @keyframes border {
   0% {
     border-color: white;
+    filter: brightness(1.2);
   }
   50% {
     border-color: black;
+    filter: brightness(0.9);
   }
   100% {
     border-color: white;
+    filter: brightness(1.2);
   }
 }
 
