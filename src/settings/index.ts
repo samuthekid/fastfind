@@ -6,12 +6,18 @@ let settings = null;
 
 let onSaveButton = document.getElementById("feedback");
 let feedbackMsg = document.getElementById("saveButton");
+let versionSpan = document.getElementById("ff_description");
+let footerContainer = document.getElementById("footerContainer");
 
 const setFeedbackMsg = message => {
   if (!feedbackMsg) feedbackMsg = document.getElementById("feedback");
+  if (!footerContainer)
+    footerContainer = document.getElementById("footerContainer");
+  footerContainer.classList.add("onSave");
   feedbackMsg.innerText = message;
   setTimeout(() => {
     feedbackMsg.innerText = "";
+    footerContainer.classList.remove("onSave");
   }, 3000);
 };
 
@@ -52,6 +58,11 @@ const initFFSettings = () => {
       }
     );
   };
+
+  const manifestData = chrome.runtime.getManifest();
+  versionSpan = document.getElementById("ff_description");
+  versionSpan.innerText =
+    "By " + manifestData.author + " - Version: " + manifestData.version + " on";
 };
 
 window.onload = () => {

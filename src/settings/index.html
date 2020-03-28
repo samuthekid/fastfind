@@ -38,27 +38,51 @@
         <div id="settings" class="settingTabWrapper">
           <div class="settingTab">
             <div class="settingRow">
-              <label for="selectKey">Main selection key</label>
+              <div class="settingRowText">
+                <label for="selectKey">Main selection key</label>
+                <p class="settingRowTextHelper">After selecting text:</p>
+                <p class="settingRowTextHelper">- Press KEY to create a new instance</p>
+                <p class="settingRowTextHelper">- Shift+KEY will create a strict instance *</p>
+                <p class="settingRowTextHelper">Without selected text and have instances:</p>
+                <p class="settingRowTextHelper">- Press KEY to go to the next element within the instance</p>
+                <p class="settingRowTextHelper">- Shift+KEY to go to the previous element within the instance</p>
+              </div>
               <input type="input" maxlength="1" id="selectKey" class="textInput">
             </div>
 
             <div class="settingRow">
-              <label for="removeKey">Remove key</label>
+              <div class="settingRowText">
+                <label for="removeKey">Remove key</label>
+                <p class="settingRowTextHelper">Remove current instance</p>
+                <p class="settingRowTextHelper">Shift+KEY will remove all instances</p>
+              </div>
               <input type="input" maxlength="1" id="removeKey" class="textInput">
             </div>
 
             <div class="settingRow">
-              <label for="nextElementKey">Next element key</label>
+              <div class="settingRowText">
+                <label for="nextElementKey">Next element key</label>
+                <p class="settingRowTextHelper">Following the page flow, will select the next element</p>
+                <p class="settingRowTextHelper">Shift+KEY will select the previous element</p>
+              </div>
               <input type="input" maxlength="1" id="nextElementKey" class="textInput">
             </div>
 
             <div class="settingRow">
-              <label for="nextInstanceKey">Next instance key</label>
+              <div class="settingRowText">
+                <label for="nextInstanceKey">Next instance key</label>
+                <p class="settingRowTextHelper">Will jump to an element from the next instance</p>
+                <p class="settingRowTextHelper">Shift+KEY will jump to an element from the previous instance</p>
+                <p class="settingRowTextHelper">- Side map helps a lot on this!</p>
+              </div>
               <input type="input" maxlength="1" id="nextInstanceKey" class="textInput">
             </div>
 
             <div class="settingRow">
-              <label for="smoothScrolling">Smooth scrolling</label>
+              <div class="settingRowText">
+                <label for="smoothScrolling">Smooth scrolling</label>
+                <p class="settingRowTextHelper">Will use instant scrolling when disabled</p>
+              </div>
               <div class="checkboxWrapper">
                 <input type="checkbox" id="smoothScrolling" style="display:none" class="checkbox">
                 <label for="smoothScrolling" class="toggle"><span></span></label>
@@ -66,7 +90,9 @@
             </div>
 
             <div class="settingRow">
-              <label for="keepElementCentered">Keep elements centered</label>
+              <div class="settingRowText">
+                <label for="keepElementCentered">Always keep elements centered</label>
+              </div>
               <div class="checkboxWrapper">
                 <input type="checkbox" id="keepElementCentered" style="display:none" class="checkbox">
                 <label for="keepElementCentered" class="toggle"><span></span></label>
@@ -74,7 +100,10 @@
             </div>
 
             <div class="settingRow">
-              <label for="showRotatingArrow">Show rotating logo</label>
+              <div class="settingRowText">
+                <label for="showRotatingArrow">Show rotating arrow</label>
+                <p class="settingRowTextHelper">When you jump from the last element to the first or vice versa</p>
+              </div>
               <div class="checkboxWrapper">
                 <input type="checkbox" id="showRotatingArrow" style="display:none" class="checkbox">
                 <label for="showRotatingArrow" class="toggle"><span></span></label>
@@ -82,7 +111,12 @@
             </div>
 
             <div class="settingRow">
-              <label for="forceWordBorders">Word borders always on</label>
+              <div class="settingRowText">
+                <label for="forceWordBorders">Word borders always on</label>
+                <p class="settingRowTextHelper">Will look for complete words in the document</p>
+                <p class="settingRowTextHelper">"elements" on "elementsLength" will not be found!</p>
+                <p class="settingRowTextHelper">* strict instance uses word borders on</p>
+              </div>
               <div class="checkboxWrapper">
                 <input type="checkbox" id="forceWordBorders" style="display:none" class="checkbox">
                 <label for="forceWordBorders" class="toggle"><span></span></label>
@@ -90,19 +124,25 @@
             </div>
 
             <div class="settingRow">
-              <label for="forceCaseSensitive">Case sensitive always on</label>
+              <div class="settingRowText">
+                <label for="forceCaseSensitive">Case sensitive always on</label>
+                <p class="settingRowTextHelper">* strict instance uses case sensitive on</p>
+              </div>
               <div class="checkboxWrapper">
                 <input type="checkbox" id="forceCaseSensitive" style="display:none" class="checkbox">
                 <label for="forceCaseSensitive" class="toggle"><span></span></label>
               </div>
             </div>
+            <p class="settingTabHelper"></p>
           </div>
         </div>
 
         <div id="sideMap" class="settingTabWrapper">
           <div class="settingTab">
             <div class="settingRow">
-              <label for="showSideMap">Show side map</label>
+              <div class="settingRowText">
+                <label for="showSideMap">Show side map</label>
+              </div>
               <div class="checkboxWrapper">
                 <input type="checkbox" id="showSideMap" style="display:none" class="checkbox">
                 <label for="showSideMap" class="toggle"><span></span></label>
@@ -110,7 +150,10 @@
             </div>
 
             <div class="settingRow">
-              <label for="autoExpandSideMap">Auto expand side map</label>
+              <div class="settingRowText">
+                <label for="autoExpandSideMap">Auto expand side map</label>
+                <p class="settingRowTextHelper">Always show all the columns</p>
+              </div>
               <div class="checkboxWrapper">
                 <input type="checkbox" id="autoExpandSideMap" style="display:none" class="checkbox">
                 <label for="autoExpandSideMap" class="toggle"><span></span></label>
@@ -118,7 +161,9 @@
             </div>
 
             <div class="settingRow">
-              <label for="opaqueSideMap">Use opaque background on side map</label>
+              <div class="settingRowText">
+                <label for="opaqueSideMap">Use opaque background on side map</label>
+              </div>
               <div class="checkboxWrapper">
                 <input type="checkbox" id="opaqueSideMap" style="display:none" class="checkbox">
                 <label for="opaqueSideMap" class="toggle"><span></span></label>
@@ -126,7 +171,9 @@
             </div>
 
             <div class="settingRow">
-              <label for="lightThemeSideMap">Use light theme on side map</label>
+              <div class="settingRowText">
+                <label for="lightThemeSideMap">Use light theme on side map</label>
+              </div>
               <div class="checkboxWrapper">
                 <input type="checkbox" id="lightThemeSideMap" style="display:none" class="checkbox">
                 <label for="lightThemeSideMap" class="toggle"><span></span></label>
@@ -134,7 +181,9 @@
             </div>
 
             <div class="settingRow">
-              <label for="mapButtonsOnTop">Show side buttons on top</label>
+              <div class="settingRowText">
+                <label for="mapButtonsOnTop">Show side buttons on top</label>
+              </div>
               <div class="checkboxWrapper">
                 <input type="checkbox" id="mapButtonsOnTop" style="display:none" class="checkbox">
                 <label for="mapButtonsOnTop" class="toggle"><span></span></label>
@@ -142,7 +191,9 @@
             </div>
 
             <div class="settingRow">
-              <label for="showMapLabels">Show side map columns labels</label>
+              <div class="settingRowText">
+                <label for="showMapLabels">Show side map columns labels</label>
+              </div>
               <div class="checkboxWrapper">
                 <input type="checkbox" id="showMapLabels" style="display:none" class="checkbox">
                 <label for="showMapLabels" class="toggle"><span></span></label>
@@ -150,7 +201,9 @@
             </div>
 
             <div class="settingRow">
-              <label for="showNumberOfResults">Show number of results on labels</label>
+              <div class="settingRowText">
+                <label for="showNumberOfResults">Show number of results on labels</label>
+              </div>
               <div class="checkboxWrapper">
                 <input type="checkbox" id="showNumberOfResults" style="display:none" class="checkbox">
                 <label for="showNumberOfResults" class="toggle"><span></span></label>
@@ -163,15 +216,26 @@
         <div id="masterFinder" class="settingTabWrapper">
           <div class="settingTab">
             <div class="settingRow">
-              <label for="masterFinderEnabled">Enable master finder</label>
+              <div class="settingRowText">
+                <label for="masterFinderEnabled">Enable master finder</label>
+                <p class="settingRowTextHelper">Use Option+F to enable (Alt on Windows)</p>
+                <p class="settingRowTextHelper">Esc to disable</p>
+              </div>
               <div class="checkboxWrapper">
                 <input type="checkbox" id="masterFinderEnabled" style="display:none" class="checkbox">
                 <label for="masterFinderEnabled" class="toggle"><span></span></label>
               </div>
             </div>
 
+            <p class="settingTabHelper">Press Enter to jump to the next result</p>
+            <p class="settingTabHelper">Shift+Enter jumps to the previous result</p>
+            <p class="settingTabHelper">Command+Enter will transform the master finder results in a new instance (Ctrl on Windows)</p>
+
             <div class="settingRow">
-              <label for="masterFinderOverride">Override browser's native search</label>
+              <div class="settingRowText">
+                <label for="masterFinderOverride">Override browser's native search</label>
+                <p class="settingRowTextHelper">Will use Command+F instead (Ctrl on Windows)</p>
+              </div>
               <div class="checkboxWrapper">
                 <input type="checkbox" id="masterFinderOverride" style="display:none" class="checkbox">
                 <label for="masterFinderOverride" class="toggle"><span></span></label>
@@ -179,17 +243,29 @@
             </div>
 
             <div class="settingRow">
-              <label for="wordBordersToggleKey">Toggle word borders (option || alt + KEY)</label>
+              <div class="settingRowText">
+                <label for="wordBordersToggleKey">Toggle word borders</label>
+                <p class="settingRowTextHelper">Press Option+KEY to toggle word borders (Alt on Windows)</p>
+                <p class="settingRowTextHelper">A symbol will show up when on: | |</p>
+              </div>
               <input type="input" maxlength="1" id="wordBordersToggleKey" class="textInput">
             </div>
 
             <div class="settingRow">
-              <label for="caseSensitiveToggleKey">Toggle case sensitive (option || alt + KEY)</label>
+              <div class="settingRowText">
+                <label for="caseSensitiveToggleKey">Toggle case sensitive</label>
+                <p class="settingRowTextHelper">Press Option+KEY to toggle case sensitive (Alt on Windows)</p>
+                <p class="settingRowTextHelper">A symbol will show up when on: Aa</p>
+              </div>
               <input type="input" maxlength="1" id="caseSensitiveToggleKey" class="textInput">
             </div>
 
             <div class="settingRow">
-              <label for="scrollToResultAfterSearch">Scroll to result after search</label>
+              <div class="settingRowText">
+                <label for="scrollToResultAfterSearch">Scroll to result after search</label>
+                <p class="settingRowTextHelper">When disabled you will have to press Enter to scroll to it</p>
+                <p class="settingRowTextHelper">It gives you the possibility of searching without moving the page</p>
+              </div>
               <div class="checkboxWrapper">
                 <input type="checkbox" id="scrollToResultAfterSearch" style="display:none" class="checkbox">
                 <label for="scrollToResultAfterSearch" class="toggle"><span></span></label>
@@ -197,7 +273,11 @@
             </div>
 
             <div class="settingRow">
-              <label for="scrollToNearestResult">Scroll to nearest result from current location</label>
+              <div class="settingRowText">
+                <label for="scrollToNearestResult">Select the nearest result</label>
+                <p class="settingRowTextHelper">Will jump to the nearest result from the center of the screen</p>
+                <p class="settingRowTextHelper">When disabled it will always select the first on the page</p>
+              </div>
               <div class="checkboxWrapper">
                 <input type="checkbox" id="scrollToNearestResult" style="display:none" class="checkbox">
                 <label for="scrollToNearestResult" class="toggle"><span></span></label>
@@ -212,7 +292,7 @@
         </div>
       </div>
       <div id="detailsContainer">
-        <span class="ff_description">Version: 0.9.8.5 - <a target="blank" href="https://github.com/samuthekid/fastfind">Github</a></span>
+        <span id="ff_description"></span><a target="blank" href="https://github.com/samuthekid/fastfind">Github</a>
       </div>
     </div>
   </body>
