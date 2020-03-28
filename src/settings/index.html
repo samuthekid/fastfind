@@ -6,125 +6,214 @@
     <title>FastFind Settings</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" type="text/css" media="screen" href="styles.css" />
+    <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
     <script src="../browser-action.js"></script>
   </head>
   <body>
-    <img src="../icons/128.png">
-    <br/>
-    <a href="#home">Home</a>
-    <a href="#settings">Settings</a>
-    <a href="#sideMap">Side Map</a>
-    <a href="#masterFinder">Master Finder</a>
+    <div id="mainContainer">
+      <div id="headerContainer">
+        <div id="titleContainer">
+          <img src="../assets/logo_dark.png" id="ff_logo">
+          <span id="ff_title">FastFind</span>
+        </div>
+      </div>
 
-    <div id="home">
-      <p>Description</p>
-      <p>Video presentation (on install or button)</p>
-      <p>Links (Github, store, twitter)</p>
-      <p>Donate Button</p>
+      <div id="mainContent">
+        <div id="menusContainer">
+          <a class="menuItem" href="#home">Home</a>
+          <a class="menuItem" href="#settings">Settings</a>
+          <a class="menuItem" href="#sideMap">Side Map</a>
+          <a class="menuItem" href="#masterFinder">Master Finder</a>
+        </div>
+
+        <div id="home" class="settingTabWrapper">
+          <div class="settingTab">
+            <p>Description</p>
+            <p>Video presentation (on install or button)</p>
+            <p>Links (Github, store, twitter)</p>
+            <p>Donate Button</p>
+          </div>
+        </div>
+        
+        <div id="settings" class="settingTabWrapper">
+          <div class="settingTab">
+            <div class="settingRow">
+              <label for="selectKey">Main selection key</label>
+              <input type="input" maxlength="1" id="selectKey" class="textInput">
+            </div>
+
+            <div class="settingRow">
+              <label for="removeKey">Remove key</label>
+              <input type="input" maxlength="1" id="removeKey" class="textInput">
+            </div>
+
+            <div class="settingRow">
+              <label for="nextElementKey">Next element key</label>
+              <input type="input" maxlength="1" id="nextElementKey" class="textInput">
+            </div>
+
+            <div class="settingRow">
+              <label for="nextInstanceKey">Next instance key</label>
+              <input type="input" maxlength="1" id="nextInstanceKey" class="textInput">
+            </div>
+
+            <div class="settingRow">
+              <label for="smoothScrolling">Smooth scrolling</label>
+              <div class="checkboxWrapper">
+                <input type="checkbox" id="smoothScrolling" style="display:none" class="checkbox">
+                <label for="smoothScrolling" class="toggle"><span></span></label>
+              </div>
+            </div>
+
+            <div class="settingRow">
+              <label for="keepElementCentered">Keep elements centered</label>
+              <div class="checkboxWrapper">
+                <input type="checkbox" id="keepElementCentered" style="display:none" class="checkbox">
+                <label for="keepElementCentered" class="toggle"><span></span></label>
+              </div>
+            </div>
+
+            <div class="settingRow">
+              <label for="showRotatingArrow">Show rotating logo</label>
+              <div class="checkboxWrapper">
+                <input type="checkbox" id="showRotatingArrow" style="display:none" class="checkbox">
+                <label for="showRotatingArrow" class="toggle"><span></span></label>
+              </div>
+            </div>
+
+            <div class="settingRow">
+              <label for="forceWordBorders">Word borders always on</label>
+              <div class="checkboxWrapper">
+                <input type="checkbox" id="forceWordBorders" style="display:none" class="checkbox">
+                <label for="forceWordBorders" class="toggle"><span></span></label>
+              </div>
+            </div>
+
+            <div class="settingRow">
+              <label for="forceCaseSensitive">Case sensitive always on</label>
+              <div class="checkboxWrapper">
+                <input type="checkbox" id="forceCaseSensitive" style="display:none" class="checkbox">
+                <label for="forceCaseSensitive" class="toggle"><span></span></label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="sideMap" class="settingTabWrapper">
+          <div class="settingTab">
+            <div class="settingRow">
+              <label for="showSideMap">Show side map</label>
+              <div class="checkboxWrapper">
+                <input type="checkbox" id="showSideMap" style="display:none" class="checkbox">
+                <label for="showSideMap" class="toggle"><span></span></label>
+              </div>
+            </div>
+
+            <div class="settingRow">
+              <label for="autoExpandSideMap">Auto expand side map</label>
+              <div class="checkboxWrapper">
+                <input type="checkbox" id="autoExpandSideMap" style="display:none" class="checkbox">
+                <label for="autoExpandSideMap" class="toggle"><span></span></label>
+              </div>
+            </div>
+
+            <div class="settingRow">
+              <label for="opaqueSideMap">Use opaque background on side map</label>
+              <div class="checkboxWrapper">
+                <input type="checkbox" id="opaqueSideMap" style="display:none" class="checkbox">
+                <label for="opaqueSideMap" class="toggle"><span></span></label>
+              </div>
+            </div>
+
+            <div class="settingRow">
+              <label for="lightThemeSideMap">Use light theme on side map</label>
+              <div class="checkboxWrapper">
+                <input type="checkbox" id="lightThemeSideMap" style="display:none" class="checkbox">
+                <label for="lightThemeSideMap" class="toggle"><span></span></label>
+              </div>
+            </div>
+
+            <div class="settingRow">
+              <label for="mapButtonsOnTop">Show side buttons on top</label>
+              <div class="checkboxWrapper">
+                <input type="checkbox" id="mapButtonsOnTop" style="display:none" class="checkbox">
+                <label for="mapButtonsOnTop" class="toggle"><span></span></label>
+              </div>
+            </div>
+
+            <div class="settingRow">
+              <label for="showMapLabels">Show side map columns labels</label>
+              <div class="checkboxWrapper">
+                <input type="checkbox" id="showMapLabels" style="display:none" class="checkbox">
+                <label for="showMapLabels" class="toggle"><span></span></label>
+              </div>
+            </div>
+
+            <div class="settingRow">
+              <label for="showNumberOfResults">Show number of results on labels</label>
+              <div class="checkboxWrapper">
+                <input type="checkbox" id="showNumberOfResults" style="display:none" class="checkbox">
+                <label for="showNumberOfResults" class="toggle"><span></span></label>
+              </div>
+            </div>
+            <p class="settingTabHelper">Note: Side map settings only apply after page reload</p>
+          </div>
+        </div>
+
+        <div id="masterFinder" class="settingTabWrapper">
+          <div class="settingTab">
+            <div class="settingRow">
+              <label for="masterFinderEnabled">Enable master finder</label>
+              <div class="checkboxWrapper">
+                <input type="checkbox" id="masterFinderEnabled" style="display:none" class="checkbox">
+                <label for="masterFinderEnabled" class="toggle"><span></span></label>
+              </div>
+            </div>
+
+            <div class="settingRow">
+              <label for="masterFinderOverride">Override browser's native search</label>
+              <div class="checkboxWrapper">
+                <input type="checkbox" id="masterFinderOverride" style="display:none" class="checkbox">
+                <label for="masterFinderOverride" class="toggle"><span></span></label>
+              </div>
+            </div>
+
+            <div class="settingRow">
+              <label for="wordBordersToggleKey">Toggle word borders (option || alt + KEY)</label>
+              <input type="input" maxlength="1" id="wordBordersToggleKey" class="textInput">
+            </div>
+
+            <div class="settingRow">
+              <label for="caseSensitiveToggleKey">Toggle case sensitive (option || alt + KEY)</label>
+              <input type="input" maxlength="1" id="caseSensitiveToggleKey" class="textInput">
+            </div>
+
+            <div class="settingRow">
+              <label for="scrollToResultAfterSearch">Scroll to result after search</label>
+              <div class="checkboxWrapper">
+                <input type="checkbox" id="scrollToResultAfterSearch" style="display:none" class="checkbox">
+                <label for="scrollToResultAfterSearch" class="toggle"><span></span></label>
+              </div>
+            </div>
+
+            <div class="settingRow">
+              <label for="scrollToNearestResult">Scroll to nearest result from current location</label>
+              <div class="checkboxWrapper">
+                <input type="checkbox" id="scrollToNearestResult" style="display:none" class="checkbox">
+                <label for="scrollToNearestResult" class="toggle"><span></span></label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="footerContainer">
+          <span id="feedback"></span>
+          <button id="saveButton">Save</button>
+        </div>
+      </div>
+      <div id="detailsContainer">
+        <span class="ff_description">Version: 0.9.8.5 - <a target="blank" href="https://github.com/samuthekid/fastfind">Github</a></span>
+      </div>
     </div>
-    
-    <div id="settings">
-      <h1>Settings</h1>
-
-      <label for="selectKey">Main selection key</label>
-      <input type="input" maxlength="1" id="selectKey">
-      <br/>
-
-      <label for="removeKey">Remove key</label>
-      <input type="input" maxlength="1" id="removeKey">
-      <br/>
-
-      <label for="nextElementKey">Next element key</label>
-      <input type="input" maxlength="1" id="nextElementKey">
-      <br/>
-
-      <label for="nextInstanceKey">Next instance key</label>
-      <input type="input" maxlength="1" id="nextInstanceKey">
-      <br/>
-
-      <label for="smoothScrolling">Smooth scrolling</label>
-      <input type="checkbox" id="smoothScrolling">
-      <br/>
-
-      <label for="keepElementCentered">Keep elements centered</label>
-      <input type="checkbox" id="keepElementCentered">
-      <br/>
-
-      <label for="showRotatingArrow">Show rotating logo</label>
-      <input type="checkbox" id="showRotatingArrow">
-      <br/>
-
-      <label for="forceWordBorders">Word borders always on</label>
-      <input type="checkbox" id="forceWordBorders">
-      <br/>
-
-      <label for="forceCaseSensitive">Case sensitive always on</label>
-      <input type="checkbox" id="forceCaseSensitive">
-      <br/>
-    </div>
-
-    <div id="sideMap">
-      <h1>Side Map</h1>
-      <h3>Note: Side map settings only apply after page reload</h3>
-
-      <label for="showSideMap">Show side map</label>
-      <input type="checkbox" id="showSideMap">
-      <br/>
-
-      <label for="autoExpandSideMap">Auto expand side map</label>
-      <input type="checkbox" id="autoExpandSideMap">
-      <br/>
-
-      <label for="opaqueSideMap">Use opaque background on side map</label>
-      <input type="checkbox" id="opaqueSideMap">
-      <br/>
-
-      <label for="lightThemeSideMap">Use light theme on side map</label>
-      <input type="checkbox" id="lightThemeSideMap">
-      <br/>
-
-      <label for="mapButtonsOnTop">Show side buttons on top</label>
-      <input type="checkbox" id="mapButtonsOnTop">
-      <br/>
-
-      <label for="showMapLabels">Show side map columns labels</label>
-      <input type="checkbox" id="showMapLabels">
-      <br/>
-
-      <label for="showNumberOfResults">Show number of results on labels</label>
-      <input type="checkbox" id="showNumberOfResults">
-      <br/>
-    </div>
-
-    <div id="masterFinder">
-      <h1>Master Finder</h1>
-
-      <label for="masterFinderEnabled">Enable master finder</label>
-      <input type="checkbox" id="masterFinderEnabled">
-      <br/>
-
-      <label for="masterFinderOverride">Override browser's native search</label>
-      <input type="checkbox" id="masterFinderOverride">
-      <br/>
-
-      <label for="wordBordersToggleKey">Toggle word borders (option || alt + KEY)</label>
-      <input type="input" maxlength="1" id="wordBordersToggleKey">
-      <br/>
-
-      <label for="caseSensitiveToggleKey">Toggle case sensitive (option || alt + KEY)</label>
-      <input type="input" maxlength="1" id="caseSensitiveToggleKey">
-      <br/>
-
-      <label for="scrollToResultAfterSearch">Scroll to result after search</label>
-      <input type="checkbox" id="scrollToResultAfterSearch">
-      <br/>
-
-      <label for="scrollToNearestResult">Scroll to nearest result from current location</label>
-      <input type="checkbox" id="scrollToNearestResult">
-      <br/>
-    </div>
-
-    <button id="saveButton">Save</button>
-    <p id="feedback" />
   </body>
 </htm>

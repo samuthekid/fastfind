@@ -79,7 +79,7 @@ chrome.runtime.onMessage.addListener((data, sender, sendResponse) => {
 
   if (to !== entities.background) return;
 
-  console.log("# Message from", sender.tab.title.slice(0, 16));
+  sender.tab && console.log("# Message from", sender.tab.title.slice(0, 16));
   console.log("# type =", type);
   console.log("##################################");
 

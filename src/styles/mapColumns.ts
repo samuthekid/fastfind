@@ -58,14 +58,14 @@ const mapColumns = `
 }
 
 .mapWrapper.selected .mapIndicator {
-  border: solid 0.5px rgba(255,255,255,0.4) !important;
+  border: solid 0.5px rgba(255,255,255,0.4);
   width: 9px;
   height: 5px;
 }
 
 .mapIndicator:hover,
 .mapIndicator.hovered {
-  border: solid 0.5px rgba(255,255,255,0.4) !important;
+  border: solid 0.5px rgba(255,255,255,0.4);
   width: 14px;
   margin-left: 0px;
 }
@@ -84,7 +84,7 @@ const mapColumns = `
 }
 
 .mapWrapper.selected .mapIndicator.selected {
-  border: solid 0.5px rgba(255,255,255,1.0) !important;
+  border: solid 0.5px rgba(255,255,255,1.0);
 }
 
 .mapWrapper.master .mapIndicator {

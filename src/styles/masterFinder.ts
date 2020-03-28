@@ -25,7 +25,7 @@ const masterFinder = `
 }
 
 .masterFinderWrapper.noAnim {
-  animation: none !important;
+  animation: none;
 }
 
 .masterFinder {

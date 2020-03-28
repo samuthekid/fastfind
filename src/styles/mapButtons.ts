@@ -97,7 +97,7 @@ const mapButtons = `
   height: 60%;
   margin: 20% 30%;
   opacity: 0.4;
-  border: solid .5px white !important;
+  border: solid .5px white;
   transition:
     border .2s ease,
     width .2s ease,
@@ -108,7 +108,7 @@ const mapButtons = `
 }
 
 .selectionsMapWrapper.lightTheme .mapOpacity {
-  border: solid .5px black !important;
+  border: solid .5px black;
 }
 
 .mapOpacity:hover {

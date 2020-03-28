@@ -16,7 +16,8 @@
       "48": "icons/48.png",
       "128": "icons/128.png"
     },
-    "default_title": "FastFind Settings"
+    "default_title": "FastFind Settings",
+    "default_popup": "settings/index.html#settings"
   },
   "content_scripts": [
     {

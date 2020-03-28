@@ -1005,6 +1005,8 @@ class FastFindWrapper extends HTMLElement {
   constructor() {
     super();
 
+    console.log(" -- FastFind has started! 👋 --");
+
     var shadow = this.attachShadow({ mode: "open" });
 
     if (EXTENSION_LOADED) return;
