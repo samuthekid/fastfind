@@ -26,7 +26,6 @@ html {
 }
 
 body {
-  min-height: 100vh;
   margin: 0;
   padding: 0;
   font-size: large;
@@ -37,6 +36,15 @@ body {
   color: var(--ff-text-color);
   background-color: #202125;
   -webkit-font-smoothing: antialiased;
+}
+
+@media screen and (max-width: 500px) {
+  body,
+  html {
+    width: 500px;
+    min-height: 600px;
+    height: 100vh;
+  }
 }
 
 p {
@@ -53,6 +61,13 @@ div#mainContainer {
   align-items: center;
 }
 
+@media screen and (max-width: 500px) {
+  div#mainContainer {
+    width: 100%;
+    height: 100vh;
+  }
+}
+
 div#headerContainer {
   width: 100%;
   display: flex;
@@ -60,6 +75,12 @@ div#headerContainer {
   flex-direction: row;
   align-items: flex-end;
   justify-content: center;
+}
+
+@media screen and (max-width: 500px) {
+  div#headerContainer {
+    display: none;
+  }
 }
 
 div#titleContainer {
@@ -101,9 +122,15 @@ div#mainContent {
 a.menuItem {
   width: calc(100% / var(--ff--menus-length));
   text-align: center;
-  padding: 12px 26px;
+  padding: 12px 0;
   text-decoration: none;
   color: var(--ff-text-color);
+}
+
+@media screen and (max-width: 500px) {
+  a.menuItem {
+    font-size: smaller;
+  }
 }
 
 a.menuItem:first-child {
@@ -136,6 +163,12 @@ div.settingTabWrapper::before {
   background: var(--ff-theme-color);
 }
 
+@media screen and (max-width: 500px) {
+  div.settingTabWrapper::before {
+    top: 42px;
+  }
+}
+
 div.settingTabWrapper#home::before {
   left: 0;
 }
@@ -162,11 +195,23 @@ div.settingTab {
   padding: 10px 0;
 }
 
+@media screen and (max-width: 500px) {
+  div.settingTab {
+    height: calc(100vh - 185px);
+  }
+}
+
 p.settingTabHelper {
   width: calc(100% - 40px);
   padding: 20px;
   font-size: smaller;
   color: var(--ff-text-color-dark);
+}
+
+@media screen and (max-width: 500px) {
+  p.settingTabHelper {
+    display: none;
+  }
 }
 
 div.settingRow {
@@ -196,6 +241,12 @@ p.settingRowTextHelper {
   color: var(--ff-text-color-dark);
   font-size: small;
   padding-top: 6px;
+}
+
+@media screen and (max-width: 500px) {
+  p.settingRowTextHelper {
+    display: none;
+  }
 }
 
 .toggle {
@@ -335,6 +386,12 @@ div#detailsContainer {
   align-items: flex-end;
   justify-content: center;
   padding-top: 20px;
+}
+
+@media screen and (max-width: 500px) {
+  div#detailsContainer {
+    display: none;
+  }
 }
 
 div#detailsContainer a {
