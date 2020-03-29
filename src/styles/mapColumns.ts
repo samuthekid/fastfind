@@ -7,7 +7,7 @@ const mapColumns = `
   right: 0px;
   width: 18px;
   height: 100vh;
-  opacity: 0.6;
+  opacity: 0.4;
 }
 
 .selectionsMapWrapper:hover .mapWrapper,
@@ -32,11 +32,11 @@ const mapColumns = `
 }
 
 .mapWrapper:hover {
-  background: rgba(255,255,255,0.4);
+  background: rgba(255,255,255,0.1);
 }
 
 .selectionsMapWrapper.lightTheme .mapWrapper:hover {
-  background: rgba(0,0,0,0.2);
+  background: rgba(0,0,0,0.1);
 }
 
 

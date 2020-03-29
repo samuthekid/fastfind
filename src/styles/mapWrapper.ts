@@ -16,12 +16,12 @@ const mapWrapper = `
 
 .selectionsMapWrapper:hover,
 .selectionsMapWrapper.fixed {
-  background: rgba(0,0,0,0.6);
+  background: rgba(0,0,0,0.8);
 }
 
 .selectionsMapWrapper.lightTheme:hover,
 .selectionsMapWrapper.lightTheme.fixed {
-  background: rgba(255,255,255,0.5);
+  background: rgba(255,255,255,0.8);
 }
 
 .selectionsMapWrapper.opaque {
@@ -43,14 +43,14 @@ const mapWrapper = `
 .selectionsMapScroll {
   position: absolute;
   width: 100%;
-  background: rgba(255,255,255,0.4);
+  background: rgba(255,255,255,0.2);
   opacity: 0.5;
   z-index: 2;
   pointer-events: none;
 }
 
 .selectionsMapWrapper.lightTheme .selectionsMapScroll {
-  background: rgba(0,0,0,0.4);
+  background: rgba(0,0,0,0.2);
 }
 `;
 

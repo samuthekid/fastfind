@@ -31,6 +31,8 @@ const masterFinder = `
 .masterFinder {
   position: relative;
   min-width: 200px;
+  max-width: 90vw;
+  height: 44px;
   font-size: 28px;
   white-space: nowrap;
   text-align: center;

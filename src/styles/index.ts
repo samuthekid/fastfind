@@ -4,6 +4,7 @@ import mapColumns from "./mapColumns";
 import mapWrapper from "./mapWrapper";
 import masterFinder from "./masterFinder";
 import pageLoopLogo from "./pageLoopLogo";
+import resetCss from "./resetCss";
 
 const ffStyleVars = `
 body {
@@ -26,9 +27,13 @@ body {
   --master-yellow: #FEFF03;
   --master-orange: #FF9631;
 }
+`;
 
+const ffElementsStyleVar = `
 body#ffbody {
   -webkit-font-smoothing: antialiased;
+  font-family: Opensans;
+  line-height: 1.5;
 }
 
 @media print {
@@ -41,7 +46,9 @@ body#ffbody {
 export const ffBodyStyles = [ffStyleVars, ffelem].join("");
 
 export const ffElementStyles = [
+  resetCss,
   ffStyleVars,
+  ffElementsStyleVar,
   pageLoopLogo,
   masterFinder,
   mapWrapper,
