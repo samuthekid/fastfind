@@ -1126,16 +1126,19 @@ class FastFindWrapper extends HTMLElement {
     // Add all to document body
     // Order is important !
     requestAnimationFrame(() => {
+      const body = document.createElement("body");
+      body.setAttribute("id", "ffbody");
       document.head.appendChild(bodyStyle);
       shadow.appendChild(elementStyle);
+      shadow.appendChild(body);
 
       masterFinderWrapper.appendChild(document.createElement("div"));
       masterFinderWrapper.appendChild(masterFinder);
       masterFinderWrapper.appendChild(document.createElement("div"));
-      shadow.appendChild(masterFinderWrapper);
+      body.appendChild(masterFinderWrapper);
 
       repeatLogoWrapper.appendChild(repeatLogo);
-      shadow.appendChild(repeatLogoWrapper);
+      body.appendChild(repeatLogoWrapper);
 
       selectionsMapPin.appendChild(mapPin);
       selectionsMapWrapper.appendChild(selectionsMapPin);
@@ -1147,7 +1150,7 @@ class FastFindWrapper extends HTMLElement {
       selectionsMapWrapper.appendChild(selectionsButtonsPosition);
 
       selectionsMapWrapper.appendChild(selectionsMapScroll);
-      shadow.appendChild(selectionsMapWrapper);
+      body.appendChild(selectionsMapWrapper);
     });
 
     windowHeight = window.innerHeight;

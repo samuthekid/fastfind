@@ -26,6 +26,12 @@ body {
   --master-yellow: #FEFF03;
   --master-orange: #FF9631;
 }
+
+@media print {
+  body#ffbody {
+    display: none !important;
+  }
+}
 `;
 
 export const ffBodyStyles = [ffStyleVars, ffelem].join("");
