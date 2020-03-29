@@ -4,7 +4,7 @@ console.log("Hello from background page! 👋 -- FastFind");
 
 const LOCAL_STORAGE_KEY = "__FF_STORAGE_KEY__";
 
-const defaultSettings = {
+export const defaultSettings = {
   // KEYS
   selectKey: "f",
   removeKey: "d",

@@ -1,18 +1,18 @@
 import { requestTypes, entities } from "../helpers";
+import { defaultSettings } from "../Background";
 
 console.log("Hello from settings page! 👋 -- FastFind");
 
 let settings = null;
 
-let onSaveButton = document.getElementById("feedback");
-let feedbackMsg = document.getElementById("saveButton");
-let versionSpan = document.getElementById("ff_description");
-let footerContainer = document.getElementById("footerContainer");
+let onSaveButton;
+let openOnTabButton;
+let resetSettingsButton;
+let feedbackMsg;
+let versionSpan;
+let footerContainer;
 
 const setFeedbackMsg = message => {
-  if (!feedbackMsg) feedbackMsg = document.getElementById("feedback");
-  if (!footerContainer)
-    footerContainer = document.getElementById("footerContainer");
   footerContainer.classList.add("onSave");
   feedbackMsg.innerText = message;
   setTimeout(() => {
@@ -42,7 +42,6 @@ const initFFSettings = () => {
     }
   });
 
-  onSaveButton = document.getElementById("saveButton");
   onSaveButton.onclick = () => {
     chrome.runtime.sendMessage(
       {
@@ -51,18 +50,32 @@ const initFFSettings = () => {
         to: entities.background,
         from: entities.settings
       },
-      success => {
-        if (success) {
-          setFeedbackMsg("Saved!");
-        } else {
-          setFeedbackMsg("Ups! Something went wrong...");
-        }
-      }
+      success =>
+        success
+          ? setFeedbackMsg("Saved!")
+          : setFeedbackMsg("Ups! Something went wrong...")
     );
   };
 
+  openOnTabButton.onclick = () => chrome.runtime.openOptionsPage();
+  resetSettingsButton.onclick = () => {
+    if (confirm("Are you sure?")) {
+      chrome.runtime.sendMessage(
+        {
+          type: requestTypes.set_settings,
+          payload: defaultSettings,
+          to: entities.background,
+          from: entities.settings
+        },
+        success =>
+          success
+            ? window.location.reload()
+            : setFeedbackMsg("Ups! Something went wrong...")
+      );
+    }
+  };
+
   const manifestData = chrome.runtime.getManifest();
-  versionSpan = document.getElementById("ff_description");
   versionSpan.innerText =
     "By " + manifestData.author + " - Version: " + manifestData.version + " on";
 };
@@ -70,6 +83,13 @@ const initFFSettings = () => {
 window.onload = () => {
   // Activate first tab!
   if (!window.location.href.includes("#")) window.location.href += "#home";
+
+  onSaveButton = document.getElementById("saveButton");
+  openOnTabButton = document.getElementById("openOnTabButton");
+  resetSettingsButton = document.getElementById("resetSettingsButton");
+  feedbackMsg = document.getElementById("feedback");
+  versionSpan = document.getElementById("extensionVersion");
+  footerContainer = document.getElementById("footerContainer");
 
   chrome.runtime.sendMessage(
     {

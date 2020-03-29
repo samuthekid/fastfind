@@ -13,6 +13,10 @@ html {
   --ff-row-hover: #303033;
   --ff-border-radius: 4px;
 
+  --ff-blue: #0071bc;
+  --ff-red: #e05555;
+  --ff-yellow: #faa916;
+
   --ff--menus-length: 4;
 }
 
@@ -344,12 +348,25 @@ input.textInput {
   bottom: 0;
   left: 0;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   width: 100%;
-  justify-content: center;
-  align-items: center;
+  justify-content: space-between;
+  align-items: flex-end;
   border-bottom-right-radius: var(--ff-border-radius);
   border-bottom-left-radius: var(--ff-border-radius);
+}
+
+.footerCell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: 6px 20px 14px;
+}
+
+.footerCell.left {
+  align-items: flex-start;
 }
 
 #footerContainer.onSave {
@@ -369,30 +386,59 @@ input.textInput {
 }
 
 #feedback {
-  height: 20px;
+  height: 19px;
   width: calc(100% - 10px);
   text-align: center;
   padding: 12px 5px 12px;
   color: var(--ff-text-color);
 }
 
-#saveButton {
-  background-color: var(--ff-theme-color);
+.button {
   padding: 8px 24px;
   font-size: large;
   border-radius: var(--ff-border-radius);
   border: none;
   color: var(--ff-text-color);
-  transition: background 0.1s ease;
-  margin-bottom: 16px;
+  cursor: pointer;
+  transition: filter .3s ease;
 }
 
-#saveButton:hover {
-  background-color: #179685;
+.button:hover {
+  filter: brightness(0.8);
 }
 
-#saveButton:active {
-  background-color: var(--ff-theme-color-light);
+.button:active {
+  filter: brightness(1.2);
+}
+
+.button.small {
+  padding: 4px 16px;
+  font-size: smaller;
+}
+
+#saveButton {
+  background-color: var(--ff-theme-color);
+}
+
+#openOnTabButton {
+  background-color: var(--ff-blue);
+  display: none;
+}
+
+@media screen and (max-width: 500px) {
+  #openOnTabButton {
+    display: block;
+  }
+}
+
+#resetSettingsButton {
+  background-color: var(--ff-red);
+}
+
+@media screen and (max-width: 500px) {
+  #resetSettingsButton {
+    display: none;
+  }
 }
 
 #detailsContainer {
@@ -415,7 +461,7 @@ input.textInput {
   margin-left: 4px;
 }
 
-#ff_description {
+#extensionVersion {
   color: var(--ff-text-color-dark);
   font-size: small;
 }
