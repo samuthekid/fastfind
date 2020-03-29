@@ -17,8 +17,10 @@ const setFeedbackMsg = message => {
   feedbackMsg.innerText = message;
   setTimeout(() => {
     feedbackMsg.innerText = "";
+  }, 1000);
+  setTimeout(() => {
     footerContainer.classList.remove("onSave");
-  }, 3000);
+  }, 2000);
 };
 
 const initFFSettings = () => {

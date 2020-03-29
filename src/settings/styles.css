@@ -26,6 +26,8 @@ html {
 }
 
 body {
+  width: 100%;
+  height: 100vh;
   margin: 0;
   padding: 0;
   font-size: large;
@@ -42,8 +44,11 @@ body {
   body,
   html {
     width: 500px;
+    min-width: 500px;
+    max-width: 500px;
+    height: 600px;
     min-height: 600px;
-    height: 100vh;
+    max-height: 600px;
   }
 }
 
@@ -55,16 +60,12 @@ p {
 #mainContainer {
   width: 80vw;
   max-width: 900px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+  height: 100%;
 }
 
 @media screen and (max-width: 500px) {
   #mainContainer {
     width: 100%;
-    height: 100vh;
   }
 }
 
@@ -111,12 +112,18 @@ p {
 #mainContent {
   position: relative;
   width: 100%;
-  flex: 1;
+  height: calc(100% - 200px);
   display: flex;
   flex-direction: column;
   background-color: var(--ff-menu-background);
   border-radius: var(--ff-border-radius);
   box-shadow: 0px 0px 12px 1px rgba(0, 0, 0, 0.2);
+}
+
+@media screen and (max-width: 500px) {
+  #mainContent {
+    height: 100%;
+  }
 }
 
 .menuItem {
@@ -151,7 +158,7 @@ p {
 
 .tabWrapper:target {
   display: flex;
-  flex: 1;
+  height: calc(100% - 45px);
 }
 
 .tabWrapper::before {
@@ -161,6 +168,7 @@ p {
   top: 45px;
   height: 2px;
   background: var(--ff-theme-color);
+  z-index: 2;
 }
 
 @media screen and (max-width: 500px) {
@@ -191,14 +199,16 @@ p {
   align-items: center;
   justify-content: flex-start;
   overflow-y: auto;
-  height: calc(100vh - 400px);
+  height: calc(100% - 120px);
   padding: 10px 0;
 }
 
-@media screen and (max-width: 500px) {
-  .tab {
-    height: calc(100vh - 185px);
-  }
+.tab.screen {
+  height: calc(100% - 20px);
+  z-index: 1;
+  border-bottom-left-radius: var(--ff-border-radius);
+  border-bottom-right-radius: var(--ff-border-radius);
+  background: var(--ff-menu-background);
 }
 
 .tabHelper {
@@ -330,9 +340,12 @@ input.textInput {
 }
 
 #footerContainer {
-  padding: 20px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
   display: flex;
   flex-direction: column;
+  width: 100%;
   justify-content: center;
   align-items: center;
   border-bottom-right-radius: var(--ff-border-radius);
@@ -359,7 +372,7 @@ input.textInput {
   height: 20px;
   width: calc(100% - 10px);
   text-align: center;
-  padding: 0px 5px 20px;
+  padding: 12px 5px 12px;
   color: var(--ff-text-color);
 }
 
@@ -371,6 +384,7 @@ input.textInput {
   border: none;
   color: var(--ff-text-color);
   transition: background 0.1s ease;
+  margin-bottom: 16px;
 }
 
 #saveButton:hover {
@@ -383,9 +397,10 @@ input.textInput {
 
 #detailsContainer {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
-  padding-top: 20px;
+  padding: 10px;
+  height: 20px;
 }
 
 @media screen and (max-width: 500px) {
