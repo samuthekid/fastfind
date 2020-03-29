@@ -206,7 +206,7 @@ class FastFindWrapper extends HTMLElement {
               ? portion.classList.add("hovered")
               : portion.classList.remove("hovered")
           );
-        mapIndicator.style.backgroundColor = Utils.renderColor(color, 0.8);
+        mapIndicator.style.backgroundColor = Utils.renderColor(color, 0.9);
       });
       masterSelection.mapWrapper.classList.remove("master");
       masterSelection.mapWrapper.removeChild(

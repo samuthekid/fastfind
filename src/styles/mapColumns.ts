@@ -5,7 +5,7 @@ const mapColumns = `
 .selectionsMapWrapper .mapWrapper {
   position: absolute;
   right: 0px;
-  width: 14px;
+  width: 18px;
   height: 100vh;
   opacity: 0.6;
 }
@@ -46,9 +46,8 @@ const mapColumns = `
 .mapIndicator {
   position: absolute;
   right: 0px;
-  width: 10px;
+  width: 12px;
   height: 6px;
-  margin-left: 4px;
   box-shadow: 0px 0px 3px 0px rgba(0,0,0,0.8);
   border-radius: 1px;
   transition: var(--animation-settings);
@@ -59,27 +58,26 @@ const mapColumns = `
 
 .mapWrapper.selected .mapIndicator {
   border: solid 0.5px rgba(255,255,255,0.4);
-  width: 9px;
+  width: 11px;
   height: 5px;
 }
 
 .mapIndicator:hover,
 .mapIndicator.hovered {
   border: solid 0.5px rgba(255,255,255,0.4);
-  width: 14px;
-  margin-left: 0px;
+  width: 17px;
+  height: 5px;
 }
 
 .mapWrapper.selected .mapIndicator:hover,
 .mapWrapper.selected .mapIndicator.hovered {
-  width: 14px;
-  margin-left: 0px;
+  width: 17px;
+  height: 5px;
 }
 
 .mapWrapper.master .mapIndicator.selected,
 .mapWrapper.selected .mapIndicator.selected {
-  width: 18px;
-  margin-left: -4px;
+  width: 17px;
   z-index: 1;
 }
 
@@ -99,7 +97,7 @@ const mapColumns = `
 
 .mapLabel {
   visibility: hidden;
-  font-size: 11px;
+  font-size: 14px;
   font-family: monospace;
   color: rgba(255,255,255,0.7);
   padding-left: 0px;
@@ -107,12 +105,12 @@ const mapColumns = `
   padding-top: 50vh;
   margin-top: 14vh;
   height: 85vh;
-  width: 14px;
+  width: 18px;
   user-select: none;
   transform: rotate(180deg);
   box-sizing: content-box;
   text-align: left;
-  line-height: 14px;
+  line-height: 16px;
   writing-mode: vertical-rl;
   transition: var(--animation-settings);
 }

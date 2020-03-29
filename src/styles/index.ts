@@ -27,6 +27,10 @@ body {
   --master-orange: #FF9631;
 }
 
+body#ffbody {
+  -webkit-font-smoothing: antialiased;
+}
+
 @media print {
   body#ffbody {
     display: none !important;
