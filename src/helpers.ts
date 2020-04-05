@@ -11,6 +11,10 @@ export const entities = {
   settings: "settings"
 };
 
+export const eventBlocker = e => {
+  e.stopPropagation();
+};
+
 export const getPageHeight = () => {
   return Math.max(
     document.body.scrollHeight,

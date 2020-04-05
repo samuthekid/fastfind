@@ -17,6 +17,7 @@ body {
   --elem-radius: 2px;
   --elem-radius-selected: 3px;
 
+  --selected-animation-duration: 1s;
   --highlight-animation-duration: .3s;
   --highlight-animation-effect: cubic-bezier(.6, 0, .4, 1);
 

@@ -47,6 +47,7 @@ let masterCS: boolean = false;
 let masterWB: boolean = false;
 
 // Master Finder
+let oldQueryMasterFinder = '';
 let handleMasterFinderDebouncedRef = null;
 const masterFinder: HTMLElement = document.createElement("div");
 const masterFinderWrapper: HTMLElement = document.createElement("div");
@@ -83,18 +84,22 @@ class FastFindWrapper extends HTMLElement {
       const tempDiv = document.createElement("div");
       tempDiv.innerHTML = content;
       const textContent = tempDiv.textContent || tempDiv.innerText || "";
+
+      if (textContent === oldQueryMasterFinder) return;
       masterFinder.innerHTML = textContent;
 
       // Reapply cursor position or selection
-      const sel = window.getSelection();
-      const newRange = document.createRange();
-      newRange.setStart(
-        masterFinder.childNodes[masterFinder.childNodes.length - 1],
-        textContent.length
-      );
-      newRange.collapse(true);
-      sel.removeAllRanges();
-      sel.addRange(newRange);
+      if (textContent) {
+        const sel = window.getSelection();
+        const newRange = document.createRange();
+        newRange.setStart(
+          masterFinder.childNodes[masterFinder.childNodes.length - 1],
+          textContent.length
+        );
+        newRange.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(newRange);
+      }
       handleMasterFinderDebouncedRef();
     }
   };
@@ -105,8 +110,9 @@ class FastFindWrapper extends HTMLElement {
   };
 
   handleMasterFinderDebounced = () => {
-    const query = masterFinder.textContent;
-    if (!(query.length && query.trim().length)) return;
+    const query = masterFinder.textContent.trim();
+    if (oldQueryMasterFinder === query || query.length < 3) return;
+    oldQueryMasterFinder = query;
     this.createElement(query, null, masterCS, masterWB);
   };
 
@@ -233,28 +239,16 @@ class FastFindWrapper extends HTMLElement {
     });
   };
 
-  onKeyDown = (e: KeyboardEvent & { target: HTMLInputElement }) => {
-    if (
-      e.target !== FastFindWrapperElem &&
-      (e.target.contentEditable === "true" ||
-        e.target.tagName.toLowerCase() === "input" ||
-        e.target.tagName.toLowerCase() === "textarea")
-    )
-      return false;
+  onKeyDownMasterFinder = (e: KeyboardEvent & { target: HTMLInputElement }) => {
 
     const key = e.code.startsWith("Key")
       ? e.code.charAt(3).toLowerCase()
       : null;
-    const macOS = /(Mac)/i.test(navigator.platform);
-    const selection = window.getSelection();
-    let text = selection.toString();
 
     // MASTER FINDER IS ENABLED
     if (!masterFinderWrapper.classList.contains("disabled")) {
       if (e.key === "Escape") {
         // DISABLE MASTER FIND
-        e.preventDefault();
-        e.stopPropagation();
         window.getSelection().empty();
         this.removeMasterFinderHighlight();
         masterFinderWrapper.classList.add("disabled");
@@ -267,8 +261,6 @@ class FastFindWrapper extends HTMLElement {
         }, 100);
         return;
       } else if (e.key === "Enter") {
-        e.preventDefault();
-        e.stopPropagation();
         if (!masterSelection || !masterSelection.elements.length) return;
         if (e.ctrlKey || e.metaKey) {
           this.transformFFElement();
@@ -279,20 +271,36 @@ class FastFindWrapper extends HTMLElement {
         return;
       } else if (e.altKey && key == settings.caseSensitiveToggleKey) {
         // toggle MASTER case sensitive
-        e.preventDefault();
-        e.stopPropagation();
         masterCS = !masterCS;
         this.handleMasterFinder();
         return;
       } else if (e.altKey && key == settings.wordBordersToggleKey) {
         // toggle MASTER word bounds
-        e.preventDefault();
-        e.stopPropagation();
         masterWB = !masterWB;
         this.handleMasterFinder();
         return;
       }
+      Utils.eventBlocker(e);
     }
+  }
+
+  onKeyDown = (e: KeyboardEvent & { target: HTMLInputElement }) => {
+    if (
+      e.target !== FastFindWrapperElem &&
+      (e.target.contentEditable === "true" ||
+        e.target.tagName.toLowerCase() === "input" ||
+        e.target.tagName.toLowerCase() === "textarea")
+    )
+      return false;
+
+    this.onKeyDownMasterFinder(e);
+
+    const key = e.code.startsWith("Key")
+      ? e.code.charAt(3).toLowerCase()
+      : null;
+    const macOS = /(Mac)/i.test(navigator.platform);
+    const selection = window.getSelection();
+    let text = selection.toString();
 
     // MASTER FINDER IS DISABLED
     if (
@@ -335,7 +343,7 @@ class FastFindWrapper extends HTMLElement {
     // NORMAL KEYS
     if (key == settings.selectKey) {
       // something is selected
-      if (text && text.length && text.trim().length) {
+      if (text && text.trim().length) {
         // No support for multi-line for now...
         const paragraphIndex = text.indexOf("\n");
         if (paragraphIndex != -1) {
@@ -350,7 +358,7 @@ class FastFindWrapper extends HTMLElement {
 
         if (!e.shiftKey) {
           // F
-          this.createElement(text, selection, false, false);
+          this.createElement(text, selection, settings.forceCaseSensitive, settings.forceWordBorders);
         } else {
           // SHIFT F
           this.createElement(text, selection, true, true);
@@ -646,10 +654,8 @@ class FastFindWrapper extends HTMLElement {
       /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
       "\\$&"
     );
-    const wordBorders = forceWB || settings.forceWordBorders;
-    const wordBordersHandler = wordBorders ? "\\b" : "";
-    const caseSensitive = forceCS || settings.forceCaseSensitive;
-    const caseSensitiveHandler = caseSensitive ? "g" : "gi";
+    const wordBordersHandler = forceWB ? "\\b" : "";
+    const caseSensitiveHandler = forceCS ? "g" : "gi";
     try {
       regexFinder = RegExp(
         `${wordBordersHandler}${excapedText}${wordBordersHandler}`,
@@ -842,7 +848,7 @@ class FastFindWrapper extends HTMLElement {
       label.setAttribute("data-number", ` (${currentElements.length})`);
       label.setAttribute(
         "data-label",
-        `${text} ${wordBorders ? "|| " : ""}${caseSensitive ? "Aa" : ""}`
+        `${text} ${forceWB ? "|| " : ""}${forceCS ? "Aa" : ""}`
       );
 
       selections.push(currentSelection);
@@ -1031,6 +1037,9 @@ class FastFindWrapper extends HTMLElement {
     masterFinder.classList.add("masterFinder");
     masterFinder.setAttribute("contentEditable", "true");
     masterFinder.setAttribute("data-placeholder", "FAST FIND");
+    masterFinder.onkeypress = Utils.eventBlocker;
+    masterFinder.onkeyup = Utils.eventBlocker;
+    masterFinder.onkeydown = this.onKeyDownMasterFinder;
     handleMasterFinderDebouncedRef = debounce(
       this.handleMasterFinderDebounced,
       ONCHANGE_MASTERFINDER_DEBOUNCE_TIME
@@ -1123,11 +1132,11 @@ class FastFindWrapper extends HTMLElement {
     // Scroll
     selectionsMapScroll.classList.add("selectionsMapScroll");
 
+    const body = document.createElement("body");
+    body.setAttribute("id", "ffbody");
     // Add all to document body
     // Order is important !
     requestAnimationFrame(() => {
-      const body = document.createElement("body");
-      body.setAttribute("id", "ffbody");
       document.head.appendChild(bodyStyle);
       shadow.appendChild(elementStyle);
       shadow.appendChild(body);
