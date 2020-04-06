@@ -3,11 +3,11 @@ const masterFinder = `
 /* #################### MASTER FINDER #################### */
 
 .masterFinderWrapper {
-  display: grid;
+  display: flex;
   z-index: 1000000;
-  grid-template-columns: 10000fr fit-content(100vw) 10000fr;
   box-sizing: border-box;
-  align-self: center;
+  align-items: center;
+  justify-content: center;
   width: 100vw;
   position: fixed;
   top: 10px;
@@ -35,11 +35,13 @@ const masterFinder = `
   height: 44px;
   font-size: 28px;
   white-space: nowrap;
-  text-align: center;
   color: white;
   outline-width: 0;
   background: rgba(0,0,0,1.0);
-  padding: 6px 30px 18px 30px;
+  padding: 6px 18px 30px;
+  border: 0px;
+  border-bottom: solid 1px white;
+
   box-shadow: 14px 14px 12px 0px rgba(0,0,0,0.85);
   transition: var(--animation-settings);
   pointer-events: all;
@@ -59,18 +61,21 @@ const masterFinder = `
   animation: wrapperAnimationSleep 3s ease 2s 1 normal forwards;
 }
 
-.masterFinder:empty::before {
-  content: attr(data-placeholder);
-  color: rgba(255,255,255,0.2);
+.masterFinderWrapper.sleeping .masterFinder:focus {
+  animation: none;
 }
 
-.masterFinder::after {
+.masterFinderLabel {
+  position: relative;
+}
+
+.masterFinderLabel::after {
   content: attr(data-info);
   color: rgba(255,255,255,1.0);
-  font-size: 13px;
+  font-size: 12px;
   position: absolute;
-  bottom: -1px;
-  right: 3px;
+  bottom: 0px;
+  right: 4px;
 }
 
 @keyframes wrapperAnimation {
@@ -91,7 +96,7 @@ const masterFinder = `
     opacity: 1;
   }
   to {
-    opacity: 0.3;
+    opacity: 0.4;
   }
 }
 

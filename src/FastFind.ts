@@ -9,7 +9,7 @@ const FIXED_BUTTONS = false;
 let EXTENSION_LOADED = false;
 
 const SCROLL_THROTTLE_TIME = 10;
-const ONCHANGE_MASTERFINDER_DEBOUNCE_TIME = 200;
+const ONCHANGE_MASTERFINDER_DEBOUNCE_TIME = 300;
 
 const viewPortDelta = 20;
 let currentColor = 0;
@@ -47,9 +47,9 @@ let masterCS: boolean = false;
 let masterWB: boolean = false;
 
 // Master Finder
-let oldQueryMasterFinder = '';
 let handleMasterFinderDebouncedRef = null;
-const masterFinder: HTMLElement = document.createElement("div");
+const masterFinder: HTMLInputElement = document.createElement("input");
+const masterFinderLabel: HTMLLabelElement = document.createElement("label");
 const masterFinderWrapper: HTMLElement = document.createElement("div");
 
 // Repeat Logo
@@ -77,42 +77,14 @@ const selectionsButtonsPosition: HTMLElement = document.createElement("div");
 const buttonsPosition: HTMLElement = document.createElement("div");
 
 class FastFindWrapper extends HTMLElement {
-  handleMasterFinderChildList = () => {
-    if (masterFinder.childElementCount) {
-      // Remove html
-      const content = masterFinder.innerHTML;
-      const tempDiv = document.createElement("div");
-      tempDiv.innerHTML = content;
-      const textContent = tempDiv.textContent || tempDiv.innerText || "";
-
-      if (textContent === oldQueryMasterFinder) return;
-      masterFinder.innerHTML = textContent;
-
-      // Reapply cursor position or selection
-      if (textContent) {
-        const sel = window.getSelection();
-        const newRange = document.createRange();
-        newRange.setStart(
-          masterFinder.childNodes[masterFinder.childNodes.length - 1],
-          textContent.length
-        );
-        newRange.collapse(true);
-        sel.removeAllRanges();
-        sel.addRange(newRange);
-      }
-      handleMasterFinderDebouncedRef();
-    }
-  };
-
   handleMasterFinder = () => {
     this.removeMasterFinderHighlight();
     handleMasterFinderDebouncedRef();
   };
 
   handleMasterFinderDebounced = () => {
-    const query = masterFinder.textContent.trim();
-    if (oldQueryMasterFinder === query || query.length < 3) return;
-    oldQueryMasterFinder = query;
+    const query = masterFinder.value.trim();
+    if (query.length < 3) return;
     this.createElement(query, null, masterCS, masterWB);
   };
 
@@ -221,7 +193,7 @@ class FastFindWrapper extends HTMLElement {
       masterSelection.mapWrapper.appendChild(label);
       masterFinderWrapper.classList.add("disabled");
       masterFinderWrapper.classList.remove("noResults", "sleeping");
-      masterFinder.innerHTML = null;
+      masterFinder.value = '';
       setTimeout(() => {
         // @ts-ignore
         if (document.activeElement && document.activeElement.blur) {
@@ -240,7 +212,6 @@ class FastFindWrapper extends HTMLElement {
   };
 
   onKeyDownMasterFinder = (e: KeyboardEvent & { target: HTMLInputElement }) => {
-
     const key = e.code.startsWith("Key")
       ? e.code.charAt(3).toLowerCase()
       : null;
@@ -259,28 +230,28 @@ class FastFindWrapper extends HTMLElement {
             document.activeElement.blur();
           }
         }, 100);
-        return;
       } else if (e.key === "Enter") {
         if (!masterSelection || !masterSelection.elements.length) return;
         if (e.ctrlKey || e.metaKey) {
           this.transformFFElement();
+          Utils.eventBlocker(e);
           return;
         }
         if (!e.shiftKey) this.cycleThroughMasterElements(1, null);
         else this.cycleThroughMasterElements(-1, null);
-        return;
       } else if (e.altKey && key == settings.caseSensitiveToggleKey) {
         // toggle MASTER case sensitive
         masterCS = !masterCS;
+        e.preventDefault();
         this.handleMasterFinder();
-        return;
       } else if (e.altKey && key == settings.wordBordersToggleKey) {
         // toggle MASTER word bounds
         masterWB = !masterWB;
+        e.preventDefault();
         this.handleMasterFinder();
-        return;
       }
       Utils.eventBlocker(e);
+      return;
     }
   }
 
@@ -293,7 +264,8 @@ class FastFindWrapper extends HTMLElement {
     )
       return false;
 
-    this.onKeyDownMasterFinder(e);
+    if (!masterFinderWrapper.classList.contains("disabled"))
+      this.onKeyDownMasterFinder(e);
 
     const key = e.code.startsWith("Key")
       ? e.code.charAt(3).toLowerCase()
@@ -321,19 +293,7 @@ class FastFindWrapper extends HTMLElement {
         masterFinderWrapper.classList.remove("noAnim", "disabled");
         this.handleMasterFinderDebounced();
       }
-      setTimeout(() => {
-        masterFinder.focus();
-        setTimeout(() => {
-          const sel = window.getSelection();
-          if (masterFinder.firstChild)
-            sel.setBaseAndExtent(
-              masterFinder.firstChild,
-              masterFinder.firstChild.textContent.length,
-              masterFinder.firstChild,
-              0
-            );
-        }, 5);
-      }, 10);
+      masterFinder.select();
       return;
     }
 
@@ -963,7 +923,7 @@ class FastFindWrapper extends HTMLElement {
       (selElem === null || selElem === undefined ? 0 : selElem + 1) +
       " / " +
       totalElems;
-    masterFinder.setAttribute("data-info", value);
+    masterFinderLabel.setAttribute("data-info", value);
   };
 
   updateMasterFinderResultsPosition = () => {
@@ -1029,29 +989,22 @@ class FastFindWrapper extends HTMLElement {
     elementStyle.innerHTML = ffElementStyles;
 
     // Master Finder
-    masterFinderWrapper.classList.add(
-      "masterFinderWrapper",
-      "disabled",
-      "noAnim"
-    );
-    masterFinder.classList.add("masterFinder");
-    masterFinder.setAttribute("contentEditable", "true");
-    masterFinder.setAttribute("data-placeholder", "FAST FIND");
-    masterFinder.onkeypress = Utils.eventBlocker;
-    masterFinder.onkeyup = Utils.eventBlocker;
-    masterFinder.onkeydown = this.onKeyDownMasterFinder;
     handleMasterFinderDebouncedRef = debounce(
       this.handleMasterFinderDebounced,
       ONCHANGE_MASTERFINDER_DEBOUNCE_TIME
     );
-    const masterFinderObserver1 = new MutationObserver(this.handleMasterFinder);
-    const masterFinderObserver2 = new MutationObserver(
-      this.handleMasterFinderChildList
-    );
-    const config1 = { subtree: true, characterData: true };
-    const config2 = { childList: true };
-    masterFinderObserver1.observe(masterFinder, config1);
-    masterFinderObserver2.observe(masterFinder, config2);
+    masterFinderWrapper.classList.add(
+      "masterFinderWrapper",
+      "disabled",
+      "noAnim"
+      );
+    masterFinderLabel.classList.add("masterFinderLabel");
+    masterFinder.classList.add("masterFinder");
+    masterFinder.setAttribute("placeholder", "FAST FIND");
+    masterFinder.onkeypress = Utils.eventBlocker;
+    masterFinder.onkeyup = Utils.eventBlocker;
+    masterFinder.onkeydown = this.onKeyDownMasterFinder;
+    masterFinder.oninput = this.handleMasterFinder;
     masterFinder.onmouseover = masterFinder.onmouseout = (
       event: MouseEvent
     ) => {
@@ -1141,9 +1094,8 @@ class FastFindWrapper extends HTMLElement {
       shadow.appendChild(elementStyle);
       shadow.appendChild(body);
 
-      masterFinderWrapper.appendChild(document.createElement("div"));
-      masterFinderWrapper.appendChild(masterFinder);
-      masterFinderWrapper.appendChild(document.createElement("div"));
+      masterFinderLabel.appendChild(masterFinder);
+      masterFinderWrapper.appendChild(masterFinderLabel);
       body.appendChild(masterFinderWrapper);
 
       repeatLogoWrapper.appendChild(repeatLogo);
@@ -1211,7 +1163,6 @@ window.onload = () => {
         case set_settings:
           settings = data.payload;
           if (!EXTENSION_LOADED) {
-            // FastFindWrapperElem.setAttribute();
             FastFindWrapperElem = document.createElement("fast-find-wrapper");
             document.body.appendChild(FastFindWrapperElem);
           }
