@@ -1029,16 +1029,16 @@ class FastFindWrapper extends HTMLElement {
     // Debug
     if (FIXED_BUTTONS) selectionsMapWrapper.classList.add("fixedButtons");
 
-    if (!settings.showSideMap) selectionsMapWrapper.classList.add("hidden");
-    if (!settings.showMapLabels) selectionsMapWrapper.classList.add("noLabels");
-    if (!settings.showNumberOfResults)
+    if (!settings?.showSideMap) selectionsMapWrapper.classList.add("hidden");
+    if (!settings?.showMapLabels) selectionsMapWrapper.classList.add("noLabels");
+    if (!settings?.showNumberOfResults)
       selectionsMapWrapper.classList.add("noNumbers");
-    if (settings.opaqueSideMap) selectionsMapWrapper.classList.add("opaque");
-    if (settings.mapButtonsOnTop)
+    if (settings?.opaqueSideMap) selectionsMapWrapper.classList.add("opaque");
+    if (settings?.mapButtonsOnTop)
       selectionsMapWrapper.classList.add("buttonsOnTop");
-    if (settings.lightThemeSideMap)
+    if (settings?.lightThemeSideMap)
       selectionsMapWrapper.classList.add("lightTheme");
-    if (settings.autoExpandSideMap) selectionsMapWrapper.classList.add("fixed");
+    if (settings?.autoExpandSideMap) selectionsMapWrapper.classList.add("fixed");
 
     // Pin Button
     selectionsMapPin.classList.add("selectionsMapButton", "selectionsMapPin");
